@@ -1,0 +1,48 @@
+{
+  "name": "dapps",
+  "version": "0.4.14",
+  "private": true,
+  "description": "zama-dapps",
+  "keywords": [
+    "gatsby"
+  ],
+  "author": "Zama",
+  "scripts": {
+    "build": "cross-env GATSBY_TELEMETRY_DISABLED=1 NODE_ENV=production gatsby build",
+    "clean": "gatsby clean",
+    "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "lint:eslint": "eslint . --cache --ext js,ts",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' --ignore-path .gitignore",
+    "start": "cross-env GATSBY_TELEMETRY_DISABLED=1 NODE_ENV=development gatsby develop"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@mui/material": "^5.11.13",
+    "dayjs": "^1.11.7",
+    "ethers": "^5.7.2",
+    "gatsby": "^5.5.0",
+    "gatsby-plugin-emotion": "^8.7.0",
+    "gatsby-plugin-postcss": "^6.7.0",
+    "postcss": "^8.4.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.2",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jest": "^27.2.1",
+    "eslint-plugin-jsdoc": "^39.8.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.3",
+    "typescript": "^4.9.5"
+  }
+}

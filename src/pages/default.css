@@ -1,0 +1,17 @@
+body {
+  background: #ffcb00;
+  color: #000;
+  font-family: -apple-system, Roboto, sans-serif, serif;
+}
+
+.Main {
+  padding: 30px;
+}
+
+a {
+  color: #dda900;
+}
+
+a:hover {
+  color: #ffcb00;
+}

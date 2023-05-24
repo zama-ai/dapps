@@ -1,0 +1,15 @@
+.ContractAddress__content {
+  display: flex;
+  align-items: center;
+}
+
+.ContractAddress label {
+  white-space: nowrap;
+  padding-right: 20px;
+}
+.ContractAddress > div {
+  max-width: 560px;
+}
+.ContractAddress button {
+  margin-left: 20px;
+}

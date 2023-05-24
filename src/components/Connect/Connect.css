@@ -1,0 +1,5 @@
+.Connect__account {
+  max-width: 30%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
