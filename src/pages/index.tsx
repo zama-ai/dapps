@@ -8,7 +8,7 @@ import { Title } from '../components/Title';
 import './default.css';
 import './index.css';
 
-const NotFoundPage: React.FC<PageProps> = () => {
+const Index: React.FC<PageProps> = () => {
   return (
     <ThemeProvider theme={theme}>
       <main className="Main">
@@ -34,6 +34,6 @@ const NotFoundPage: React.FC<PageProps> = () => {
   );
 };
 
-export default NotFoundPage;
+export default Index;
 
 export const Head: HeadFC = () => <title>Zama dApps</title>;
