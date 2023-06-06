@@ -18,10 +18,13 @@ const NotFoundPage: React.FC<PageProps> = () => {
           <CardContent>
             <ul className="links">
               <li>
-                <Link to="/erc20/">ERC20 Explorer</Link>
+                <Link to="/eip712/">EIP712</Link>
               </li>
               <li>
-                <Link to="/blind-auction/">Blind auction</Link>
+                <Link to="/erc20/">ERC20 Explorer (not working)</Link>
+              </li>
+              <li>
+                <Link to="/blind-auction/">Blind auction (not working)</Link>
               </li>
             </ul>
           </CardContent>
