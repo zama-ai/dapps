@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { HeadFC, PageProps } from 'gatsby';
+import { HeadFC, PageProps, Script } from 'gatsby';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../theme';
 import { ContractAddress } from '../../components/ContractAddress';
@@ -21,21 +21,13 @@ const IndexPage: React.FC<PageProps> = () => {
 
   return (
     <ThemeProvider theme={theme}>
+      <Script src="/static/zamaweb3.min.js" />
       <main className="Main">
         <Connect key={contractAddress} back title="ERC20 Explorer">
           {(account, provider) => (
             <>
-              <ContractAddress
-                title="Token Address"
-                onConfirm={setContractAddress}
-                storageKey="erc20"
-              />
-              <Token
-                account={account}
-                provider={provider}
-                contractAddress={contractAddress}
-                abi={abi}
-              />
+              <ContractAddress title="Token Address" onConfirm={setContractAddress} storageKey="erc20" />
+              <Token account={account} provider={provider} contractAddress={contractAddress} abi={abi} />
             </>
           )}
         </Connect>

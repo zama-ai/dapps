@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// import { generateToken } from '@zamafhe/web-sdk';
 import { Contract } from 'ethers';
 import {
   Button,
@@ -55,7 +54,7 @@ export const TokenInfo: React.FC<{
   const mint = async () => {
     try {
       setLoading('Encrypting "7" and generating ZK proof...');
-      const encrypted7 = await encrypt(provider, 7);
+      const encrypted7 = await encrypt(7);
       setLoading('Sending transaction...');
       const transaction = await contract.mint(encrypted7);
       setLoading('Waiting for transaction validation...');

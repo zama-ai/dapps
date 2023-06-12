@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, HeadFC, PageProps } from 'gatsby';
+import { Link, HeadFC, PageProps, Script } from 'gatsby';
 import { ThemeProvider } from '@mui/material/styles';
 import { Card, CardContent, CardHeader } from '@mui/material';
 import { theme } from '../theme';

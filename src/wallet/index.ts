@@ -1,12 +1,27 @@
+import type { ZamaWeb3Instance } from 'zama-web3';
 import { SNAP_ORIGIN } from './constants';
 
-export const encrypt = async (provider: any, value: number) => {
-  return provider.send('wallet_invokeSnap', {
-    snapId: SNAP_ORIGIN,
-    request: {
-      method: 'zama_encryptWithPublicKey',
-      params: [value],
-    },
+let instance: ZamaWeb3Instance;
+
+const init = async () => {
+  if (!instance) {
+    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainId = parseInt(chainIdHex, 16);
+    await window.zamaWeb3.initZamaWeb3();
+    const { publicKey } = window.zamaWeb3.createTFHEKey();
+    instance = window.zamaWeb3.createInstance({ chainId, publicKey });
+  }
+};
+
+export const encrypt = async (value: number) => {
+  await init();
+  return instance.encryptInteger(value);
+};
+
+export const generateToken = async (verifyingContract: string) => {
+  await init();
+  return instance.generateToken({
+    verifyingContract,
   });
 };
 
@@ -18,7 +33,7 @@ export const callAndDecrypt = async (
     address: string;
     method: string;
     params?: any;
-  },
+  }
 ) =>
   provider.send('wallet_invokeSnap', {
     snapId: SNAP_ORIGIN,
