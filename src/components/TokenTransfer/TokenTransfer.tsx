@@ -12,7 +12,7 @@ import {
   TextField,
 } from '@mui/material';
 import { Loader } from '../Loader';
-import { encrypt } from '../../wallet';
+import { getInstance } from '../../wallet';
 
 export const TokenTransfer: React.FC<{
   contract: Contract;
@@ -25,22 +25,14 @@ export const TokenTransfer: React.FC<{
 
   const transfer = async () => {
     try {
-      if (
-        !amount ||
-        Number.isNaN(Number(amount)) ||
-        Number(amount) > 7 ||
-        Number(amount) <= 0
-      ) {
+      if (!amount || Number.isNaN(Number(amount)) || Number(amount) > 7 || Number(amount) <= 0) {
         setDialog('Amount must be between 1 and 3.');
         return;
       }
       setLoading(`Encrypting "${Number(amount)}" and generating ZK proof...`);
-      const encryptedAmount = await encrypt(provider, Number(amount));
+      const encryptedAmount = await getInstance().encrypt8(Number(amount));
       setLoading('Sending transaction...');
-      const transaction = await contract['transfer(address,bytes)'](
-        address,
-        encryptedAmount,
-      );
+      const transaction = await contract['transfer(address,bytes)'](address, encryptedAmount);
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');

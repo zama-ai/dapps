@@ -1,28 +1,28 @@
-import React, { useMemo, useState } from 'react';
-import { Contract, ethers } from 'ethers';
+import React, { useEffect, useState } from 'react';
+import { Contract, BrowserProvider, isAddress } from 'ethers';
 import { Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 import { Loader } from '../Loader';
-import { generateToken } from '../../wallet';
+import { getTokenSignature } from '../../wallet';
 
 export const EIP712: React.FC<{
   account: string;
-  provider: ethers.providers.Web3Provider;
+  provider: BrowserProvider;
   contractAddress: string;
   abi: any;
 }> = ({ account, provider, contractAddress, abi }) => {
-  const [loading, setLoading] = useState<string>('');
-  const [privateKey, setPrivateKey] = useState<string>('');
+  const [loading, setLoading] = useState('');
+  const [verified, setVerified] = useState<boolean>(false);
+  const [contract, setContract] = useState<Contract | null>();
 
-  const contract = useMemo<Contract | null>(() => {
-    if (!contractAddress || !abi || !provider || !ethers.utils.isAddress(contractAddress)) {
-      return null;
+  useEffect(() => {
+    if (!contractAddress || !abi || !provider || !isAddress(contractAddress)) {
+      return;
     }
-
-    try {
-      return new ethers.Contract(contractAddress, abi, provider.getSigner());
-    } catch (e) {
-      return null;
-    }
+    provider.getSigner().then((signer) => {
+      try {
+        setContract(new Contract(contractAddress, abi, signer));
+      } catch (e) {}
+    });
   }, [abi, contractAddress, provider]);
 
   if (!contract) {
@@ -30,14 +30,12 @@ export const EIP712: React.FC<{
   }
 
   const verifyToken = async () => {
-    setPrivateKey('');
-    const token = await generateToken(contractAddress);
-    const params = [await provider.getSigner().getAddress(), JSON.stringify(token.eip712)];
-    const sign: string = await window.ethereum.request({ method: 'eth_signTypedData_v4', params });
-    const response = await contract.verify(token.keypair.publicKey, sign);
-    if (response) {
-      setPrivateKey(token.keypair.privateKey);
-    }
+    setVerified(false);
+
+    const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+    await contract.verify(publicKey, signature);
+    setVerified(true);
+    setLoading('');
   };
 
   return (
@@ -45,13 +43,7 @@ export const EIP712: React.FC<{
       <div>
         <Card>
           <CardHeader title="Authorization token" />
-          <CardContent>
-            {privateKey && (
-              <>
-                You can use the private key {privateKey} to reencrypt data on contract {contractAddress}
-              </>
-            )}
-          </CardContent>
+          <CardContent>{verified && <>You can use now reencrypt data on contract {contractAddress}</>}</CardContent>
           <CardActions>
             {!loading && <Button onClick={verifyToken}>Validate authorization token</Button>}
             <Loader message={loading} />

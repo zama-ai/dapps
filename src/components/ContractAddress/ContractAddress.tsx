@@ -1,12 +1,6 @@
 import React, { ChangeEventHandler, SetStateAction, useEffect } from 'react';
-import { ethers } from 'ethers';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  TextField,
-  Button,
-} from '@mui/material';
+import { isAddress } from 'ethers';
+import { Card, CardContent, CardHeader, TextField, Button } from '@mui/material';
 
 import './ContractAddress.css';
 
@@ -29,7 +23,7 @@ export const ContractAddress: React.FC<{
   };
 
   const handleConfirm = () => {
-    if (!inputAddress || ethers.utils.isAddress(inputAddress)) {
+    if (!inputAddress || isAddress(inputAddress)) {
       localStorage.setItem(storageKey, inputAddress);
       onConfirm(inputAddress);
     }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Contract } from 'ethers';
+import { BrowserProvider, Contract } from 'ethers';
 import {
   Button,
   Card,
@@ -12,7 +12,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import { Loader } from '../Loader';
-import { encrypt, callAndDecrypt } from '../../wallet';
+import { getInstance, getTokenSignature } from '../../wallet';
 
 export const Bid: React.FC<{
   abi: any;
@@ -20,9 +20,10 @@ export const Bid: React.FC<{
   claimed: boolean;
   contract: Contract;
   erc20Contract: Contract;
+  provider: BrowserProvider;
   stopped: boolean;
   onClaim: () => void;
-}> = ({ abi, account, claimed, contract, erc20Contract, stopped, onClaim }) => {
+}> = ({ abi, account, claimed, contract, erc20Contract, provider, stopped, onClaim }) => {
   const [currentBid, setCurrentBid] = useState('');
   const [symbol, setSymbol] = useState('');
   const [highestBid, setHighestBid] = useState<boolean | null>(null);
@@ -35,13 +36,12 @@ export const Bid: React.FC<{
 
   const getCurrentBid = async () => {
     try {
-      const bid: string = await callAndDecrypt(contract.provider, {
-        account,
-        abi,
-        address: contract.address,
-        method: 'getBid',
-      });
-      setCurrentBid(bid);
+      const contractAddress = await contract.getAddress();
+      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const encryptedBid = await contract.getBid(publicKey, signature);
+      const bid = await getInstance().decrypt(contractAddress, encryptedBid);
+
+      setCurrentBid(`${bid}`);
     } catch (e) {
       console.log(e);
     }
@@ -53,22 +53,19 @@ export const Bid: React.FC<{
         return;
       }
       setLoading(`Encrypting "${value}" and generating ZK proof...`);
-      const encryptedErc20Value = await encrypt(erc20Contract.provider, value);
+      const encryptedErc20Value = getInstance().encrypt32(value);
       setLoading('Sending ERC20 approve transaction');
-      const erc20Transaction = await erc20Contract.approve(
-        contract.address,
-        encryptedErc20Value,
-      );
+      const erc20Transaction = await erc20Contract.approve(await contract.getAddress(), encryptedErc20Value);
       setLoading('Waiting for ERC20 approve transaction validation...');
-      await erc20Contract.provider.waitForTransaction(erc20Transaction.hash);
+      await provider.waitForTransaction(erc20Transaction.hash);
 
       setLoading(`Encrypting "${value}" and generating ZK proof...`);
-      const encryptedValue = await encrypt(contract.provider, value);
+      const encryptedValue = getInstance().encrypt32(value);
       setLoading('Sending bid transaction...');
 
       const transaction = await contract.bid(encryptedValue);
       setLoading('Waiting for bid transaction validation...');
-      await contract.provider.waitForTransaction(transaction.hash);
+      await provider.waitForTransaction(transaction.hash);
       setLoading('');
       setDialog(`You bid ${value} token${value > 1 ? 's' : ''}!`);
     } catch (e) {
@@ -83,13 +80,11 @@ export const Bid: React.FC<{
         return;
       }
       setLoading('Decrypting do I have highest bid...');
-      const hb: string = await callAndDecrypt(contract.provider, {
-        account,
-        abi,
-        address: contract.address,
-        method: 'doIHaveHighestBid',
-      });
-      setHighestBid(Boolean(parseInt(hb, 2)));
+      const contractAddress = await contract.getAddress();
+      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const ciphertext = await contract.doIHaveHighestBid(publicKey, signature);
+      const hb = await getInstance().decrypt(contractAddress, ciphertext);
+      setHighestBid(Boolean(hb));
       setLoading('');
     } catch (e) {
       setLoading('');
@@ -105,7 +100,7 @@ export const Bid: React.FC<{
       setLoading('Sending transaction...');
       const transaction = await contract.claim();
       setLoading('Waiting for transaction validation...');
-      await contract.provider.waitForTransaction(transaction.hash);
+      await provider.waitForTransaction(transaction.hash);
       setLoading('');
       setDialog('You claimed successfully!');
       onClaim();
@@ -122,7 +117,7 @@ export const Bid: React.FC<{
       setLoading('Sending transaction...');
       const transaction = await contract.withdraw();
       setLoading('Waiting for transaction validation...');
-      await contract.provider.waitForTransaction(transaction.hash);
+      await provider.waitForTransaction(transaction.hash);
       setLoading('');
       setDialog('You withdrawed successfully!');
     } catch (e) {
@@ -144,9 +139,7 @@ export const Bid: React.FC<{
       <Card>
         <CardHeader title="My Bid" />
         <CardContent>
-          {stopped && (
-            <ListItemText primary="Highest bid" secondary={yesno(highestBid)} />
-          )}
+          {stopped && <ListItemText primary="Highest bid" secondary={yesno(highestBid)} />}
           {
             <ListItemText
               primary="Your current bid"
@@ -155,29 +148,13 @@ export const Bid: React.FC<{
           }
         </CardContent>
         <CardActions>
-          {!loading && (
-            <Button onClick={getCurrentBid}>Get my current bid</Button>
-          )}
-          {!stopped && !loading && (
-            <Button onClick={() => bid(1)}>Bid 1 token</Button>
-          )}
-          {!stopped && !loading && (
-            <Button onClick={() => bid(2)}>Bid 2 tokens</Button>
-          )}
-          {!stopped && !loading && (
-            <Button onClick={() => bid(3)}>Bid 3 tokens</Button>
-          )}
-          {stopped && !loading && (
-            <Button onClick={doIHaveHighestBid}>
-              Do I have the highest bid?
-            </Button>
-          )}
-          {stopped && !claimed && highestBid && !loading && (
-            <Button onClick={claim}>Claim</Button>
-          )}
-          {stopped && !highestBid && !loading && (
-            <Button onClick={withdraw}>Withdraw</Button>
-          )}
+          {!loading && <Button onClick={getCurrentBid}>Get my current bid</Button>}
+          {!stopped && !loading && <Button onClick={() => bid(1)}>Bid 1 token</Button>}
+          {!stopped && !loading && <Button onClick={() => bid(2)}>Bid 2 tokens</Button>}
+          {!stopped && !loading && <Button onClick={() => bid(3)}>Bid 3 tokens</Button>}
+          {stopped && !loading && <Button onClick={doIHaveHighestBid}>Do I have the highest bid?</Button>}
+          {stopped && !claimed && highestBid && !loading && <Button onClick={claim}>Claim</Button>}
+          {stopped && !highestBid && !loading && <Button onClick={withdraw}>Withdraw</Button>}
           <Loader message={loading} />
         </CardActions>
       </Card>

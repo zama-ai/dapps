@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Contract, ethers } from 'ethers';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Contract, ethers, BrowserProvider, isAddress } from 'ethers';
 import { Line } from '../Line';
 import { TokenInfo } from '../TokenInfo';
 import { TokenBalance } from '../TokenBalance';
@@ -9,25 +9,19 @@ import { TokenTransfer } from '../TokenTransfer';
 
 export const Token: React.FC<{
   account: string;
-  provider: ethers.providers.Web3Provider;
+  provider: BrowserProvider;
   contractAddress: string;
   abi: any;
 }> = ({ account, provider, contractAddress, abi }) => {
-  const contract = useMemo<Contract | null>(() => {
-    if (
-      !contractAddress ||
-      !abi ||
-      !provider ||
-      !ethers.utils.isAddress(contractAddress)
-    ) {
-      return null;
+  const [contract, setContract] = useState<Contract>();
+  useEffect(() => {
+    if (!contractAddress || !abi || !provider || !isAddress(contractAddress)) {
+      return;
     }
-
-    try {
-      return new ethers.Contract(contractAddress, abi, provider.getSigner());
-    } catch (e) {
-      return null;
-    }
+    provider.getSigner().then((signer) => {
+      const c = new Contract(contractAddress, abi, signer);
+      setContract(c);
+    });
   }, [abi, contractAddress, provider]);
 
   if (!contract) {
@@ -37,18 +31,8 @@ export const Token: React.FC<{
   return (
     <div className="Token">
       <Line>
-        <TokenInfo
-          abi={abi}
-          account={account}
-          contract={contract}
-          provider={provider}
-        />
-        <TokenBalance
-          account={account}
-          contract={contract}
-          provider={provider}
-          abi={abi}
-        />
+        <TokenInfo abi={abi} account={account} contract={contract} provider={provider} />
+        <TokenBalance account={account} contract={contract} provider={provider} abi={abi} />
       </Line>
       <Line>
         <TokenTransfer contract={contract} provider={provider} />

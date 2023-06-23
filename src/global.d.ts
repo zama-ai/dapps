@@ -1,4 +1,4 @@
-import type { initZamaWeb3, createInstance, createTFHEKey } from 'zama-web3/lib/web';
+import type { initFhevm, createInstance, createTFHEKey } from 'fhevmjs/lib/web';
 /* eslint-disable */
 
 declare module '*.png' {
@@ -8,8 +8,8 @@ declare module '*.png' {
 
 declare global {
   interface Window {
-    zamaWeb3: {
-      initZamaWeb3: typeof initZamaWeb3;
+    fhevm: {
+      initFhevm: typeof initFhevm;
       createInstance: typeof createInstance;
       createTFHEKey: typeof createTFHEKey;
     };

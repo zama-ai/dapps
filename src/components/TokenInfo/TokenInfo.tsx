@@ -12,7 +12,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import { Loader } from '../Loader';
-import { callAndDecrypt, encrypt } from '../../wallet';
+import { getInstance, getTokenSignature } from '../../wallet';
 
 const NO_SUPPLY = 'NO_SUPPLY';
 
@@ -25,27 +25,15 @@ export const TokenInfo: React.FC<{
   const [name, setName] = useState('');
   const [decimals, setDecimals] = useState('');
   const [symbol, setSymbol] = useState('');
-  const [encryptedTotalSupply, setEncryptedTotalSupply] = useState('');
-  const [decryptedTotalSupply, setDecryptedTotalSupply] = useState('');
+  const [totalSupply, setTotalSupply] = useState<number | null>(null);
   const [loading, setLoading] = useState<string>('');
   const [dialog, setDialog] = useState('');
-
-  const refreshTotalSupply = async () => {
-    const data = await contract.totalSupply();
-    setDecryptedTotalSupply('');
-    if (data.toString() === '0') {
-      setEncryptedTotalSupply(NO_SUPPLY);
-    } else {
-      setEncryptedTotalSupply(`${data.toHexString().substring(0, 40)}...`);
-    }
-  };
 
   useEffect(() => {
     try {
       contract.name().then(setName);
       contract.decimals().then(setDecimals);
       contract.symbol().then(setSymbol);
-      refreshTotalSupply();
     } catch (e) {
       console.log(e);
     }
@@ -54,35 +42,29 @@ export const TokenInfo: React.FC<{
   const mint = async () => {
     try {
       setLoading('Encrypting "7" and generating ZK proof...');
-      const encrypted7 = await encrypt(7);
+      const encrypted7 = getInstance().encrypt32(7);
+      console.log('wtf');
       setLoading('Sending transaction...');
       const transaction = await contract.mint(encrypted7);
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
-      refreshTotalSupply();
       setDialog('The contract has been minted!');
     } catch (e) {
+      console.log(e);
       setLoading('');
     }
   };
 
   const reencrypt = async () => {
     try {
+      const contractAddress = await contract.getAddress();
       setLoading('Decrypting total supply...');
-      // const token = await generateToken({
-      //   verifyingContract: '0xA0EcE74981AF3eD84D4659fe1F469E7c47e5Ed33',
-      // });
-      // const signedToken = await provider.signMessage(token.message);
-
-      // const totalSup = await contract.getTotalSupply(token.message);
-      const totalSup = await callAndDecrypt(provider, {
-        account,
-        abi,
-        address: contract.address,
-        method: 'getTotalSupply',
-      });
-      setDecryptedTotalSupply(totalSup);
+      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const ciphertext = await contract.getTotalSupply(publicKey, signature);
+      console.log(ciphertext);
+      const totalSup = await getInstance().decrypt(contractAddress, ciphertext);
+      setTotalSupply(totalSup);
       setLoading('');
     } catch (e) {
       setLoading('');
@@ -98,19 +80,12 @@ export const TokenInfo: React.FC<{
         <CardHeader title={name} />
         <CardContent>
           <ListItemText primary={`Symbol ${symbol}`} secondary={`Decimals ${decimals}`} />
-          {!decryptedTotalSupply && (
-            <ListItemText
-              primary="Total supply"
-              secondary={encryptedTotalSupply === NO_SUPPLY ? 'No supply' : encryptedTotalSupply}
-            />
-          )}
-          {decryptedTotalSupply && (
-            <ListItemText primary="Total supply" secondary={`${decryptedTotalSupply} ${symbol}`} />
-          )}
+          {!totalSupply && <ListItemText primary="Total supply" secondary="" />}
+          {totalSupply && <ListItemText primary="Total supply" secondary={`${totalSupply} ${symbol}`} />}
         </CardContent>
         <CardActions>
           {!loading && <Button onClick={mint}>Mint 7 tokens</Button>}
-          {!loading && encryptedTotalSupply !== NO_SUPPLY && <Button onClick={reencrypt}>Total supply</Button>}
+          {!loading && <Button onClick={reencrypt}>Total supply</Button>}
           <Loader message={loading} />
         </CardActions>
       </Card>

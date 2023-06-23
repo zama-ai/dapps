@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Contract } from 'ethers';
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  ListItemText,
-} from '@mui/material';
+import { Button, Card, CardActions, CardContent, CardHeader, ListItemText } from '@mui/material';
 import { Loader } from '../Loader';
-import { callAndDecrypt } from '../../wallet';
+import { getInstance, getTokenSignature } from '../../wallet';
 
 export const TokenBalance: React.FC<{
   abi: any;
@@ -17,13 +10,13 @@ export const TokenBalance: React.FC<{
   contract: Contract;
   provider: any;
 }> = ({ abi, account, contract, provider }) => {
-  const [decryptedBalance, setDecryptedBalance] = useState('');
+  const [decryptedBalance, setDecryptedBalance] = useState<number | null>(null);
   const [symbol, setSymbol] = useState('');
   const [loading, setLoading] = useState('');
 
   useEffect(() => {
     try {
-      setDecryptedBalance('');
+      setDecryptedBalance(null);
     } catch (e) {
       console.log(e);
     }
@@ -39,13 +32,11 @@ export const TokenBalance: React.FC<{
 
   const reencrypt = async () => {
     try {
+      const contractAddress = await contract.getAddress();
       setLoading('Decrypting your balance...');
-      const balance = await callAndDecrypt(provider, {
-        account,
-        abi,
-        address: contract.address,
-        method: 'balanceOf',
-      });
+      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const ciphertext = await contract.balanceOf(publicKey, signature);
+      const balance = await getInstance().decrypt(contractAddress, ciphertext);
       setDecryptedBalance(balance);
       setLoading('');
     } catch (e) {
@@ -58,18 +49,12 @@ export const TokenBalance: React.FC<{
     <Card>
       <CardHeader title="Your balance" />
       <CardContent>
-        {decryptedBalance && (
-          <ListItemText primary={`${decryptedBalance} ${symbol}`} />
-        )}
+        {decryptedBalance && <ListItemText primary={`${decryptedBalance} ${symbol}`} />}
         {!decryptedBalance && `- ${symbol}`}
       </CardContent>
 
       <CardActions>
-        {!loading && (
-          <Button onClick={reencrypt}>
-            {decryptedBalance ? 'Refresh' : 'Get balance'}
-          </Button>
-        )}
+        {!loading && <Button onClick={reencrypt}>{decryptedBalance ? 'Refresh' : 'Get balance'}</Button>}
         <Loader message={loading} />
       </CardActions>
     </Card>

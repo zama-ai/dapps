@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { HeadFC, PageProps, Script } from 'gatsby';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from '../../theme';
+import { HeadFC, PageProps } from 'gatsby';
 import { ContractAddress } from '../../components/ContractAddress';
 import { Connect } from '../../components/Connect';
 import { Auctions } from '../../components/Auctions';
+import { withTheme } from '../../withTheme';
 
 import abi from '../../abi/blindAuctionAbi.json';
 import erc20Abi from '../../abi/erc20Abi.json';
 
 import '../default.css';
 
-const IndexPage: React.FC<PageProps> = () => {
+const IndexPage: React.FC<PageProps> = withTheme(() => {
   const [contractAddress, setContractAddress] = useState('');
 
   useEffect(() => {
@@ -22,27 +21,24 @@ const IndexPage: React.FC<PageProps> = () => {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <Script src="/static/zamaweb3.min.js" />
-      <main className="Main">
-        <Connect key={contractAddress} back title="Blind auction">
-          {(account, provider) => (
-            <>
-              <ContractAddress title="Blind auction address" onConfirm={setContractAddress} storageKey="blindAuction" />
-              <Auctions
-                provider={provider}
-                account={account}
-                abi={abi}
-                erc20Abi={erc20Abi}
-                contractAddress={contractAddress}
-              />
-            </>
-          )}
-        </Connect>
-      </main>
-    </ThemeProvider>
+    <main className="Main">
+      <Connect key={contractAddress} back title="Blind auction">
+        {(account, provider) => (
+          <>
+            <ContractAddress title="Blind auction address" onConfirm={setContractAddress} storageKey="blindAuction" />
+            <Auctions
+              provider={provider}
+              account={account}
+              abi={abi}
+              erc20Abi={erc20Abi}
+              contractAddress={contractAddress}
+            />
+          </>
+        )}
+      </Connect>
+    </main>
   );
-};
+});
 
 export default IndexPage;
 

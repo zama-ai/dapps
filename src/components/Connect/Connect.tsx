@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardContent } from '@mui/material';
-import { ethers } from 'ethers';
+import { BrowserProvider } from 'ethers';
 import { Link } from 'gatsby';
 
 import './Connect.css';
@@ -29,14 +29,15 @@ export const Connect: React.FC<{
   };
 
   useEffect(() => {
-    if (!global.ethereum) {
+    const eth = (global as any).ethereum;
+    if (!eth) {
       setError('No wallet has been found');
       return;
     }
-    const p = new ethers.providers.Web3Provider(global.ethereum);
+    const p = new BrowserProvider(eth);
     setProvider(p);
     p.send('eth_accounts', []).then(refreshAccounts);
-    global.ethereum.on('accountsChanged', refreshAccounts);
+    eth.on('accountsChanged', refreshAccounts);
   }, []);
 
   const connect = async () => {
