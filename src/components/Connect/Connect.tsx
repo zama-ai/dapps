@@ -41,7 +41,7 @@ export const Connect: React.FC<{
     const publicKey = await provider.call({ from: null, to: '0x0000000000000000000000000000000000000044' });
     const chainId = parseInt(chainIdHex, 16);
     if (chainId !== 9000) throw new Error('Invalid port');
-    return window.fhevm.createInstance({ chainId, publicKey: publicKey.substring(2) });
+    return window.fhevm.createInstance({ chainId, publicKey });
   };
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export const Connect: React.FC<{
       refreshNetwork();
     });
     eth.on('accountsChanged', refreshAccounts);
-    eth.on('networkChanged', refreshNetwork);
+    eth.on('chainChanged', refreshNetwork);
   }, []);
 
   const connect = async () => {
