@@ -5,13 +5,12 @@ let instance: FhevmInstance;
 
 export const init = async () => {
   if (!instance) {
-    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
-    const provider = new BrowserProvider((global as any).ethereum);
-    const publicKey = await provider.call({ from: null, to: '0x0000000000000000000000000000000000000044' });
-    const chainId = parseInt(chainIdHex, 16);
     await window.fhevm.initFhevm();
-    instance = window.fhevm.createInstance({ chainId, publicKey: publicKey.substring(2) });
   }
+};
+
+export const setInstance = (fhevmInstance: FhevmInstance) => {
+  instance = fhevmInstance;
 };
 
 export const getInstance = () => {

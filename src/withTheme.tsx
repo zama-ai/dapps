@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import { Script, withPrefix } from 'gatsby';

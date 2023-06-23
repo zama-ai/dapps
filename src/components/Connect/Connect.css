@@ -3,3 +3,7 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.Connect__wrongNetwork {
+  color: #ff0000;
+}
