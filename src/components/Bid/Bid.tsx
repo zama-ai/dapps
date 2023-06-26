@@ -45,6 +45,7 @@ export const Bid: React.FC<{
       setCurrentBid(`${bid}`);
     } catch (e) {
       console.log(e);
+      setDialog('Error during reencryption!');
     }
   };
 
@@ -72,6 +73,7 @@ export const Bid: React.FC<{
     } catch (e) {
       console.log(e);
       setLoading('');
+      setDialog('Error during bidding!');
     }
   };
 
@@ -90,6 +92,7 @@ export const Bid: React.FC<{
     } catch (e) {
       setLoading('');
       console.log(e);
+      setDialog('Error during reencryption!');
     }
   };
 
@@ -107,6 +110,7 @@ export const Bid: React.FC<{
       onClaim();
     } catch (e) {
       setLoading('');
+      setDialog('Error during claim!');
     }
   };
 
@@ -123,6 +127,7 @@ export const Bid: React.FC<{
       setDialog('You withdrawed successfully!');
     } catch (e) {
       setLoading('');
+      setDialog('Error during withdraw!');
     }
   };
 

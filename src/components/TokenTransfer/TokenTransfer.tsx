@@ -40,6 +40,7 @@ export const TokenTransfer: React.FC<{
     } catch (e) {
       console.log(e);
       setLoading('');
+      setDialog('Error during transfer!');
     }
   };
 

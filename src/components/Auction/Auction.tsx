@@ -70,6 +70,7 @@ export const Auction: React.FC<{
       setDialog('Token has been transferred to the beneficiary!');
     } catch (e) {
       setLoading('');
+      setDialog('Error during transfer to beneficiary!');
     }
   };
 

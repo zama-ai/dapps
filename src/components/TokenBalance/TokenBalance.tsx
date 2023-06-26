@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Contract } from 'ethers';
-import { Button, Card, CardActions, CardContent, CardHeader, ListItemText } from '@mui/material';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  ListItemText,
+} from '@mui/material';
 import { Loader } from '../Loader';
 import { getInstance, getTokenSignature } from '../../wallet';
 
@@ -13,6 +23,7 @@ export const TokenBalance: React.FC<{
   const [decryptedBalance, setDecryptedBalance] = useState<number | null>(null);
   const [symbol, setSymbol] = useState('');
   const [loading, setLoading] = useState('');
+  const [dialog, setDialog] = useState('');
 
   useEffect(() => {
     try {
@@ -42,21 +53,37 @@ export const TokenBalance: React.FC<{
     } catch (e) {
       setLoading('');
       console.log(e);
+      setDialog('Error during reencryption!');
     }
   };
 
-  return (
-    <Card>
-      <CardHeader title="Your balance" />
-      <CardContent>
-        {decryptedBalance && <ListItemText primary={`${decryptedBalance} ${symbol}`} />}
-        {!decryptedBalance && `- ${symbol}`}
-      </CardContent>
+  const handleClose = () => setDialog('');
 
-      <CardActions>
-        {!loading && <Button onClick={reencrypt}>{decryptedBalance ? 'Refresh' : 'Get balance'}</Button>}
-        <Loader message={loading} />
-      </CardActions>
-    </Card>
+  return (
+    <>
+      <Card>
+        <CardHeader title="Your balance" />
+        <CardContent>
+          {decryptedBalance && <ListItemText primary={`${decryptedBalance} ${symbol}`} />}
+          {!decryptedBalance && `- ${symbol}`}
+        </CardContent>
+
+        <CardActions>
+          {!loading && <Button onClick={reencrypt}>{decryptedBalance ? 'Refresh' : 'Get balance'}</Button>}
+          <Loader message={loading} />
+        </CardActions>
+      </Card>
+      <Dialog
+        open={dialog !== ''}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogContent>{dialog}</DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>OK</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };

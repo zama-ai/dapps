@@ -53,6 +53,7 @@ export const TokenInfo: React.FC<{
     } catch (e) {
       console.log(e);
       setLoading('');
+      setDialog('Transaction error!');
     }
   };
 
@@ -67,8 +68,9 @@ export const TokenInfo: React.FC<{
       setTotalSupply(totalSup);
       setLoading('');
     } catch (e) {
-      setLoading('');
       console.log(e);
+      setLoading('');
+      setDialog('Error during reencrypt!');
     }
   };
 
