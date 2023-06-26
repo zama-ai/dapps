@@ -25,8 +25,8 @@ export const TokenTransfer: React.FC<{
 
   const transfer = async () => {
     try {
-      if (!amount || Number.isNaN(Number(amount)) || Number(amount) > 7 || Number(amount) <= 0) {
-        setDialog('Amount must be between 1 and 3.');
+      if (!amount || Number.isNaN(Number(amount))) {
+        setDialog('Amount must be a number.');
         return;
       }
       setLoading(`Encrypting "${Number(amount)}" and generating ZK proof...`);
