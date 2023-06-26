@@ -41,11 +41,11 @@ export const TokenInfo: React.FC<{
 
   const mint = async () => {
     try {
-      setLoading('Encrypting "7" and generating ZK proof...');
-      const encrypted7 = getInstance().encrypt32(7);
+      setLoading('Encrypting "30" and generating ZK proof...');
+      const encrypted = getInstance().encrypt32(30);
       console.log('wtf');
       setLoading('Sending transaction...');
-      const transaction = await contract.mint(encrypted7);
+      const transaction = await contract.mint(encrypted);
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
@@ -84,7 +84,7 @@ export const TokenInfo: React.FC<{
           {totalSupply && <ListItemText primary="Total supply" secondary={`${totalSupply} ${symbol}`} />}
         </CardContent>
         <CardActions>
-          {!loading && <Button onClick={mint}>Mint 7 tokens</Button>}
+          {!loading && <Button onClick={mint}>Mint 30 tokens</Button>}
           {!loading && <Button onClick={reencrypt}>Total supply</Button>}
           <Loader message={loading} />
         </CardActions>
