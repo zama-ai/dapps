@@ -30,7 +30,7 @@ export const TokenTransfer: React.FC<{
         return;
       }
       setLoading(`Encrypting "${Number(amount)}" and generating ZK proof...`);
-      const encryptedAmount = await getInstance().encrypt8(Number(amount));
+      const encryptedAmount = await getInstance().encrypt32(Number(amount));
       setLoading('Sending transaction...');
       const transaction = await contract['transfer(address,bytes)'](address, encryptedAmount);
       setLoading('Waiting for transaction validation...');
