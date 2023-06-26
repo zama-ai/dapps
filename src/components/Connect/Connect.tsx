@@ -44,13 +44,20 @@ export const Connect: React.FC<{
     return window.fhevm.createInstance({ chainId, publicKey });
   };
 
+  const refreshProvider = (eth: any) => {
+    const p = new BrowserProvider(eth);
+    setProvider(p);
+    return p;
+  };
+
   useEffect(() => {
-    if (wrongNetwork !== false) {
+    if (wrongNetwork === false) {
       initInstance()
         .then((i) => setInstance(i))
         .catch(() => {});
     }
-  }, [connected, wrongNetwork]);
+    refreshProvider((global as any).ethereum);
+  }, [connected, wrongNetwork, account]);
 
   useEffect(() => {
     const eth = (global as any).ethereum;
@@ -58,8 +65,9 @@ export const Connect: React.FC<{
       setError('No wallet has been found');
       return;
     }
-    const p = new BrowserProvider(eth);
-    setProvider(p);
+
+    const p = refreshProvider(eth);
+
     p.send('eth_accounts', []).then((accounts) => {
       refreshAccounts(accounts);
       refreshNetwork();

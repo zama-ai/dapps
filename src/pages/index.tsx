@@ -19,10 +19,10 @@ const Index: React.FC<PageProps> = withTheme(() => {
               <Link to="/eip712/">EIP712</Link>
             </li>
             <li>
-              <Link to="/erc20/">ERC20 Explorer (not working)</Link>
+              <Link to="/erc20/">ERC20 Explorer</Link>
             </li>
             <li>
-              <Link to="/blind-auction/">Blind auction (not working)</Link>
+              <Link to="/blind-auction/">Blind auction</Link>
             </li>
           </ul>
         </CardContent>

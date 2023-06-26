@@ -35,7 +35,7 @@ export const Auctions: React.FC<{
       const c = new Contract(contractAddress, abi, signer);
 
       c.objectClaimed().then(setClaimed);
-      c.endTime().then(setEndTime);
+      c.endTime().then((eT) => setEndTime(Number(eT)));
       c.manuallyStopped().then(setManuallyStopped);
 
       setContract(c);
@@ -59,6 +59,7 @@ export const Auctions: React.FC<{
           stopped={stopped}
           endTime={endTime}
           contract={contract}
+          provider={provider}
           erc20Contract={erc20Contract}
         />
         <Bid

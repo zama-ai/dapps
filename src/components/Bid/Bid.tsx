@@ -40,6 +40,7 @@ export const Bid: React.FC<{
       const { publicKey, signature } = await getTokenSignature(contractAddress, account);
       const encryptedBid = await contract.getBid(publicKey, signature);
       const bid = await getInstance().decrypt(contractAddress, encryptedBid);
+      console.log('get', account, bid);
 
       setCurrentBid(`${bid}`);
     } catch (e) {
