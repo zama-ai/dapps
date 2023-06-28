@@ -43,7 +43,6 @@ export const TokenInfo: React.FC<{
     try {
       setLoading('Encrypting "30" and generating ZK proof...');
       const encrypted = getInstance().encrypt32(30);
-      console.log('wtf');
       setLoading('Sending transaction...');
       const transaction = await contract.mint(encrypted);
       setLoading('Waiting for transaction validation...');

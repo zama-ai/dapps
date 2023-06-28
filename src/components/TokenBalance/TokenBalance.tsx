@@ -64,8 +64,8 @@ export const TokenBalance: React.FC<{
       <Card>
         <CardHeader title="Your balance" />
         <CardContent>
-          {decryptedBalance && <ListItemText primary={`${decryptedBalance} ${symbol}`} />}
-          {!decryptedBalance && `- ${symbol}`}
+          {decryptedBalance != null && <ListItemText primary={`${decryptedBalance} ${symbol}`} />}
+          {decryptedBalance == null && `- ${symbol}`}
         </CardContent>
 
         <CardActions>

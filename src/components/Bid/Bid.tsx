@@ -10,6 +10,7 @@ import {
   DialogActions,
   DialogContent,
   ListItemText,
+  TextField,
 } from '@mui/material';
 import { Loader } from '../Loader';
 import { getInstance, getTokenSignature } from '../../wallet';
@@ -26,6 +27,7 @@ export const Bid: React.FC<{
 }> = ({ abi, account, claimed, contract, erc20Contract, provider, stopped, onClaim }) => {
   const [currentBid, setCurrentBid] = useState('');
   const [symbol, setSymbol] = useState('');
+  const [biddingAmount, setBiddingAmount] = useState('');
   const [highestBid, setHighestBid] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<string>('');
   const [dialog, setDialog] = useState('');
@@ -49,7 +51,10 @@ export const Bid: React.FC<{
     }
   };
 
-  const bid = async (value: number) => {
+  const bid = async () => {
+    const value = parseInt(biddingAmount, 10);
+    if (!value || Number.isNaN(value)) return;
+
     try {
       if (stopped) {
         return;
@@ -155,13 +160,26 @@ export const Bid: React.FC<{
         </CardContent>
         <CardActions>
           {!loading && <Button onClick={getCurrentBid}>Get my current bid</Button>}
-          {!stopped && !loading && <Button onClick={() => bid(1)}>Bid 1 token</Button>}
-          {!stopped && !loading && <Button onClick={() => bid(2)}>Bid 2 tokens</Button>}
-          {!stopped && !loading && <Button onClick={() => bid(3)}>Bid 3 tokens</Button>}
           {stopped && !loading && <Button onClick={doIHaveHighestBid}>Do I have the highest bid?</Button>}
           {stopped && !claimed && highestBid && !loading && <Button onClick={claim}>Claim</Button>}
           {stopped && !highestBid && !loading && <Button onClick={withdraw}>Withdraw</Button>}
           <Loader message={loading} />
+        </CardActions>
+        <CardActions>
+          {!stopped && !loading && (
+            <TextField
+              size="small"
+              variant="outlined"
+              value={biddingAmount}
+              onChange={(e) => setBiddingAmount(e.target.value)}
+              type="number"
+            />
+          )}
+          {!stopped && !loading && (
+            <Button onClick={bid} variant="contained">
+              Bid
+            </Button>
+          )}
         </CardActions>
       </Card>
       <Dialog

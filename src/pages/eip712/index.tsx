@@ -1,32 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { HeadFC, PageProps } from 'gatsby';
-import { ContractAddress } from '../../components/ContractAddress';
+import { ContractFactory } from 'ethers';
+import { Contract } from '../../components/Contract';
 import { Connect } from '../../components/Connect';
 import { EIP712 } from '../../components/EIP712';
-import abi from '../../abi/eip712Abi.json';
+
+import { withTheme } from '../../withTheme';
+import eip712 from '../../contracts/AuthorizationToken.json';
 
 import '../default.css';
-import { withTheme } from '../../withTheme';
 
 const IndexPage: React.FC<PageProps> = withTheme(() => {
-  const [contractAddress, setContractAddress] = useState('');
-
-  useEffect(() => {
-    const storedInputAddress = localStorage.getItem('eip712');
-    if (storedInputAddress) {
-      setContractAddress(storedInputAddress);
-    }
-  }, []);
-
   return (
     <main className="Main">
-      <Connect key={contractAddress} back title="EIP712 Test">
-        {(account, provider) => (
-          <>
-            <ContractAddress title="EIP712 Address" onConfirm={setContractAddress} storageKey="eip712" />
-            <EIP712 account={account} provider={provider} contractAddress={contractAddress} abi={abi} />
-          </>
-        )}
+      <Connect back title="EIP712 Test">
+        {(account, provider) => {
+          const deployEip712 = async () => {
+            const contractFactory = new ContractFactory(eip712.abi, eip712.bytecode, await provider.getSigner());
+            const c = await contractFactory.deploy();
+            await c.waitForDeployment();
+            console.log(await c.getAddress());
+            return c.getAddress();
+          };
+          return (
+            <Contract title="EIP712 Contract" storageKey="eip712" onDeploy={deployEip712}>
+              {(contractAddress: string) => (
+                <EIP712 account={account} provider={provider} contractAddress={contractAddress} abi={eip712.abi} />
+              )}
+            </Contract>
+          );
+        }}
       </Connect>
     </main>
   );

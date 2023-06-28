@@ -1,0 +1,7 @@
+.ContractDeploy {
+  align-items: flex-start;
+}
+
+.ContractDeploy .Loader {
+  margin-top: 10px;
+}

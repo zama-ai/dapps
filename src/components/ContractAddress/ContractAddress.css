@@ -1,8 +1,9 @@
-.ContractAddress__content {
+.ContractAddress {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
-
 .ContractAddress label {
   white-space: nowrap;
   padding-right: 20px;
@@ -11,5 +12,5 @@
   max-width: 560px;
 }
 .ContractAddress button {
-  margin-left: 20px;
+  margin-top: 20px;
 }
