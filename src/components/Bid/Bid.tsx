@@ -41,7 +41,7 @@ export const Bid: React.FC<{
       const contractAddress = await contract.getAddress();
       const { publicKey, signature } = await getTokenSignature(contractAddress, account);
       const encryptedBid = await contract.getBid(publicKey, signature);
-      const bid = await getInstance().decrypt(contractAddress, encryptedBid);
+      const bid = getInstance().decrypt(contractAddress, encryptedBid);
       console.log('get', account, bid);
 
       setCurrentBid(`${bid}`);
@@ -91,7 +91,7 @@ export const Bid: React.FC<{
       const contractAddress = await contract.getAddress();
       const { publicKey, signature } = await getTokenSignature(contractAddress, account);
       const ciphertext = await contract.doIHaveHighestBid(publicKey, signature);
-      const hb = await getInstance().decrypt(contractAddress, ciphertext);
+      const hb = getInstance().decrypt(contractAddress, ciphertext);
       setHighestBid(Boolean(hb));
       setLoading('');
     } catch (e) {

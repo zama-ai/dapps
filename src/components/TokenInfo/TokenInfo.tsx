@@ -63,7 +63,7 @@ export const TokenInfo: React.FC<{
       const { publicKey, signature } = await getTokenSignature(contractAddress, account);
       const ciphertext: string = await contract.getTotalSupply(publicKey, signature);
       console.log(ciphertext);
-      const totalSup = await getInstance().decrypt(contractAddress, ciphertext);
+      const totalSup = getInstance().decrypt(contractAddress, ciphertext);
       setTotalSupply(totalSup);
       setLoading('');
     } catch (e) {

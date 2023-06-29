@@ -1,5 +1,4 @@
 import type { FhevmInstance } from 'fhevmjs';
-import { BrowserProvider } from 'ethers';
 
 let instance: FhevmInstance;
 
@@ -21,7 +20,7 @@ export const getTokenSignature = async (contractAddress: string, userAddress: st
   if (getInstance().hasKeypair(contractAddress)) {
     return getInstance().getTokenSignature(contractAddress)!;
   } else {
-    const { publicKey, token } = await getInstance().generateToken({ verifyingContract: contractAddress });
+    const { publicKey, token } = getInstance().generateToken({ verifyingContract: contractAddress });
     const params = [userAddress, JSON.stringify(token)];
     const signature: string = await window.ethereum.request({ method: 'eth_signTypedData_v4', params });
     getInstance().setTokenSignature(contractAddress, signature);
