@@ -12,7 +12,7 @@ import '../default.css';
 const IndexPage: React.FC<PageProps> = withTheme(() => {
   return (
     <main className="Main">
-      <Connect back title="ERC20 Explorer">
+      <Connect back title="ERC20">
         {(account, provider) => {
           const deployErc20 = async () => {
             const contractFactory = new ContractFactory(

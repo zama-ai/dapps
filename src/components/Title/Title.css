@@ -1,10 +1,10 @@
 .Title {
-  margin: 0 0 30px 0;
 }
 
 .Title__content {
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
 }
 
 .Title h1 {
@@ -24,9 +24,20 @@
 .Title__right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
 .Title__right > * {
   margin: 0 15px;
+}
+
+@media (min-width: 640px) {
+  .Title__content {
+    flex-direction: row;
+  }
+  .Title__right {
+    justify-content: flex-end;
+    margin-top: 0;
+  }
 }

@@ -5,6 +5,7 @@ import { ContractAddress } from '../ContractAddress';
 import { ContractDeploy } from '../ContractDeploy';
 
 import './Contract.css';
+import { Line } from '../Line';
 
 export const Contract: React.FC<{
   onDeploy?: () => Promise<string>;
@@ -45,18 +46,22 @@ export const Contract: React.FC<{
 
   return (
     <>
-      <Card className="Contract">
-        <CardHeader title={title} subheader="Define your contract address" />
-        <CardContent className="Contract__content">
-          <ContractAddress value={inputAddress} onChange={onChange} onConfirm={handleConfirm} />
-          {onDeploy && (
-            <>
-              <div className="Contract__or">- or -</div>
+      <Line>
+        <Card className="Contract">
+          <CardHeader title={title} subheader="Define your contract address" />
+          <CardContent className="Contract__content">
+            <ContractAddress value={inputAddress} onChange={onChange} onConfirm={handleConfirm} />
+          </CardContent>
+        </Card>
+        {onDeploy && (
+          <Card className="Contract">
+            <CardHeader title="Deploy a contract" />
+            <CardContent className="Contract__content">
               <ContractDeploy onDeploy={handleDeploy} title={title} />
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </Line>
       {currentAddress && children(currentAddress)}
     </>
   );

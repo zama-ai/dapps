@@ -1,9 +1,14 @@
 .Connect__account {
-  max-width: 30%;
+  width: 100%;
+  max-width: 300px;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
 .Connect__wrongNetwork {
   color: #ff0000;
+}
+
+.Connect__back {
+  white-space: nowrap;
 }

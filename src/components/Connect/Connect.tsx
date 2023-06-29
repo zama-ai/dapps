@@ -161,7 +161,7 @@ export const Connect: React.FC<{
 
       {back && (
         <p>
-          <Button variant="outlined">
+          <Button variant="outlined" className="Connect__back">
             <Link to="/">Back to list</Link>
           </Button>
         </p>
