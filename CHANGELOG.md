@@ -123,7 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- ERC20 moved in a subdirectory
+- ERC-20 moved in a subdirectory
 
 ## [0.4.0]
 
@@ -179,7 +179,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New website to test ERC20 contract
+- New website to test ERC-20 contract
 
 [Unreleased]: https://github.com/zama-ai/zama-snap/compare/v0.4.14...HEAD
 [0.4.14]: https://github.com/zama-ai/zama-snap/compare/v0.4.13...v0.4.14

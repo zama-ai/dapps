@@ -5,18 +5,18 @@
 }
 
 .Line > * {
-  margin-top: 30px;
+  margin-top: var(--default-margin);
 }
 
 @media (min-width: 640px) {
   .Line {
     flex-direction: row;
-    margin: 30px 0;
+    margin: var(--default-margin) 0;
   }
 
   .Line > * {
     margin-top: 0;
-    margin-left: 30px;
+    margin-left: var(--default-margin);
     flex-grow: 1;
   }
 }

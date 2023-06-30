@@ -12,7 +12,7 @@ import '../default.css';
 const IndexPage: React.FC<PageProps> = withTheme(() => {
   return (
     <main className="Main">
-      <Connect back title="ERC20">
+      <Connect back title="ERC-20">
         {(account, provider) => {
           const deployErc20 = async () => {
             const contractFactory = new ContractFactory(
@@ -25,7 +25,7 @@ const IndexPage: React.FC<PageProps> = withTheme(() => {
             return c.getAddress();
           };
           return (
-            <Contract title="ERC20 Contract" storageKey="erc20" onDeploy={deployErc20}>
+            <Contract title="ERC-20 Contract" storageKey="erc20" onDeploy={deployErc20}>
               {(contractAddress) => (
                 <Token
                   key={contractAddress}
@@ -45,4 +45,4 @@ const IndexPage: React.FC<PageProps> = withTheme(() => {
 
 export default IndexPage;
 
-export const Head: HeadFC = () => <title>Zama ERC20</title>;
+export const Head: HeadFC = () => <title>Zama ERC-20</title>;

@@ -5,7 +5,7 @@ body {
 }
 
 .Main {
-  padding: 30px;
+  padding: var(--default-margin);
 }
 
 a {
@@ -14,4 +14,8 @@ a {
 
 a:hover {
   color: #ffcb00;
+}
+
+:root {
+  --default-margin: 30px;
 }

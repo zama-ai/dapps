@@ -61,9 +61,9 @@ export const Bid: React.FC<{
       }
       setLoading(`Encrypting "${value}" and generating ZK proof...`);
       const encryptedErc20Value = getInstance().encrypt32(value);
-      setLoading('Sending ERC20 approve transaction');
+      setLoading('Sending ERC-20 approve transaction');
       const erc20Transaction = await erc20Contract.approve(await contract.getAddress(), encryptedErc20Value);
-      setLoading('Waiting for ERC20 approve transaction validation...');
+      setLoading('Waiting for ERC-20 approve transaction validation...');
       await provider.waitForTransaction(erc20Transaction.hash);
 
       setLoading(`Encrypting "${value}" and generating ZK proof...`);

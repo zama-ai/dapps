@@ -1,3 +1,7 @@
+.Index {
+  margin-top: var(--default-margin);
+}
+
 .links {
   margin: 0;
 }
