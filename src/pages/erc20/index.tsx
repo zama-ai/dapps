@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { HeadFC, PageProps } from 'gatsby';
-import { ContractFactory } from 'ethers';
+import { ContractFactory, isAddress } from 'ethers';
+import queryString from 'query-string';
+import { navigate } from '@reach/router';
+
 import { Contract } from '../../components/Contract';
 import { Connect } from '../../components/Connect';
 import { Token } from '../../components/Token';
@@ -9,7 +12,18 @@ import encryptedERC20 from '../../contracts/EncryptedERC20.json';
 
 import '../default.css';
 
-const IndexPage: React.FC<PageProps> = withTheme(() => {
+const IndexPage: React.FC<PageProps> = withTheme(({ location }) => {
+  if (location.search) {
+    const params = queryString.parse(location.search);
+    if (params.contract) {
+      if (isAddress(params.contract)) {
+        localStorage.setItem('erc20', params.contract);
+      }
+      if (typeof window !== 'undefined') {
+        (window.location as any) = location.pathname;
+      }
+    }
+  }
   return (
     <main className="Main">
       <Connect back title="ERC-20">

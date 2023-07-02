@@ -24,6 +24,9 @@ const Index: React.FC<PageProps> = withTheme(() => {
             <li>
               <Link to="/blind-auction/">Blind auction</Link>
             </li>
+            <li>
+              <Link to="/private-bet/">Private bet</Link>
+            </li>
           </ul>
         </CardContent>
       </Card>
