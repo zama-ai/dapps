@@ -85,7 +85,7 @@ export const PrivateBetGame: React.FC<{
               <div>
                 <FormLabel>Description</FormLabel>
                 <TextField
-                  placeholder="Louis team will win the challenge?"
+                  placeholder="XXX will YYY"
                   onChange={(e) => {
                     setDescription(e.target.value);
                   }}
