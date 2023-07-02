@@ -7,7 +7,7 @@ import { Game } from '../../types';
 import { Line } from '../../../../components/Line';
 import { Loader } from '../../../../components/Loader';
 import { Link } from 'gatsby';
-import { GAME_STATE } from '../../constants';
+import { GAME_STATE, getGameState } from '../../constants';
 
 const MAX_LENGTH = 20;
 const trim = (str: string) => {
@@ -71,7 +71,7 @@ export const PrivateBetGame: React.FC<{
               <Select value={game} onChange={(option) => setGame(+option.target.value)} size="small">
                 {games.map((game, index) => (
                   <MenuItem value={index} key={index}>
-                    {index + 1} - {trim(game.description)} - {game.state === GAME_STATE['OPEN'] ? 'Open' : 'Closed'}
+                    {index + 1} - {trim(game.description)} - {getGameState(game.state)}
                   </MenuItem>
                 ))}
               </Select>

@@ -19,7 +19,7 @@ import { Loader } from '../../../../components/Loader';
 import { Game } from '../../types';
 
 import './BetInfo.css';
-import { GAME_STATE } from '../../constants';
+import { GAME_STATE, getGameState } from '../../constants';
 
 export const BetInfo: React.FC<{
   isAdmin: boolean;
@@ -42,18 +42,40 @@ export const BetInfo: React.FC<{
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
-      setDialog('Bet has been closed.');
-    } catch (e) {}
+      setDialog('Game has been closed.');
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const pauseGame = async () => {
+    try {
+      setLoading('Sending transaction...');
+      const transaction = await contract.pauseGame(gameId);
+      setLoading('Waiting for transaction validation...');
+      await provider.waitForTransaction(transaction.hash);
+      setLoading('');
+      setDialog('Game has been paused.');
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const cancelGame = async () => {
-    setLoading('Sending transaction...');
-    const transaction = await contract.cancelGame(gameId);
-    setLoading('Waiting for transaction validation...');
-    await provider.waitForTransaction(transaction.hash);
-    setLoading('');
-    setDialog('Bet has been canceled.');
+    try {
+      setLoading('Sending transaction...');
+      const transaction = await contract.cancelGame(gameId);
+      setLoading('Waiting for transaction validation...');
+      await provider.waitForTransaction(transaction.hash);
+      setLoading('');
+      setDialog('Game has been canceled.');
+    } catch (e) {
+      console.log(e);
+    }
   };
+
+  const isOpen = game.state === GAME_STATE['OPEN'] || game.state === GAME_STATE['PENDING'];
+  const state = getGameState(game.state);
 
   return (
     <>
@@ -61,12 +83,13 @@ export const BetInfo: React.FC<{
         <CardHeader title={game.description} />
         <CardContent>
           <ListItemText primary="Open" secondary={game.state === GAME_STATE['OPEN'] ? 'Yes' : 'No'} />
-          {game.state !== GAME_STATE['OPEN'] && (
+          <ListItemText primary="State" secondary={state} />
+          {game.state == GAME_STATE['CLOSED'] && (
             <ListItemText primary="Won?" secondary={game.isSuccessful ? 'Yes' : 'No'} />
           )}
           <ListItemText primary="Number of bets" secondary={`${game.numBets}`} />
         </CardContent>
-        {isAdmin && game.state === GAME_STATE['OPEN'] && (
+        {isAdmin && isOpen && (
           <CardActions className="BetInfo__actions">
             <div className="BetInfo__state">
               <FormLabel>State</FormLabel>
@@ -83,11 +106,15 @@ export const BetInfo: React.FC<{
             <Button onClick={closeGame} variant="contained" disabled={!!loading}>
               Close game
             </Button>
-            {!loading && (
-              <Button onClick={cancelGame} disabled={!!loading}>
-                Cancel game
-              </Button>
-            )}
+
+            <Button onClick={pauseGame} disabled={!!loading}>
+              Pause game (no more bet)
+            </Button>
+
+            <Button onClick={cancelGame} disabled={!!loading}>
+              Cancel game
+            </Button>
+
             <Loader message={loading} />
           </CardActions>
         )}

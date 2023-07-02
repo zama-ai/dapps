@@ -14,7 +14,7 @@ import { ContractFactory } from 'ethers';
 const IndexPage: React.FC<PageProps> = withTheme(() => {
   return (
     <main className="Main">
-      <Connect back title="Private Bet">
+      <Connect back title="Double or nothing">
         {(account, provider) => {
           const deployPrivateBetting = async () => {
             const erc20Factory = new ContractFactory(
