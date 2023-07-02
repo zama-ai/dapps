@@ -64,19 +64,28 @@ export const BetInfo: React.FC<{
           )}
           <ListItemText primary="Num bets" secondary={`${game.numBets}`} />
         </CardContent>
-        {isAdmin && !loading && (
+        {isAdmin && game.isOpen && (
           <CardActions className="BetInfo__actions">
             <div>
               <FormLabel>Winning option</FormLabel>
-              <Select value={selectedOption} onChange={(e) => setSelectedOption(+e.target.value)} size="small">
+              <Select
+                value={selectedOption}
+                onChange={(e) => setSelectedOption(+e.target.value)}
+                size="small"
+                disabled={!!loading}
+              >
                 <MenuItem value={0}>{game.option1}</MenuItem>
                 <MenuItem value={1}>{game.option2}</MenuItem>
               </Select>
             </div>
-            <Button onClick={closeGame} variant="contained">
+            <Button onClick={closeGame} variant="contained" disabled={!!loading}>
               Close game
             </Button>
-            {!loading && <Button onClick={cancelGame}>Cancel game</Button>}
+            {!loading && (
+              <Button onClick={cancelGame} disabled={!!loading}>
+                Cancel game
+              </Button>
+            )}
             <Loader message={loading} />
           </CardActions>
         )}

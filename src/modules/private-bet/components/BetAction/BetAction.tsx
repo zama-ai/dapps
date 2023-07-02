@@ -80,6 +80,8 @@ export const BetAction: React.FC<{
       const transaction = await contract.withdraw(gameId);
       setLoading('Waiting for withdraw transaction validation...');
       await provider.waitForTransaction(transaction.hash);
+      setLoading('Refresh bet...');
+      await getCurrentBet();
       setLoading('');
     } catch (e) {
       console.log(e);
