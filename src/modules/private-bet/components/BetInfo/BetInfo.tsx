@@ -19,6 +19,7 @@ import { Loader } from '../../../../components/Loader';
 import { Game } from '../../types';
 
 import './BetInfo.css';
+import { GAME_STATE } from '../../constants';
 
 export const BetInfo: React.FC<{
   isAdmin: boolean;
@@ -28,19 +29,21 @@ export const BetInfo: React.FC<{
   contract: Contract;
   provider: BrowserProvider;
 }> = ({ isAdmin, game, gameId, contract, provider, erc20Contract }) => {
-  const [selectedOption, setSelectedOption] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(1);
   const [dialog, setDialog] = useState('');
   const [loading, setLoading] = useState<string>('');
 
   const handleClose = () => setDialog('');
 
   const closeGame = async () => {
-    setLoading('Sending transaction...');
-    const transaction = await contract.closeGame(gameId, selectedOption);
-    setLoading('Waiting for transaction validation...');
-    await provider.waitForTransaction(transaction.hash);
-    setLoading('');
-    setDialog('Bet has been closed.');
+    try {
+      setLoading('Sending transaction...');
+      const transaction = await contract.closeGame(gameId, !!selectedOption);
+      setLoading('Waiting for transaction validation...');
+      await provider.waitForTransaction(transaction.hash);
+      setLoading('');
+      setDialog('Bet has been closed.');
+    } catch (e) {}
   };
 
   const cancelGame = async () => {
@@ -55,27 +58,26 @@ export const BetInfo: React.FC<{
   return (
     <>
       <Card>
-        <CardHeader title="Information" />
+        <CardHeader title={game.description} />
         <CardContent>
-          <ListItemText primary="Description" secondary={game.description} />
-          <ListItemText primary="Open" secondary={game.isOpen ? 'Yes' : 'No'} />
-          {!game.isOpen && (
-            <ListItemText primary="Winning option" secondary={game.winningOption == 0n ? game.option1 : game.option2} />
+          <ListItemText primary="Open" secondary={game.state === GAME_STATE['OPEN'] ? 'Yes' : 'No'} />
+          {game.state !== GAME_STATE['OPEN'] && (
+            <ListItemText primary="Won?" secondary={game.isSuccessful ? 'Yes' : 'No'} />
           )}
-          <ListItemText primary="Num bets" secondary={`${game.numBets}`} />
+          <ListItemText primary="Number of bets" secondary={`${game.numBets}`} />
         </CardContent>
-        {isAdmin && game.isOpen && (
+        {isAdmin && game.state === GAME_STATE['OPEN'] && (
           <CardActions className="BetInfo__actions">
-            <div>
-              <FormLabel>Winning option</FormLabel>
+            <div className="BetInfo__state">
+              <FormLabel>State</FormLabel>
               <Select
                 value={selectedOption}
                 onChange={(e) => setSelectedOption(+e.target.value)}
                 size="small"
                 disabled={!!loading}
               >
-                <MenuItem value={0}>{game.option1}</MenuItem>
-                <MenuItem value={1}>{game.option2}</MenuItem>
+                <MenuItem value={1}>Win</MenuItem>
+                <MenuItem value={0}>Lost</MenuItem>
               </Select>
             </div>
             <Button onClick={closeGame} variant="contained" disabled={!!loading}>

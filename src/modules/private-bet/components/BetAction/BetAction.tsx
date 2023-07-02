@@ -17,6 +17,7 @@ import {
 import { Loader } from '../../../../components/Loader';
 import { getInstance, getTokenSignature } from '../../../../wallet';
 import { Game } from '../../types';
+import { GAME_STATE } from '../../constants';
 
 const STATE = ['Pending', 'Won', 'Lost'];
 
@@ -35,7 +36,6 @@ export const BetAction: React.FC<{
   erc20Contract: Contract;
   provider: BrowserProvider;
 }> = ({ game, gameId, abi, account, contract, erc20Contract, provider }) => {
-  const [selectedOption, setSelectedOption] = useState(0);
   const [currentBet, setCurrentBet] = useState<Bet | null>(null);
   const [symbol, setSymbol] = useState('');
   const [bettingAmount, setBettingAmount] = useState('');
@@ -62,7 +62,7 @@ export const BetAction: React.FC<{
       const encryptedValue = getInstance().encrypt32(value);
       setLoading('Sending bet transaction...');
 
-      const transaction = await contract.placeBet(gameId, selectedOption, encryptedValue);
+      const transaction = await contract.placeBet(gameId, encryptedValue);
       setLoading('Waiting for bet transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
@@ -104,12 +104,10 @@ export const BetAction: React.FC<{
     }
   };
 
-  let option = '-';
   let amount = '-';
   let state = '-';
 
   if (currentBet) {
-    option = currentBet.option === 0n ? game.option1 : game.option2;
     amount = `${currentBet.amount} ${symbol}`;
     state = STATE[+currentBet.state.toString()];
   }
@@ -121,7 +119,6 @@ export const BetAction: React.FC<{
       <Card>
         <CardHeader title="My Bet" />
         <CardContent>
-          <ListItemText primary="Your current bet" secondary={option} />
           <ListItemText primary="Amount" secondary={amount} />
           <ListItemText primary="State" secondary={state} />
         </CardContent>
@@ -130,12 +127,8 @@ export const BetAction: React.FC<{
           <Loader message={loading} />
         </CardActions>
         <CardActions>
-          {game.isOpen && !loading && (
+          {game.state === GAME_STATE['OPEN'] && !loading && (
             <>
-              <Select value={selectedOption} onChange={(e) => setSelectedOption(+e.target.value)} size="small">
-                <MenuItem value={0}>{game.option1}</MenuItem>
-                <MenuItem value={1}>{game.option2}</MenuItem>
-              </Select>
               <TextField
                 size="small"
                 variant="outlined"
@@ -148,7 +141,7 @@ export const BetAction: React.FC<{
               </Button>
             </>
           )}
-          {!game.isOpen && currentBet && currentBet.state === 0n && !loading && (
+          {game.state !== GAME_STATE['OPEN'] && currentBet && currentBet.state === 0n && !loading && (
             <>
               <Button onClick={withdraw} variant="contained">
                 Withdraw

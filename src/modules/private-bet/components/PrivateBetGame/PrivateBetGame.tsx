@@ -7,6 +7,13 @@ import { Game } from '../../types';
 import { Line } from '../../../../components/Line';
 import { Loader } from '../../../../components/Loader';
 import { Link } from 'gatsby';
+import { GAME_STATE } from '../../constants';
+
+const MAX_LENGTH = 20;
+const trim = (str: string) => {
+  if (str.length <= MAX_LENGTH + 3) return str;
+  return `${str.substring(0, MAX_LENGTH)}...`;
+};
 
 export const PrivateBetGame: React.FC<{
   children: (game: Game, gameId: number, isAdmin: boolean) => React.ReactNode;
@@ -21,7 +28,6 @@ export const PrivateBetGame: React.FC<{
   const [game, setGame] = useState<number>(0);
   const [games, setGames] = useState<Game[]>([]);
   const [description, setDescription] = useState('');
-  const [options, setOptions] = useState(['', '']);
 
   useEffect(() => {
     erc20Contract.getAddress().then(setErc20Address);
@@ -43,38 +49,29 @@ export const PrivateBetGame: React.FC<{
 
   const addGame = async () => {
     setLoading('Sending transaction...');
-    console.log(description, options[0], options[1]);
-    const transaction = await contract.createGame(description, options[0], options[1]);
+    const transaction = await contract.createGame(description);
     console.log(transaction);
     setLoading('Waiting for game creation transaction validation...');
     await provider.waitForTransaction(transaction.hash);
     setLoading('');
   };
 
-  const changeOption =
-    (index: number): ChangeEventHandler<HTMLInputElement> =>
-    (e) => {
-      const o = [...options];
-      o[index] = e.target.value;
-      setOptions(o);
-    };
-
   return (
     <>
       <Line>
         <Card>
-          <CardHeader title="Info" />
+          <CardHeader title="Game" />
           <CardContent>
             <ListItemText
               primary="Token contract"
               secondary={<Link to={`/erc20/?contract=${erc20Address}`}>{erc20Address}</Link>}
             />
             <div>
-              <FormLabel>Choose a bet</FormLabel>
+              <FormLabel>Choose a game</FormLabel>
               <Select value={game} onChange={(option) => setGame(+option.target.value)} size="small">
                 {games.map((game, index) => (
                   <MenuItem value={index} key={index}>
-                    Bet {index + 1} - {game.isOpen ? 'Open' : 'Closed'}
+                    {index + 1} - {trim(game.description)} - {game.state === GAME_STATE['OPEN'] ? 'Open' : 'Closed'}
                   </MenuItem>
                 ))}
               </Select>
@@ -88,17 +85,12 @@ export const PrivateBetGame: React.FC<{
               <div>
                 <FormLabel>Description</FormLabel>
                 <TextField
-                  placeholder="An amazing bet..."
+                  placeholder="Louis team will win the challenge?"
                   onChange={(e) => {
                     setDescription(e.target.value);
                   }}
                   size="small"
                 />
-              </div>
-              <div>
-                <FormLabel>Options</FormLabel>
-                <TextField placeholder="Option 1" value={options[0]} onChange={changeOption(0)} size="small" />
-                <TextField placeholder="Option 2" value={options[1]} onChange={changeOption(1)} size="small" />
               </div>
               <Button onClick={addGame} variant="contained">
                 Add
