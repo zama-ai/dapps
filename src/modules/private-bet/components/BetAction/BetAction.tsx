@@ -60,17 +60,17 @@ export const BetAction: React.FC<{
 
       setLoading(`Encrypting "${value}" and generating ZK proof...`);
       const encryptedValue = getInstance().encrypt32(value);
-      setLoading('Sending bid transaction...');
+      setLoading('Sending bet transaction...');
 
       const transaction = await contract.placeBet(gameId, selectedOption, encryptedValue);
-      setLoading('Waiting for bid transaction validation...');
+      setLoading('Waiting for bet transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
       setDialog(`You bet ${value} token${value > 1 ? 's' : ''}!`);
     } catch (e) {
       console.log(e);
       setLoading('');
-      setDialog('Error during bidding!');
+      setDialog('Error during betting!');
     }
   };
 

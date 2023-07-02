@@ -15,7 +15,11 @@ import { Loader } from '../Loader';
 import { getInstance, getTokenSignature } from '../../wallet';
 
 const NO_SUPPLY = 'NO_SUPPLY';
-
+const toHexString = (bytes: Uint8Array) => {
+  return Array.from(bytes, (byte) => {
+    return ('0' + (byte & 0xff).toString(16)).slice(-2);
+  }).join('');
+};
 export const TokenInfo: React.FC<{
   abi: any;
   account: string;
@@ -43,6 +47,7 @@ export const TokenInfo: React.FC<{
     try {
       setLoading('Encrypting "30" and generating ZK proof...');
       const encrypted = getInstance().encrypt32(100);
+      console.log(toHexString(encrypted));
       setLoading('Sending transaction...');
       const transaction = await contract.mint(encrypted);
       setLoading('Waiting for transaction validation...');
@@ -64,6 +69,7 @@ export const TokenInfo: React.FC<{
       const ciphertext: string = await contract.getTotalSupply(publicKey, signature);
       console.log(ciphertext);
       const totalSup = getInstance().decrypt(contractAddress, ciphertext);
+      console.log(ciphertext, totalSup);
       setTotalSupply(totalSup);
       setLoading('');
     } catch (e) {
