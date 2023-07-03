@@ -40,9 +40,10 @@ export const PrivateBet: React.FC<{
   return (
     <div className="Auctions">
       <PrivateBetGame account={account} erc20Contract={erc20Contract} contract={contract} provider={provider}>
-        {(game, gameId, isAdmin) => (
+        {(game, gameId, isAdmin, refreshGames) => (
           <Line key={gameId}>
             <BetInfo
+              refresh={refreshGames}
               isAdmin={isAdmin}
               game={game}
               gameId={gameId}

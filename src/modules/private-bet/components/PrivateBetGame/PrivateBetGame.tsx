@@ -16,7 +16,7 @@ const trim = (str: string) => {
 };
 
 export const PrivateBetGame: React.FC<{
-  children: (game: Game, gameId: number, isAdmin: boolean) => React.ReactNode;
+  children: (game: Game, gameId: number, isAdmin: boolean, refreshGames: () => Promise<number>) => React.ReactNode;
   account: string;
   erc20Contract: Contract;
   contract: Contract;
@@ -29,19 +29,22 @@ export const PrivateBetGame: React.FC<{
   const [games, setGames] = useState<Game[]>([]);
   const [description, setDescription] = useState('');
 
+  const refresh = async () => {
+    const maxGame: bigint = await contract.numGames();
+    const listGames: any[] = [];
+    for (let i = 0; i < maxGame; i += 1) {
+      await contract.games(i).then((g) => {
+        listGames.push(g.toObject());
+      });
+    }
+    console.log(listGames);
+    setGames(listGames);
+    return +maxGame.toString() - 1;
+  };
+
   useEffect(() => {
     erc20Contract.getAddress().then(setErc20Address);
-    contract.numGames().then(async (maxGame: bigint) => {
-      const listGames: any[] = [];
-      for (let i = 0; i < maxGame; i += 1) {
-        await contract.games(i).then((g) => {
-          listGames.push(g.toObject());
-        });
-      }
-      console.log(listGames);
-      setGame(+maxGame.toString() - 1);
-      setGames(listGames);
-    });
+    refresh().then(setGame);
     contract.contractOwner().then((owner) => {
       setIsAdmin(owner.toLowerCase() === account.toLowerCase());
     });
@@ -54,6 +57,7 @@ export const PrivateBetGame: React.FC<{
     setLoading('Waiting for game creation transaction validation...');
     await provider.waitForTransaction(transaction.hash);
     setLoading('');
+    refresh();
   };
 
   return (
@@ -100,7 +104,7 @@ export const PrivateBetGame: React.FC<{
           </Card>
         )}
       </Line>
-      {game != null && games[game] && children(games[game], game, isAdmin)}
+      {game != null && games[game] && children(games[game], game, isAdmin, refresh)}
     </>
   );
 };

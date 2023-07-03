@@ -22,13 +22,14 @@ import './BetInfo.css';
 import { GAME_STATE, getGameState } from '../../constants';
 
 export const BetInfo: React.FC<{
+  refresh: () => Promise<number>;
   isAdmin: boolean;
   game: Game;
   gameId: number;
   erc20Contract: Contract;
   contract: Contract;
   provider: BrowserProvider;
-}> = ({ isAdmin, game, gameId, contract, provider, erc20Contract }) => {
+}> = ({ refresh, isAdmin, game, gameId, contract, provider, erc20Contract }) => {
   const [selectedOption, setSelectedOption] = useState(1);
   const [dialog, setDialog] = useState('');
   const [loading, setLoading] = useState<string>('');
@@ -42,6 +43,7 @@ export const BetInfo: React.FC<{
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
+      await refresh();
       setDialog('Game has been closed.');
     } catch (e) {
       console.log(e);
@@ -55,6 +57,7 @@ export const BetInfo: React.FC<{
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
+      await refresh();
       setDialog('Game has been paused.');
     } catch (e) {
       console.log(e);
@@ -68,6 +71,7 @@ export const BetInfo: React.FC<{
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
+      await refresh();
       setDialog('Game has been canceled.');
     } catch (e) {
       console.log(e);
@@ -82,7 +86,6 @@ export const BetInfo: React.FC<{
       <Card>
         <CardHeader title={game.description} />
         <CardContent>
-          <ListItemText primary="Open" secondary={game.state === GAME_STATE['OPEN'] ? 'Yes' : 'No'} />
           <ListItemText primary="State" secondary={state} />
           {game.state == GAME_STATE['CLOSED'] && (
             <ListItemText primary="Won?" secondary={game.isSuccessful ? 'Yes' : 'No'} />
