@@ -43,7 +43,6 @@ export const Connect: React.FC<{
       publicKey = await provider.call({ from: null, to: '0x0000000000000000000000000000000000000044' });
       localStorage.setItem('fhepubkey', publicKey);
     }
-    console.log('hello', publicKey);
     const chainId = parseInt(chainIdHex, 16);
     if (chainId !== 9000) throw new Error('Invalid port');
     return window.fhevm.createInstance({ chainId, publicKey });
