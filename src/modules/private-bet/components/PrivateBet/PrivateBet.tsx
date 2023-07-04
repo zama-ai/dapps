@@ -5,6 +5,7 @@ import { Line } from '../../../../components/Line';
 import { BetInfo } from '../BetInfo';
 import { BetAction } from '../BetAction';
 import { PrivateBetGame } from '../PrivateBetGame';
+import { Card } from '@mui/material';
 
 export const PrivateBet: React.FC<{
   account: string;
@@ -42,24 +43,26 @@ export const PrivateBet: React.FC<{
       <PrivateBetGame account={account} erc20Contract={erc20Contract} contract={contract} provider={provider}>
         {(game, gameId, isAdmin, refreshGames) => (
           <Line key={gameId}>
-            <BetInfo
-              refresh={refreshGames}
-              isAdmin={isAdmin}
-              game={game}
-              gameId={gameId}
-              contract={contract}
-              provider={provider}
-              erc20Contract={erc20Contract}
-            />
-            <BetAction
-              game={game}
-              gameId={gameId}
-              account={account}
-              contract={contract}
-              provider={provider}
-              erc20Contract={erc20Contract}
-              abi={abi}
-            />
+            <Card>
+              <BetInfo
+                refresh={refreshGames}
+                isAdmin={isAdmin}
+                game={game}
+                gameId={gameId}
+                contract={contract}
+                provider={provider}
+                erc20Contract={erc20Contract}
+              />
+              <BetAction
+                game={game}
+                gameId={gameId}
+                account={account}
+                contract={contract}
+                provider={provider}
+                erc20Contract={erc20Contract}
+                abi={abi}
+              />
+            </Card>
           </Line>
         )}
       </PrivateBetGame>

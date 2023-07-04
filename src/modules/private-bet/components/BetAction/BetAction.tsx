@@ -116,40 +116,39 @@ export const BetAction: React.FC<{
   console.log(currentBet);
   return (
     <>
-      <Card>
-        <CardHeader title="My Bet" />
-        <CardContent>
-          <ListItemText primary="Amount" secondary={amount} />
-          <ListItemText primary="State" secondary={state} />
-        </CardContent>
-        <CardActions>
-          {!loading && <Button onClick={getCurrentBet}>Get my current bet</Button>}
-          <Loader message={loading} />
-        </CardActions>
-        <CardActions>
-          {game.state === GAME_STATE['OPEN'] && !loading && (
-            <>
-              <TextField
-                size="small"
-                variant="outlined"
-                value={bettingAmount}
-                onChange={(e) => setBettingAmount(e.target.value)}
-                type="number"
-              />
-              <Button onClick={bet} variant="contained">
-                Bet
-              </Button>
-            </>
-          )}
-          {game.state !== GAME_STATE['OPEN'] && currentBet && currentBet.state === 0n && !loading && (
-            <>
-              <Button onClick={withdraw} variant="contained">
-                Withdraw
-              </Button>
-            </>
-          )}
-        </CardActions>
-      </Card>
+      <CardHeader title="My Bet" />
+      <CardContent>
+        <ListItemText primary="Amount" secondary={amount} />
+        <ListItemText primary="State" secondary={state} />
+      </CardContent>
+      <CardActions>
+        {!loading && <Button onClick={getCurrentBet}>Get my current bet</Button>}
+        <Loader message={loading} />
+      </CardActions>
+      <CardActions>
+        {game.state === GAME_STATE['OPEN'] && !loading && (
+          <>
+            <TextField
+              size="small"
+              variant="outlined"
+              value={bettingAmount}
+              onChange={(e) => setBettingAmount(e.target.value)}
+              type="number"
+            />
+            <Button onClick={bet} variant="contained">
+              Bet
+            </Button>
+          </>
+        )}
+        {game.state !== GAME_STATE['OPEN'] && currentBet && currentBet.state === 0n && !loading && (
+          <>
+            <Button onClick={withdraw} variant="contained">
+              Withdraw
+            </Button>
+          </>
+        )}
+      </CardActions>
+
       <Dialog
         open={dialog !== ''}
         onClose={handleClose}

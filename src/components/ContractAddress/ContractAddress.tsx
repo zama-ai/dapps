@@ -2,12 +2,15 @@ import React, { ChangeEventHandler, MouseEventHandler, SetStateAction, useEffect
 import { TextField, Button } from '@mui/material';
 
 import './ContractAddress.css';
+import { ContractDeploy } from '../ContractDeploy';
 
 export const ContractAddress: React.FC<{
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   onConfirm: MouseEventHandler<HTMLButtonElement>;
-}> = ({ value, onChange, onConfirm }) => {
+  onDeploy?: () => Promise<void>;
+  title: string;
+}> = ({ value, onChange, onConfirm, onDeploy, title }) => {
   return (
     <div className="ContractAddress">
       <TextField
@@ -21,9 +24,12 @@ export const ContractAddress: React.FC<{
         variant="outlined"
         fullWidth
       />
-      <Button onClick={onConfirm} variant="contained">
-        Confirm
-      </Button>
+      <div className="ContractAddress__actions">
+        <Button onClick={onConfirm} variant="contained">
+          Confirm
+        </Button>
+        {onDeploy && <ContractDeploy onDeploy={onDeploy} title={title} />}
+      </div>
     </div>
   );
 };

@@ -83,45 +83,43 @@ export const BetInfo: React.FC<{
 
   return (
     <>
-      <Card>
-        <CardHeader title={game.description} />
-        <CardContent>
-          <ListItemText primary="State" secondary={state} />
-          {game.state == GAME_STATE['CLOSED'] && (
-            <ListItemText primary="Won?" secondary={game.isSuccessful ? 'Yes' : 'No'} />
-          )}
-          <ListItemText primary="Number of bets" secondary={`${game.numBets}`} />
-        </CardContent>
-        {isAdmin && isOpen && (
-          <CardActions className="BetInfo__actions">
-            <div className="BetInfo__state">
-              <FormLabel>State</FormLabel>
-              <Select
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(+e.target.value)}
-                size="small"
-                disabled={!!loading}
-              >
-                <MenuItem value={1}>Win</MenuItem>
-                <MenuItem value={0}>Lost</MenuItem>
-              </Select>
-            </div>
-            <Button onClick={closeGame} variant="contained" disabled={!!loading}>
-              Close game
-            </Button>
-
-            <Button onClick={pauseGame} disabled={!!loading}>
-              Pause game (no more bet)
-            </Button>
-
-            <Button onClick={cancelGame} disabled={!!loading}>
-              Cancel game
-            </Button>
-
-            <Loader message={loading} />
-          </CardActions>
+      <CardHeader title={game.description} />
+      <CardContent>
+        <ListItemText primary="State" secondary={state} />
+        {game.state == GAME_STATE['CLOSED'] && (
+          <ListItemText primary="Won?" secondary={game.isSuccessful ? 'Yes' : 'No'} />
         )}
-      </Card>
+        <ListItemText primary="Number of bets" secondary={`${game.numBets}`} />
+      </CardContent>
+      {isAdmin && isOpen && (
+        <CardActions className="BetInfo__actions">
+          <div className="BetInfo__state">
+            <FormLabel>State</FormLabel>
+            <Select
+              value={selectedOption}
+              onChange={(e) => setSelectedOption(+e.target.value)}
+              size="small"
+              disabled={!!loading}
+            >
+              <MenuItem value={1}>Win</MenuItem>
+              <MenuItem value={0}>Lost</MenuItem>
+            </Select>
+          </div>
+          <Button onClick={closeGame} variant="contained" disabled={!!loading}>
+            Close game
+          </Button>
+
+          <Button onClick={pauseGame} disabled={!!loading}>
+            Pause game (no more bet)
+          </Button>
+
+          <Button onClick={cancelGame} disabled={!!loading}>
+            Cancel game
+          </Button>
+
+          <Loader message={loading} />
+        </CardActions>
+      )}
       <Dialog
         open={dialog !== ''}
         onClose={handleClose}

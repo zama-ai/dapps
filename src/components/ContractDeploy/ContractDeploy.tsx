@@ -19,7 +19,7 @@ export const ContractDeploy: React.FC<{
   };
   return (
     <div className="ContractDeploy">
-      <Button onClick={handleDeploy} disabled={!!loading} variant="contained">
+      <Button onClick={handleDeploy} disabled={!!loading} variant="outlined">
         Deploy a {title}
       </Button>
 

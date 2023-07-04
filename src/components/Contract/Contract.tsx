@@ -13,6 +13,7 @@ export const Contract: React.FC<{
   storageKey: string;
   children: (contractAddress: string) => JSX.Element;
 }> = ({ onDeploy, title, storageKey, children }) => {
+  const [displayDeploy, setDisplayDeploy] = React.useState<boolean>(false);
   const [inputAddress, setInputAddress] = React.useState<string>('');
   const [currentAddress, setCurrentAddress] = React.useState<string>('');
 
@@ -50,17 +51,15 @@ export const Contract: React.FC<{
         <Card className="Contract">
           <CardHeader title={title} subheader="Define your contract address" />
           <CardContent className="Contract__content">
-            <ContractAddress value={inputAddress} onChange={onChange} onConfirm={handleConfirm} />
+            <ContractAddress
+              onDeploy={onDeploy ? handleDeploy : undefined}
+              title={title}
+              value={inputAddress}
+              onChange={onChange}
+              onConfirm={handleConfirm}
+            />
           </CardContent>
         </Card>
-        {onDeploy && (
-          <Card className="Contract">
-            <CardHeader title="Deploy a contract" />
-            <CardContent className="Contract__content">
-              <ContractDeploy onDeploy={handleDeploy} title={title} />
-            </CardContent>
-          </Card>
-        )}
       </Line>
       {currentAddress && children(currentAddress)}
     </>
