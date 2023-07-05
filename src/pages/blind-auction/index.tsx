@@ -35,6 +35,7 @@ const IndexPage: React.FC<PageProps> = withTheme(() => {
             <Contract title="Blind Auction Contract" storageKey="blindAuction" onDeploy={deployBlindAuction}>
               {(contractAddress) => (
                 <Auctions
+                  key={contractAddress}
                   provider={provider}
                   account={account}
                   abi={blindAuction.abi}
