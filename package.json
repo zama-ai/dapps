@@ -22,7 +22,7 @@
     "@mui/material": "^5.11.13",
     "dayjs": "^1.11.7",
     "eip-712": "^1.0.0",
-    "ethers": "^6.6.0",
+    "ethers": "^6.6.2",
     "fhevmjs": "^0.0.5",
     "gatsby": "^5.5.0",
     "gatsby-plugin-emotion": "^8.7.0",
