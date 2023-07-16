@@ -1,10 +1,10 @@
-import type { FhevmInstance } from 'fhevmjs';
+import { createInstance, initFhevm, FhevmInstance } from 'fhevmjs';
 
 let instance: FhevmInstance;
 
 export const init = async () => {
   if (!instance) {
-    await window.fhevm.initFhevm();
+    await initFhevm();
   }
 };
 

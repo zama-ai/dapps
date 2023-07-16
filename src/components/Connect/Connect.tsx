@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardContent } from '@mui/material';
 import { BrowserProvider } from 'ethers';
 import { Link } from 'gatsby';
+import { createInstance } from 'fhevmjs';
 
 import { Title } from '../Title';
 import { setInstance } from '../../wallet';
@@ -45,7 +46,7 @@ export const Connect: React.FC<{
       localStorage.setItem('fhepubkey', publicKey);
     }
     if (chainId !== 9000) throw new Error('Invalid port');
-    return window.fhevm.createInstance({ chainId, publicKey });
+    return createInstance({ chainId, publicKey });
   };
 
   const refreshProvider = (eth: any) => {
