@@ -113,7 +113,7 @@ export const Connect: React.FC<{
               symbol: 'ZAMA',
               decimals: 18,
             },
-            blockExplorerUrls: ['http://explorer.zama.ai/'],
+            blockExplorerUrls: ['https://explorer.zama.ai'],
           },
         ],
       });
