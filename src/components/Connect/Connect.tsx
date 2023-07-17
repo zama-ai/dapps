@@ -44,12 +44,11 @@ export const Connect: React.FC<{
     const provider = new BrowserProvider(window.ethereum);
     const network = await provider.getNetwork();
     const chainId = +network.chainId.toString();
-    let publicKey = localStorage.getItem('fhepubkey');
+    let publicKey = localStorage.getItem(`fhepubkey${chainId}`);
     if (!publicKey) {
       publicKey = await provider.call({ from: null, to: '0x0000000000000000000000000000000000000044' });
       localStorage.setItem('fhepubkey', publicKey);
     }
-    if (chainId !== 9000) throw new Error('Invalid port');
     return createInstance({ chainId, publicKey });
   };
 
