@@ -9,7 +9,7 @@ import { setInstance } from '../../wallet';
 
 import './Connect.css';
 
-const AUTHORIZED_CHAIN_ID = ['0x2328', '0x1F49', '0x1F4A', '0x1F4B'];
+const AUTHORIZED_CHAIN_ID = ['0x1F49', '0x1F4A', '0x1F4B'];
 
 export const Connect: React.FC<{
   children: (account: string, provider: any) => React.ReactNode;
