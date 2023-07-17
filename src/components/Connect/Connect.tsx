@@ -9,7 +9,7 @@ import { setInstance } from '../../wallet';
 
 import './Connect.css';
 
-const AUTHORIZED_CHAIN_ID = ['0x1F49', '0x1F4A', '0x1F4B'];
+const AUTHORIZED_CHAIN_ID = ['0x1f49', '0x1f4a', '0x1f4b'];
 
 export const Connect: React.FC<{
   children: (account: string, provider: any) => React.ReactNode;
@@ -29,7 +29,7 @@ export const Connect: React.FC<{
 
   const hasValidNetwork = async (): Promise<boolean> => {
     const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-    return AUTHORIZED_CHAIN_ID.includes(currentChainId);
+    return AUTHORIZED_CHAIN_ID.includes(currentChainId.toLowerCase());
   };
 
   const refreshNetwork = async () => {
