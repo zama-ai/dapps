@@ -9,7 +9,7 @@ import { setInstance } from '../../wallet';
 
 import './Connect.css';
 
-const AUTHORIZED_CHAIN_ID = ['0x1f49', '0x1f4a', '0x1f4b'];
+const AUTHORIZED_CHAIN_ID = ['0x1f4b', '0x1f49', '0x1f4a'];
 
 export const Connect: React.FC<{
   children: (account: string, provider: any) => React.ReactNode;
@@ -111,14 +111,14 @@ export const Connect: React.FC<{
         params: [
           {
             chainId: AUTHORIZED_CHAIN_ID[0],
-            rpcUrls: ['https://devnet.zama.ai/'],
-            chainName: 'Zama Devnet',
+            rpcUrls: ['https://devnet.fhenix.io/'],
+            chainName: 'Fhenix Devnet',
             nativeCurrency: {
-              name: 'ZAMA',
-              symbol: 'ZAMA',
+              name: 'TFHE',
+              symbol: 'TFHE',
               decimals: 18,
             },
-            blockExplorerUrls: ['https://main.explorer.zama.ai'],
+            blockExplorerUrls: ['https://fhenix.explorer.zama.ai'],
           },
         ],
       });
