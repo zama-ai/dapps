@@ -114,8 +114,8 @@ export const Connect: React.FC<{
             rpcUrls: ['https://devnet.fhenix.io/'],
             chainName: 'Fhenix Devnet',
             nativeCurrency: {
-              name: 'TFHE',
-              symbol: 'TFHE',
+              name: 'FHE',
+              symbol: 'FHE',
               decimals: 18,
             },
             blockExplorerUrls: ['https://fhenix.explorer.zama.ai'],
