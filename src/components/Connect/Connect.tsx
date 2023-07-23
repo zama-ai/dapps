@@ -111,7 +111,7 @@ export const Connect: React.FC<{
         params: [
           {
             chainId: AUTHORIZED_CHAIN_ID[0],
-            rpcUrls: ['https://devnet.zama.io/'],
+            rpcUrls: ['https://devnet.zama.ai/'],
             chainName: 'Zama Devnet',
             nativeCurrency: {
               name: 'ZAMA',
