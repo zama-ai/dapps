@@ -46,7 +46,7 @@ export const TokenBalance: React.FC<{
       const contractAddress = await contract.getAddress();
       setLoading('Decrypting your balance...');
       const { publicKey, signature } = await getTokenSignature(contractAddress, account);
-      const ciphertext = await contract.balanceOf(publicKey, signature);
+      const ciphertext = await contract.balanceOf(account, publicKey, signature);
       const balance = await getInstance().decrypt(contractAddress, ciphertext);
       setDecryptedBalance(balance);
       setLoading('');

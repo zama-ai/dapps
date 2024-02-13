@@ -29,7 +29,7 @@ export const TokenInfo: React.FC<{
   const [name, setName] = useState('');
   const [decimals, setDecimals] = useState('');
   const [symbol, setSymbol] = useState('');
-  const [totalSupply, setTotalSupply] = useState<number | null>(null);
+  const [totalSupply, setTotalSupply] = useState<string>('');
   const [loading, setLoading] = useState<string>('');
   const [dialog, setDialog] = useState('');
 
@@ -38,6 +38,7 @@ export const TokenInfo: React.FC<{
       contract.name().then(setName);
       contract.decimals().then(setDecimals);
       contract.symbol().then(setSymbol);
+      refreshTotalSupply();
     } catch (e) {
       console.log(e);
     }
@@ -45,11 +46,8 @@ export const TokenInfo: React.FC<{
 
   const mint = async () => {
     try {
-      setLoading('Encrypting "30" and generating ZK proof...');
-      const encrypted = getInstance().encrypt32(1000);
-      console.log(toHexString(encrypted));
       setLoading('Sending transaction...');
-      const transaction = await contract.mint(encrypted);
+      const transaction = await contract.mint(1000);
       setLoading('Waiting for transaction validation...');
       await provider.waitForTransaction(transaction.hash);
       setLoading('');
@@ -61,21 +59,12 @@ export const TokenInfo: React.FC<{
     }
   };
 
-  const reencrypt = async () => {
+  const refreshTotalSupply = async () => {
     try {
-      const contractAddress = await contract.getAddress();
-      setLoading('Decrypting total supply...');
-      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
-      const ciphertext: string = await contract.getTotalSupply(publicKey, signature);
-      console.log(ciphertext);
-      const totalSup = getInstance().decrypt(contractAddress, ciphertext);
-      console.log(ciphertext, totalSup);
-      setTotalSupply(totalSup);
-      setLoading('');
+      const ts = await contract.totalSupply();
+      setTotalSupply(ts.toString());
     } catch (e) {
-      console.log(e);
-      setLoading('');
-      setDialog('Error during reencrypt!');
+      setDialog('Error during getting total supply!');
     }
   };
 
@@ -92,7 +81,7 @@ export const TokenInfo: React.FC<{
         </CardContent>
         <CardActions>
           {!loading && <Button onClick={mint}>Mint 1000 tokens</Button>}
-          {!loading && <Button onClick={reencrypt}>Total supply</Button>}
+          {!loading && <Button onClick={refreshTotalSupply}>Total supply</Button>}
           <Loader message={loading} />
         </CardActions>
       </Card>
