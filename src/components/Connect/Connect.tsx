@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, CardContent } from '@mui/material';
-import { BrowserProvider } from 'ethers';
+import { AbiCoder, BrowserProvider } from 'ethers';
 import { Link } from 'gatsby';
 import { createInstance } from 'fhevmjs';
 
@@ -10,6 +10,7 @@ import { setInstance } from '../../wallet';
 import './Connect.css';
 
 const AUTHORIZED_CHAIN_ID = ['0x1f49', '0x1f4a', '0x1f4b'];
+const FHE_LIB_ADDRESS = '0x000000000000000000000000000000000000005d';
 
 export const Connect: React.FC<{
   children: (account: string, provider: any) => React.ReactNode;
@@ -44,10 +45,16 @@ export const Connect: React.FC<{
     const provider = new BrowserProvider(window.ethereum);
     const network = await provider.getNetwork();
     const chainId = +network.chainId.toString();
-    let publicKey = localStorage.getItem(`fhepubkey${chainId}`);
+    let publicKey = localStorage.getItem(`fhepubkey${chainId}`)!;
     if (!publicKey) {
-      publicKey = await provider.call({ from: null, to: '0x0000000000000000000000000000000000000044' });
-      localStorage.setItem('fhepubkey', publicKey);
+      const ret = await provider.call({
+        to: FHE_LIB_ADDRESS,
+        // first four bytes of keccak256('fhePubKey(bytes1)') + 1 byte for library
+        data: '0xd9d47bb001',
+      });
+      const decoded = AbiCoder.defaultAbiCoder().decode(['bytes'], ret);
+      publicKey = decoded[0];
+      localStorage.setItem('fhepubkey', decoded[0]);
     }
     return createInstance({ chainId, publicKey });
   };

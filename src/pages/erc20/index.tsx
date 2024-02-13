@@ -34,7 +34,7 @@ const IndexPage: React.FC<PageProps> = withTheme(({ location }) => {
               encryptedERC20.bytecode,
               await provider.getSigner()
             );
-            const c = await contractFactory.deploy();
+            const c = await contractFactory.deploy('Naraggara', 'NARA');
             await c.waitForDeployment();
             return c.getAddress();
           };

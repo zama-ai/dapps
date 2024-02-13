@@ -14,7 +14,9 @@ export const ContractDeploy: React.FC<{
     setLoading('Deploying your contract...');
     try {
       await onDeploy();
-    } catch (e) {}
+    } catch (e) {
+      console.log(e)
+    }
     setLoading('');
   };
   return (
