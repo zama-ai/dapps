@@ -62,7 +62,7 @@ export const TokenTransfer: React.FC<{
         />
         <TextField
           label="Amount"
-          id="address"
+          id="amount"
           type="number"
           placeholder=""
           onChange={(e) => setAmount(e.target.value)}
@@ -75,6 +75,7 @@ export const TokenTransfer: React.FC<{
           onClose={handleClose}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
+          id="transfer_dialog"
         >
           <DialogContent>{dialog}</DialogContent>
           <DialogActions>
