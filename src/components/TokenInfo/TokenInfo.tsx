@@ -90,6 +90,7 @@ export const TokenInfo: React.FC<{
         onClose={handleClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        id="mint_dialog"
       >
         <DialogContent>{dialog}</DialogContent>
         <DialogActions>
