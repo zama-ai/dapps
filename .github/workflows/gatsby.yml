@@ -5,6 +5,10 @@
 name: Deploy Gatsby site to Pages
 
 on:
+  workflow_run:
+    workflows: ['e2e']
+    types: [completed]
+
   # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
@@ -32,6 +36,7 @@ defaults:
 jobs:
   # Build job
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -86,6 +91,7 @@ jobs:
 
   # Deployment job
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
