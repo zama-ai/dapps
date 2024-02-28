@@ -17,7 +17,7 @@
     "start": "cross-env GATSBY_TELEMETRY_DISABLED=1 NODE_ENV=development gatsby develop",
     "synpress:open": "env-cmd -f .env.development synpress open -cf synpress.config.js",
     "synpress:run": "env-cmd -f .env.development synpress run --config baseUrl=http://localhost:8000",
-    "synpress:run-headless": "env-cmd -f .env.development synpress run --config baseUrl=http://localhost:8000 --headless",
+    "synpress:run-prod": "env-cmd -f .env.production synpress run --config baseUrl=https://dapps.zama.ai,taskTimeout=120000",
     "test": "start-server-and-test 'pnpm start' http://localhost:8000 'pnpm synpress:run'"
   },
   "dependencies": {
