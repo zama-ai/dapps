@@ -1,6 +1,6 @@
 describe('Erc20 Deploy / Mint / Transfer', () => {
   before(() => {
-    cy.visit('http://localhost:8000/erc20');
+    cy.visit('/erc20');
   });
 
   it('should connect wallet with success', () => {
