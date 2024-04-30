@@ -15,7 +15,7 @@ import {
   TextField,
 } from '@mui/material';
 import { Loader } from '../../../../components/Loader';
-import { getInstance, getTokenSignature } from '../../../../wallet';
+import { getInstance, getPublicKeySignature } from '../../../../wallet';
 import { Game } from '../../types';
 import { GAME_STATE } from '../../constants';
 
@@ -93,7 +93,7 @@ export const BetAction: React.FC<{
   const getCurrentBet = async () => {
     try {
       const contractAddress = await contract.getAddress();
-      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const { publicKey, signature } = await getPublicKeySignature(contractAddress, account);
       const response = await contract.getBet(gameId, publicKey, signature);
       const bet = response.toObject();
       const betAmount = getInstance().decrypt(contractAddress, bet.amount);

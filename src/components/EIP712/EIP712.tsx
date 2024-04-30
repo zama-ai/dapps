@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Contract, BrowserProvider, isAddress } from 'ethers';
 import { Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 import { Loader } from '../Loader';
-import { getTokenSignature } from '../../wallet';
+import { getPublicKeySignature } from '../../wallet';
 
 export const EIP712: React.FC<{
   account: string;
@@ -32,7 +32,7 @@ export const EIP712: React.FC<{
   const verifyToken = async () => {
     setVerified(false);
 
-    const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+    const { publicKey, signature } = await getPublicKeySignature(contractAddress, account);
     await contract.verify(publicKey, signature);
     setVerified(true);
     setLoading('');
