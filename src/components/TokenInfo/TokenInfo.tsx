@@ -12,7 +12,6 @@ import {
   ListItemText,
 } from '@mui/material';
 import { Loader } from '../Loader';
-import { getInstance, getTokenSignature } from '../../wallet';
 
 const NO_SUPPLY = 'NO_SUPPLY';
 const toHexString = (bytes: Uint8Array) => {

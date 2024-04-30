@@ -16,9 +16,9 @@ export const getInstance = () => {
   return instance;
 };
 
-export const getTokenSignature = async (contractAddress: string, userAddress: string) => {
+export const getPublicKeySignature = async (contractAddress: string, userAddress: string) => {
   if (getInstance().hasKeypair(contractAddress)) {
-    return getInstance().getTokenSignature(contractAddress)!;
+    return getInstance().getPublicKey(contractAddress)!;
   } else {
     const { publicKey, eip712 } = getInstance().generatePublicKey({ verifyingContract: contractAddress });
     const params = [userAddress, JSON.stringify(eip712)];

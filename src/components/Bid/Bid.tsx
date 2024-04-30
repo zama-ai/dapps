@@ -13,7 +13,7 @@ import {
   TextField,
 } from '@mui/material';
 import { Loader } from '../Loader';
-import { getInstance, getTokenSignature } from '../../wallet';
+import { getInstance, getPublicKeySignature } from '../../wallet';
 
 export const Bid: React.FC<{
   abi: any;
@@ -39,7 +39,7 @@ export const Bid: React.FC<{
   const getCurrentBid = async () => {
     try {
       const contractAddress = await contract.getAddress();
-      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const { publicKey, signature } = await getPublicKeySignature(contractAddress, account);
       const encryptedBid = await contract.getBid(publicKey, signature);
       const bid = getInstance().decrypt(contractAddress, encryptedBid);
       console.log('get', account, bid);
@@ -89,7 +89,7 @@ export const Bid: React.FC<{
       }
       setLoading('Decrypting do I have highest bid...');
       const contractAddress = await contract.getAddress();
-      const { publicKey, signature } = await getTokenSignature(contractAddress, account);
+      const { publicKey, signature } = await getPublicKeySignature(contractAddress, account);
       const ciphertext = await contract.doIHaveHighestBid(publicKey, signature);
       const hb = getInstance().decrypt(contractAddress, ciphertext);
       setHighestBid(Boolean(hb));

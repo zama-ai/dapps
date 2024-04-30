@@ -27,8 +27,8 @@ dependencies:
     specifier: ^6.6.2
     version: 6.11.1
   fhevmjs:
-    specifier: ^0.3.2
-    version: 0.3.2
+    specifier: ^0.4.0
+    version: 0.4.0
   gatsby:
     specifier: ^5.13.3
     version: 5.13.3(babel-eslint@10.1.0)(eslint-plugin-jest@27.9.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)
@@ -4763,9 +4763,23 @@ packages:
   /big.js@5.2.2:
     resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
 
+  /bigint-buffer@1.1.5:
+    resolution: {integrity: sha512-trfYco6AoZ+rKhKnxA0hgX0HAbVP/s808/EuDSe2JDzUnCp/xAsli35Orvk67UrTEcwuxZqYZDmfA2RXJgxVvA==}
+    engines: {node: '>= 10.0.0'}
+    requiresBuild: true
+    dependencies:
+      bindings: 1.5.0
+    dev: false
+
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
+
+  /bindings@1.5.0:
+    resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
+    dependencies:
+      file-uri-to-path: 1.0.0
+    dev: false
 
   /bl@1.2.3:
     resolution: {integrity: sha512-pvcNpa0UU69UT341rO6AYy4FVAIkUHuZXRIWbq+zHnsVcRzDDjIAhGuuYoi0d//cwIwtt4pkpKycWEfjdV+vww==}
@@ -4965,6 +4979,7 @@ packages:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+    dev: true
 
   /busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
@@ -7532,18 +7547,18 @@ packages:
       pend: 1.2.0
     dev: true
 
-  /fhevmjs@0.3.2:
-    resolution: {integrity: sha512-/6D8uqlU3UYQRxyQJWxr6F6qjwe5pLvqeIZlp3YRilLytiFEoBQT5bwSbXzQ7UtY7VuTr82BfIUpNlSBItD5ww==}
+  /fhevmjs@0.4.0:
+    resolution: {integrity: sha512-4FEU9B8SYKeikuOycRQzexcTsu2vK89tIzyepIGhQ/d1LzMu84TmfLg5H688CoRUPVbVkRcsaVN13OwzJBKX/w==}
     hasBin: true
     dependencies:
+      bigint-buffer: 1.1.5
       commander: 11.1.0
       crypto-js: 4.2.0
       ethers: 6.11.1
       libsodium: 0.7.13
       libsodium-wrappers: 0.7.13
-      node-tfhe: 0.4.2
-      sha3: 2.1.4
-      tfhe: 0.4.2
+      node-tfhe: 0.5.4
+      tfhe: 0.5.4
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -7605,6 +7620,10 @@ packages:
     resolution: {integrity: sha512-YPcTBDV+2Tm0VqjybVd32MHdlEGAtuxS3VAYsumFokDSMG+ROT5wawGlnHDoz7bfMcMDt9hxuXvXwoKUx2fkOg==}
     engines: {node: '>=4'}
     dev: true
+
+  /file-uri-to-path@1.0.0:
+    resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
+    dev: false
 
   /filename-reserved-regex@2.0.0:
     resolution: {integrity: sha512-lc1bnsSr4L4Bdif8Xb/qrtokGbq5zlsms/CYH8PP+WtCkGNF65DPiQY8vG3SakEdRn8Dlnm+gW/qWKKjS5sZzQ==}
@@ -10603,8 +10622,8 @@ packages:
   /node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
 
-  /node-tfhe@0.4.2:
-    resolution: {integrity: sha512-fFUBRcOfvD5I4HpR8dN4OfdzQkPRi+Blug0sFXRMetMkcTdlmv6sM5Jf3qsKFvaUSIg3DTspG75rDVyrgvOgZA==}
+  /node-tfhe@0.5.4:
+    resolution: {integrity: sha512-xRsaXLnOunYGukABGePv6iiL8PB4UnPszRq9y97PBbbCSPw2AWVEci+XxHrPmD550f0HDMtC+AcCHBUmlCHwtA==}
     dev: false
 
   /normalize-path@2.1.1:
@@ -12584,12 +12603,6 @@ packages:
       safe-buffer: 5.2.1
     dev: true
 
-  /sha3@2.1.4:
-    resolution: {integrity: sha512-S8cNxbyb0UGUM2VhRD4Poe5N58gJnJsLJ5vC7FYWGUmGhcsj4++WaIOBFVDxlG0W3To6xBuiRh+i0Qp2oNCOtg==}
-    dependencies:
-      buffer: 6.0.3
-    dev: false
-
   /shallow-clone@3.0.1:
     resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
     engines: {node: '>=8'}
@@ -13360,8 +13373,8 @@ packages:
   /text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
 
-  /tfhe@0.4.2:
-    resolution: {integrity: sha512-mf6LqRcClIJB5D6thrnDR73Zrq82QwFsmRros9RuFLIEm1S836CjrVuXrKq6Nmsm07ekh0peznscxMfshPykwA==}
+  /tfhe@0.5.4:
+    resolution: {integrity: sha512-hw+H4qVdFHHoJQhx203vC5jIOuYG4TeGRyrj0kW90sNeyo2FgKQiNVvvVd8VkMNj3PALt78gYClUWIwHh9dcKg==}
     dev: false
 
   /throttleit@1.0.1:
