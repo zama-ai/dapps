@@ -27,7 +27,7 @@
     "dayjs": "^1.11.7",
     "eip-712": "^1.0.0",
     "env-cmd": "^10.1.0",
-    "ethers": "^6.6.2",
+    "ethers": "^6.12.1",
     "fhevmjs": "^0.4.0",
     "gatsby": "^5.13.3",
     "gatsby-plugin-emotion": "^8.13.1",
