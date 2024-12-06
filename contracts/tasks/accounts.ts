@@ -29,11 +29,11 @@ task("get-accounts", "Prints the list of accounts")
         address: address,
       });
     }
-    console.log("\nAccount Details:");
-    console.log("================");
+    console.info("\nAccount Details:");
+    console.info("================");
     accounts.forEach(({ index, privateKey, address }) => {
-      console.log(`\nAccount ${index}: (${ACCOUNT_NAMES[index]})`);
-      console.log(`Address:     ${address}`);
-      console.log(`Private Key: ${privateKey}`);
+      console.info(`\nAccount ${index}: (${ACCOUNT_NAMES[index]})`);
+      console.info(`Address:     ${address}`);
+      console.info(`Private Key: ${privateKey}`);
     });
   });

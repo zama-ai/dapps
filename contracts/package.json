@@ -35,9 +35,9 @@
     "eslint-config-prettier": "^8.5.0",
     "ethers": "^6.8.0",
     "extra-bigint": "^1.1.18",
-    "fhevm": "^0.6.0-8",
+    "fhevm": "^0.6.0",
     "fhevm-core-contracts": "0.6.0-5",
-    "fhevmjs": "^0.6.0-16",
+    "fhevmjs": "^0.6.0",
     "fs-extra": "^10.1.0",
     "globals": "^15.9.0",
     "hardhat": "^2.22.8",
@@ -90,9 +90,11 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
     "test": "hardhat test --network hardhat",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "deploy-sepolia": "hardhat deploy --network sepolia"
   },
   "dependencies": {
-    "bigint-buffer": "^1.1.5"
+    "bigint-buffer": "^1.1.5",
+    "fhevm-contracts": "^0.2.0"
   }
 }

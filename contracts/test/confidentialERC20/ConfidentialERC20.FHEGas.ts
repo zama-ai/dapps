@@ -3,16 +3,16 @@ import { expect } from "chai";
 import { getFHEGasFromTxReceipt } from "../coprocessorUtils";
 import { createInstance } from "../instance";
 import { getSigners, initSigners } from "../signers";
-import { deployEncryptedERC20Fixture } from "./EncryptedERC20.fixture";
+import { deployConfidentialERC20Fixture } from "./ConfidentialERC20.fixture";
 
-describe("EncryptedERC20:FHEGas", function () {
+describe("ConfidentialERC20:FHEGas", function () {
   before(async function () {
     await initSigners();
     this.signers = await getSigners();
   });
 
   beforeEach(async function () {
-    const contract = await deployEncryptedERC20Fixture();
+    const contract = await deployConfidentialERC20Fixture();
     this.contractAddress = await contract.getAddress();
     this.erc20 = contract;
     this.fhevm = await createInstance();
@@ -35,7 +35,7 @@ describe("EncryptedERC20:FHEGas", function () {
     expect(t2?.status).to.eq(1);
     const FHEGasConsumedTransfer = getFHEGasFromTxReceipt(t2);
     console.log("FHEGas Consumed during transfer", FHEGasConsumedTransfer);
-    // @note: contrarily to the FHEGas, native gas in mocked mode slightly differs from the real gas consumption on fhevm (off by ~5%)
+    // contrarily to FHEGas, native gas in mocked mode slightly differs from the real gas consumption on fhevm (underestimated by ~20%)
     console.log("Native Gas Consumed during transfer", t2.gasUsed);
   });
 
@@ -66,7 +66,7 @@ describe("EncryptedERC20:FHEGas", function () {
     const t3 = await tx3.wait();
     const FHEGasConsumedTransferFrom = getFHEGasFromTxReceipt(t3);
     console.log("FHEGas Consumed during transferFrom", FHEGasConsumedTransferFrom);
-    // @note: contrarily to the FHEGas, native gas in mocked mode slightly differs from the real gas consumption on fhevm (off by ~5%)
+    // contrarily to FHEGas, native gas in mocked mode slightly differs from the real gas consumption on fhevm (underestimated by ~20%)
     console.log("Native Gas Consumed during transfer", t3.gasUsed);
   });
 });
