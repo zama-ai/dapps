@@ -1,7 +1,0 @@
-.Loader {
-  display: flex;
-  align-items: center;
-}
-.Loader > * {
-  margin-right: 10px;
-}
