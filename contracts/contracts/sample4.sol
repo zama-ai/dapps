@@ -15,9 +15,7 @@ contract EncryptedCounter4 is SepoliaZamaFHEVMConfig {
 
     function incrementBy(einput amount, bytes calldata inputProof) public {
         // Initialize counter if it doesn't exist
-        if (!TFHE.isInitialized(counters[msg.sender])) {
-            counters[msg.sender] = TFHE.asEuint8(0);
-        }
+        counters[msg.sender] = TFHE.asEuint8(0);
 
         // Convert input to euint8 and add to sender's counter
         euint8 incrementAmount = TFHE.asEuint8(amount, inputProof);

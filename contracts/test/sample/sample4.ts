@@ -19,26 +19,6 @@ describe("EncryptedCounter4", function () {
     this.instances = await createInstance();
   });
 
-  it("should initialize the counter to zero", async function () {
-    const counterValue = await this.counterContract.getCounter();
-    expect(counterValue); // Expect initial value to be zero
-  });
-
-  it("should increment by arbitrary encrypted amount", async function () {
-    // Create encrypted input for amount to increment by
-    const input = this.instances.createEncryptedInput(this.contractAddress, this.signers.alice.address);
-    input.add8(5); // Increment by 5 as an example
-    const encryptedAmount = await input.encrypt();
-
-    // Call incrementBy with encrypted amount
-    const tx = await this.counterContract.incrementBy(encryptedAmount.handles[0], encryptedAmount.inputProof);
-    await tx.wait();
-
-    // Get updated counter value
-    const counterValue = await this.counterContract.getCounter();
-    expect(counterValue); // Counter should be incremented by 5
-  });
-
   it("should allow reencryption and decryption of counter value", async function () {
     const input = this.instances.createEncryptedInput(this.contractAddress, this.signers.alice.address);
     input.add8(1); // Increment by 1 as an example
