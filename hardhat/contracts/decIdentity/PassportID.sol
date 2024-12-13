@@ -38,7 +38,7 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
      * @param birthdate Encrypted date of birth in unix timestamp format
      */
     struct Identity {
-        euint64 id; /// @dev Encrypted unique ID
+        euint128 id; /// @dev Encrypted unique ID
         ebytes64 biodata; /// @dev Encrypted biodata (e.g., biometric data or hashed identity data)
         ebytes64 firstname; /// @dev Encrypted first name
         ebytes64 lastname; /// @dev Encrypted last name
@@ -108,7 +108,7 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
         if (registered[userId]) revert AlreadyRegistered();
 
         /// @dev Generate a new encrypted unique ID
-        euint64 newId = TFHE.randEuint64();
+        euint128 newId = TFHE.randEuint128();
 
         /// @dev Store the encrypted identity data
         citizenIdentities[userId] = Identity({
@@ -150,7 +150,7 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
      * @return Tuple containing (id, biodata, firstname, lastname, birthdate)
      * @custom:throws IdentityNotRegistered if no identity exists for userId
      */
-    function getIdentity(uint256 userId) public view virtual returns (euint64, ebytes64, ebytes64, ebytes64, euint64) {
+    function getIdentity(uint256 userId) public view virtual returns (euint128, ebytes64, ebytes64, ebytes64, euint64) {
         if (!registered[userId]) revert IdentityNotRegistered();
         return (
             citizenIdentities[userId].id,
@@ -200,9 +200,6 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
         /// @dev Grant temporary access for citizen's birthdate to be used in claim generation
         TFHE.allowTransient(citizenIdentities[userId].birthdate, claimAddress);
 
-        /// @dev Ensure the sender can access this citizen's birthdate
-        if (!TFHE.isSenderAllowed(citizenIdentities[userId].birthdate)) revert AccessNotPermitted();
-
         /// @dev Attempt the external call and capture the result
         (bool success, bytes memory data) = claimAddress.call(abi.encodeWithSignature(claimFn, userId));
         if (!success) revert ClaimGenerationFailed(data);
@@ -226,11 +223,8 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
 
             if (keccak256(bytes(fields[i])) == keccak256(bytes("id"))) {
                 TFHE.allowTransient(citizenIdentities[userId].id, claimAddress);
-                /// @dev Ensure the sender can access this citizen's university
-                if (!TFHE.isSenderAllowed(citizenIdentities[userId].id)) revert AccessNotPermitted();
             } else if (keccak256(bytes(fields[i])) == keccak256(bytes("birthdate"))) {
                 TFHE.allowTransient(citizenIdentities[userId].birthdate, claimAddress);
-                if (!TFHE.isSenderAllowed(citizenIdentities[userId].birthdate)) revert AccessNotPermitted();
             } else {
                 revert InvalidField();
             }

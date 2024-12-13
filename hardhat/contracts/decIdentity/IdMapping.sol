@@ -57,7 +57,6 @@ contract IdMapping is SepoliaZamaFHEVMConfig, Ownable2Step {
      */
     function generateId() public returns (uint256) {
         if (addressToId[msg.sender] != 0) revert IdAlreadyGenerated();
-        if (msg.sender == address(0)) revert InvalidAddress();
 
         uint256 newId = nextId;
 
@@ -92,7 +91,7 @@ contract IdMapping is SepoliaZamaFHEVMConfig, Ownable2Step {
      * @custom:throws NoAddressFound if no address is associated with the ID
      */
     function getAddr(uint256 _id) public view returns (address) {
-        if (_id <= 0 || _id >= nextId) revert InvalidId();
+        if (_id == 0 || _id >= nextId) revert InvalidId();
         address addr = idToAddress[_id];
         if (addr == address(0)) revert NoAddressFound();
         return addr;

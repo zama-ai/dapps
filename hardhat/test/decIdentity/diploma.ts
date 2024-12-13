@@ -5,7 +5,7 @@ import type { FhevmInstance } from "fhevmjs";
 
 import type { Diploma, EmployerClaim, IdMapping, PassportID } from "../../types";
 import { createInstance } from "../instance";
-import { reencryptEbool, reencryptEbytes64, reencryptEuint8, reencryptEuint16 } from "../reencrypt";
+import { reencryptEbool, reencryptEbytes64 } from "../reencrypt";
 import { getSigners, initSigners } from "../signers";
 import { bigIntToBytes64 } from "../utils";
 import { deployEmployerClaimFixture } from "./fixture/EmployerClaim.fixture";

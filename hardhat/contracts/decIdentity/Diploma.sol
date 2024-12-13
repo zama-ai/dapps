@@ -30,7 +30,7 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
 
     /// @dev Structure to hold encrypted diploma data
     struct DiplomaData {
-        euint64 id; // Encrypted unique diploma ID
+        euint128 id; // Encrypted unique diploma ID
         ebytes64 university; // Encrypted university identifier
         euint16 degree; // Encrypted degree identifier
         ebytes64 grade; // Encrypted grade
@@ -119,7 +119,7 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
         if (registered[userId]) revert DiplomaAlreadyRegistered();
 
         // Generate a new encrypted diploma ID
-        euint64 newId = TFHE.randEuint64();
+        euint128 newId = TFHE.randEuint128();
 
         // Store the encrypted diploma data
         diplomaRecords[userId] = DiplomaData({
@@ -201,9 +201,6 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
 
         /// @dev Grant temporary access for graduate's data to be used in claim generation
         TFHE.allowTransient(diplomaRecords[userId].degree, claimAddress);
-
-        /// @dev Ensure the sender can access this graduate's data
-        if (!TFHE.isSenderAllowed(diplomaRecords[userId].degree)) revert AccessNotPermitted();
 
         /// @dev Attempt the external call and capture the result
         (bool success, bytes memory data) = claimAddress.call(abi.encodeWithSignature(claimFn, userId));
