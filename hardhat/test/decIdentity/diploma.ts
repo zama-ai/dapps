@@ -83,17 +83,6 @@ describe("Diploma", function () {
       );
   }
 
-  // /**
-  //  * Helper function to setup reencryption
-  //  */
-  // async function setupReencryption(instance: FhevmInstance, signer: HardhatEthersSigner, contractAddress: string) {
-  //   const { publicKey, privateKey } = instance.generateKeypair();
-  //   const eip712 = instance.createEIP712(publicKey, contractAddress);
-  //   const signature = await signer.signTypedData(eip712.domain, { Reencrypt: eip712.types.Reencrypt }, eip712.message);
-
-  //   return { publicKey, privateKey, signature: signature.replace("0x", "") };
-  // }
-
   /**
    * Helper function to register identity
    */
@@ -184,10 +173,10 @@ describe("Diploma", function () {
       this.signers.alice,
       this.instances,
       degreeClaim,
-      this.diplomaAddress,
+      this.employerClaimAddress,
     );
 
-    expect(reencryptedDegreeClaim).to.equal(0);
+    expect(reencryptedDegreeClaim).to.equal(false);
   });
 
   it("should generate both degree and adult claims", async function () {
@@ -228,18 +217,18 @@ describe("Diploma", function () {
       this.signers.alice,
       this.instances,
       degreeClaim,
-      this.diplomaAddress,
+      this.employerClaimAddress,
     );
 
     const reencryptedAdultClaim = await reencryptEbool(
       this.signers.alice,
       this.instances,
       adultClaim,
-      this.diplomaAddress,
+      this.employerClaimAddress,
     );
 
-    expect(reencryptedDegreeClaim).to.equal(1);
-    expect(reencryptedAdultClaim).to.equal(1);
+    expect(reencryptedDegreeClaim).to.equal(true);
+    expect(reencryptedAdultClaim).to.equal(true);
 
     await employerClaim.verifyClaims(userId, latestAdultClaimUserId, latestDegreeClaimUserId);
     const verifyResult = await employerClaim.getVerifyClaim(userId);
@@ -248,10 +237,10 @@ describe("Diploma", function () {
       this.signers.alice,
       this.instances,
       verifyResult,
-      this.diplomaAddress,
+      this.employerClaimAddress,
     );
 
-    expect(reencryptedVerifyResult).to.equal(1);
+    expect(reencryptedVerifyResult).to.equal(true);
   });
 
   it("should not allow generating claims without a registered ID", async function () {

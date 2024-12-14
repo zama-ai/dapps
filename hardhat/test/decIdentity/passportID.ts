@@ -98,7 +98,7 @@ describe("PassportID", function () {
   });
 
   // Test case: Retrieve the registered identity
-  it.only("should retrieve the registered identity", async function () {
+  it("should retrieve the registered identity", async function () {
     await idMapping.connect(this.signers.alice).generateId();
     const userId = await idMapping.getId(this.signers.alice);
 
@@ -110,7 +110,7 @@ describe("PassportID", function () {
       this.signers.alice,
       this.instances,
       firstnameHandleAlice,
-      this.diplomaAddress,
+      this.passportIDAddress,
     );
 
     expect(reencryptedFirstname).to.equal(8);
@@ -131,9 +131,14 @@ describe("PassportID", function () {
 
     const latestClaimUserId = await employerClaim.lastClaimId();
     const adultsClaim = await employerClaim.getAdultClaim(latestClaimUserId);
-    const reencrypted = await reencryptEbool(this.signers.bob, this.instances, adultsClaim, this.diplomaAddress);
+    const reencrypted = await reencryptEbool(
+      this.signers.alice,
+      this.instances,
+      adultsClaim,
+      this.employerClaimAddress,
+    );
 
-    expect(reencrypted).to.equal(1);
+    expect(reencrypted).to.equal(true);
   });
 
   // Test case: Should fail verification with invalid claim IDs
