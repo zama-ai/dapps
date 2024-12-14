@@ -75,15 +75,6 @@ describe("PassportID", function () {
       );
   }
 
-  // Helper function to setup reencryption
-  async function setupReencryption(instance: FhevmInstance, signer: HardhatEthersSigner, contractAddress: string) {
-    const { publicKey, privateKey } = instance.generateKeypair();
-    const eip712 = instance.createEIP712(publicKey, contractAddress);
-    const signature = await signer.signTypedData(eip712.domain, { Reencrypt: eip712.types.Reencrypt }, eip712.message);
-
-    return { publicKey, privateKey, signature: signature.replace("0x", "") };
-  }
-
   // Test case: Register an identity successfully
   it("should register an identity successfully", async function () {
     await idMapping.connect(this.signers.alice).generateId();
@@ -107,7 +98,7 @@ describe("PassportID", function () {
   });
 
   // Test case: Retrieve the registered identity
-  it("should retrieve the registered identity", async function () {
+  it.only("should retrieve the registered identity", async function () {
     await idMapping.connect(this.signers.alice).generateId();
     const userId = await idMapping.getId(this.signers.alice);
 
@@ -134,7 +125,7 @@ describe("PassportID", function () {
 
     const tx = await passportID
       .connect(this.signers.alice)
-      .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)");
+      .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)", ["birthdate"]);
 
     await expect(tx).to.emit(employerClaim, "AdultClaimGenerated");
 

@@ -27,6 +27,7 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
     /// @notice Thrown when claim generation fails, includes failure data
     /// @param data The error data returned from the failed claim generation
     error ClaimGenerationFailed(bytes data);
+    error InvalidField();
 
     /// @dev Structure to hold encrypted diploma data
     struct DiplomaData {
@@ -195,12 +196,29 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
      * @param claimAddress Address of the claim contract
      * @param claimFn Function signature to call on claim contract
      */
-    function generateClaim(address claimAddress, string memory claimFn) public {
+    function generateClaim(address claimAddress, string memory claimFn, string[] memory fields) public {
         /// @dev Only the msg.sender that is registered under the user ID can make the claim
         uint256 userId = idMapping.getId(msg.sender);
 
-        /// @dev Grant temporary access for graduate's data to be used in claim generation
-        TFHE.allowTransient(diplomaRecords[userId].degree, claimAddress);
+        ebytes128 test = TFHE.randEbytes128();
+        TFHE.isInitialized(test);
+
+        /// @dev Grant temporary access for each requested field
+        for (uint i = 0; i < fields.length; i++) {
+            if (bytes(fields[i]).length == 0) revert InvalidField();
+
+            if (keccak256(bytes(fields[i])) == keccak256(bytes("id"))) {
+                TFHE.allowTransient(diplomaRecords[userId].id, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("degree"))) {
+                TFHE.allowTransient(diplomaRecords[userId].degree, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("university"))) {
+                TFHE.allowTransient(diplomaRecords[userId].university, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("grade"))) {
+                TFHE.allowTransient(diplomaRecords[userId].grade, claimAddress);
+            } else {
+                revert InvalidField();
+            }
+        }
 
         /// @dev Attempt the external call and capture the result
         (bool success, bytes memory data) = claimAddress.call(abi.encodeWithSignature(claimFn, userId));

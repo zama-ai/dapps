@@ -173,7 +173,7 @@ describe("Diploma", function () {
 
     const tx = await diplomaID
       .connect(this.signers.alice)
-      .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)");
+      .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)", ["degree"]);
 
     await expect(tx).to.emit(employerClaim, "DegreeClaimGenerated");
 
@@ -206,7 +206,7 @@ describe("Diploma", function () {
 
     const degreeTx = await diplomaID
       .connect(this.signers.alice)
-      .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)");
+      .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)", ["degree"]);
 
     await expect(degreeTx).to.emit(employerClaim, "DegreeClaimGenerated");
 
@@ -217,7 +217,7 @@ describe("Diploma", function () {
 
     const adultTx = await passportID
       .connect(this.signers.alice)
-      .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)");
+      .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)", ["birthdate"]);
 
     await expect(adultTx).to.emit(employerClaim, "AdultClaimGenerated");
 
@@ -257,12 +257,16 @@ describe("Diploma", function () {
   it("should not allow generating claims without a registered ID", async function () {
     // Try to generate degree claim without registering ID first
     await expect(
-      diplomaID.connect(this.signers.alice).generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)"),
+      diplomaID
+        .connect(this.signers.alice)
+        .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)", ["degree"]),
     ).to.be.revertedWithCustomError(idMapping, "NoIdGenerated");
 
     // Try to generate adult claim without registering ID first
     await expect(
-      passportID.connect(this.signers.alice).generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)"),
+      passportID
+        .connect(this.signers.alice)
+        .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)", ["birthdate"]),
     ).to.be.revertedWithCustomError(idMapping, "NoIdGenerated");
   });
 
@@ -273,12 +277,16 @@ describe("Diploma", function () {
 
     // Try to generate degree claim without registering diploma
     await expect(
-      diplomaID.connect(this.signers.alice).generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)"),
+      diplomaID
+        .connect(this.signers.alice)
+        .generateClaim(this.employerClaimAddress, "generateDegreeClaim(uint256)", ["degree"]),
     ).to.be.revertedWith("sender isn't allowed");
 
     // Try to generate adult claim without registering identity
     await expect(
-      passportID.connect(this.signers.alice).generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)"),
+      passportID
+        .connect(this.signers.alice)
+        .generateClaim(this.employerClaimAddress, "generateAdultClaim(uint256)", ["birthdate"]),
     ).to.be.revertedWith("sender isn't allowed");
   });
 

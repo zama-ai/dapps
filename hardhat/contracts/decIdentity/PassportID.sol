@@ -193,29 +193,12 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
      * @custom:throws AccessNotPermitted if sender lacks permission to access data
      * @custom:throws ClaimGenerationFailed if external claim call fails
      */
-    function generateClaim(address claimAddress, string memory claimFn) public {
-        /// @dev Only the msg.sender that is registered under the user ID can make the claim
-        uint256 userId = idMapping.getId(msg.sender);
-
-        /// @dev Grant temporary access for citizen's birthdate to be used in claim generation
-        TFHE.allowTransient(citizenIdentities[userId].birthdate, claimAddress);
-
-        /// @dev Attempt the external call and capture the result
-        (bool success, bytes memory data) = claimAddress.call(abi.encodeWithSignature(claimFn, userId));
-        if (!success) revert ClaimGenerationFailed(data);
-    }
-
-    /**
-     * @notice Generates a verification claim using the user's identity data
-     * @dev Temporarily grants claim contract access to required encrypted data
-     * @param claimAddress Contract address that will process the claim
-     * @param claimFn Function signature in the claim contract to call
-     * @custom:throws AccessNotPermitted if sender lacks permission to access data
-     * @custom:throws ClaimGenerationFailed if external claim call fails
-     */
     function generateClaim(address claimAddress, string memory claimFn, string[] memory fields) public {
         /// @dev Only the msg.sender that is registered under the user ID can make the claim
         uint256 userId = idMapping.getId(msg.sender);
+
+        ebytes128 test = TFHE.randEbytes128();
+        TFHE.isInitialized(test);
 
         /// @dev Grant temporary access for each requested field
         for (uint i = 0; i < fields.length; i++) {
@@ -225,6 +208,12 @@ contract PassportID is SepoliaZamaFHEVMConfig, AccessControl {
                 TFHE.allowTransient(citizenIdentities[userId].id, claimAddress);
             } else if (keccak256(bytes(fields[i])) == keccak256(bytes("birthdate"))) {
                 TFHE.allowTransient(citizenIdentities[userId].birthdate, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("biodata"))) {
+                TFHE.allowTransient(citizenIdentities[userId].biodata, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("firstname"))) {
+                TFHE.allowTransient(citizenIdentities[userId].firstname, claimAddress);
+            } else if (keccak256(bytes(fields[i])) == keccak256(bytes("lastname"))) {
+                TFHE.allowTransient(citizenIdentities[userId].lastname, claimAddress);
             } else {
                 revert InvalidField();
             }
