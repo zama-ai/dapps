@@ -200,9 +200,6 @@ contract Diploma is SepoliaZamaFHEVMConfig, AccessControl {
         /// @dev Only the msg.sender that is registered under the user ID can make the claim
         uint256 userId = idMapping.getId(msg.sender);
 
-        ebytes128 test = TFHE.randEbytes128();
-        TFHE.isInitialized(test);
-
         /// @dev Grant temporary access for each requested field
         for (uint i = 0; i < fields.length; i++) {
             if (bytes(fields[i]).length == 0) revert InvalidField();
