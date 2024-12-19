@@ -96,5 +96,8 @@
     "coverage": "hardhat coverage",
     "deploy-sepolia": "hardhat deploy --network sepolia",
     "mint-sepolia": "hardhat mint --amount 42 --network sepolia"
+  },
+  "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.7"
   }
 }
