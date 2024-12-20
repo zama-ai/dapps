@@ -66,6 +66,7 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
     constructor() Ownable(msg.sender) {}
 
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
+        TFHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
         relayerAddr = _relayerAddr;
         playerAddr = _playerAddr;
         testFlag = _testFlag;
