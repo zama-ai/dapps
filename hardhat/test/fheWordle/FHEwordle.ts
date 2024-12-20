@@ -171,7 +171,7 @@ describe("FHEwordle contract directly", function () {
     expect(gameStarted).to.be.true;
   });
 
-  it("should return correct masks", async function () {
+  it.only("should return correct masks", async function () {
     const { validWordsList, answerVerified, guessVerified, ourWord } = setupAndVerifyMerkleRoots();
     expect(answerVerified).to.equal(true);
     expect(guessVerified).to.equal(true);
@@ -251,28 +251,36 @@ describe("FHEwordle contract directly", function () {
       expect(nguess).to.equal(2);
     }
 
-    // // get guess
-    // {
-    //   const [eqMask, letterMask] = await contract.getGuess(1);
-    //   expect(eqMask).to.equal(31);
-    //   expect(letterMask).to.equal(1589251);
-    // }
+    // get guess
+    {
+      await contract.connect(this.signers.carol).getGuess(1);
 
-    // console.log("claim win");
-    // // claim win
-    // {
-    //   const tx1 = await contract.claimWin(1);
-    //   await tx1.wait();
-    //   const hasWon = await contract.playerWon();
-    //   expect(hasWon).to.be.true;
-    // }
+      await awaitAllDecryptionResults();
+
+      const eqMask = await contract.connect(this.signers.carol).decryptedEqMask();
+      const letterMask = await contract.connect(this.signers.carol).decryptedLetterMask();
+      expect(eqMask).to.equal(31);
+      expect(letterMask).to.equal(1589251);
+    }
+
+    console.log("claim win");
+    // claim win
+    {
+      const tx1 = await contract.connect(this.signers.carol).claimWin(1);
+      await tx1.wait();
+
+      await awaitAllDecryptionResults();
+
+      const hasWon = await contract.playerWon();
+      expect(hasWon).to.be.true;
+    }
 
     // console.log("reveal word");
     // // reveal word
     // {
-    //   const tx1 = await contract.revealWordAndStore();
+    //   const tx1 = await contract.connect(this.signers.carol).revealWordAndStore();
     //   await tx1.wait();
-    //   const word = await contract.word1();
+    //   const word = await contract.connect(this.signers.carol).word1();
     //   expect(word).to.equal(ourWord);
     // }
 
@@ -287,7 +295,7 @@ describe("FHEwordle contract directly", function () {
   }).timeout(180000);
 });
 
-describe("FHEwordle contract directly", function () {
+describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
   let contract: FHEWordle;
   let factoryContract: FHEWordleFactory;
 
@@ -319,13 +327,13 @@ describe("FHEwordle contract directly", function () {
     this.FHEWordleGame = FHEWordleGame;
   });
 
-  it.only("should get and validate word ID", async function () {
-    const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
-    console.log(wordId);
-    const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
+  // it.only("should get and validate word ID", async function () {
+  //   const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
+  //   console.log(wordId);
+  //   const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
 
-    // expect(wordIdBob).to.equal(3);
-  });
+  //   // expect(wordIdBob).to.equal(3);
+  // });
 
   // it("should return correct masks", async function () {
   // word

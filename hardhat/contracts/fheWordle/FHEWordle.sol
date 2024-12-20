@@ -233,7 +233,9 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
 
     function claimWin(uint8 guessN) public onlyPlayer {
         euint8 fullMask = TFHE.asEuint8(31);
+        TFHE.allowThis(fullMask);
         ebool is_equal = TFHE.eq(fullMask, getEqMask(guessN));
+        TFHE.allowThis(is_equal);
         // Request decryption via the Gateway
         uint256[] memory cts = new uint256[](1);
         cts[0] = Gateway.toUint256(is_equal);
