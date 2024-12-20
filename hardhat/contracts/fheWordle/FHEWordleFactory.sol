@@ -41,7 +41,12 @@ contract FHEWordleFactory is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, G
      * @param salt A unique salt used to determine the deployment address.
      */
     function createGame(address _relayerAddr, bytes32 salt) public {
-        address cloneAdd = Clones.cloneDeterministic(implementation, salt);
+        require(gameNotStarted(), "Previous game still in progress");
+
+        // address cloneAdd = Clones.cloneDeterministic(implementation, salt);
+        // Deploy a proxy for the FHEWordle implementation
+        address cloneAdd = Clones.clone(implementation);
+
         FHEWordle(cloneAdd).initialize(msg.sender, _relayerAddr, 0);
         userLastContract[msg.sender] = cloneAdd;
     }
@@ -54,35 +59,40 @@ contract FHEWordleFactory is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, G
      * @param salt A unique salt used to determine the deployment address.
      */
     function createTest(address _relayerAddr, uint16 id, bytes32 salt) public {
+        require(gameNotStarted(), "Previous game still in progress");
         require(userLastContract[msg.sender] == address(0), "kek");
-        address cloneAdd = Clones.cloneDeterministic(implementation, salt);
+
+        // address cloneAdd = Clones.cloneDeterministic(implementation, salt);
+        // Deploy a proxy for the FHEWordle implementation
+        address cloneAdd = Clones.clone(implementation);
+
         FHEWordle(cloneAdd).initialize(msg.sender, _relayerAddr, id);
         userLastContract[msg.sender] = cloneAdd;
     }
 
-    // /**
-    //  * @notice Checks if the user's last game has been completed.
-    //  * @return True if the game has not started or if the player has either won or used up all guesses.
-    //  */
-    // function gameNotStarted() public view returns (bool) {
-    //     if (userLastContract[msg.sender] != address(0)) {
-    //         FHEWordle game = FHEWordle(userLastContract[msg.sender]);
-    //         return game.playerWon() || (game.nGuesses() == 5);
-    //     }
-    //     return true;
-    // }
+    /**
+     * @notice Checks if the user's last game has been completed.
+     * @return True if the game has not started or if the player has either won or used up all guesses.
+     */
+    function gameNotStarted() public view returns (bool) {
+        if (userLastContract[msg.sender] != address(0)) {
+            FHEWordle game = FHEWordle(userLastContract[msg.sender]);
+            return game.playerWon() || (game.nGuesses() == 5);
+        }
+        return true;
+    }
 
-    // /**
-    //  * @notice Allows a user to mint rewards if they have won a game and the proof has been verified.
-    //  * @dev The user must have a completed game with proof checked and should not have already claimed the reward.
-    //  */
-    // function mint() public {
-    //     if (userLastContract[msg.sender] != address(0)) {
-    //         address contractAddr = userLastContract[msg.sender];
-    //         FHEWordle game = FHEWordle(contractAddr);
-    //         require(game.playerWon() && game.proofChecked() && !claimedWin[contractAddr], "has to win and check proof");
-    //         claimedWin[contractAddr] = true;
-    //         gamesWon[msg.sender] += 1;
-    //     }
-    // }
+    /**
+     * @notice Allows a user to mint rewards if they have won a game and the proof has been verified.
+     * @dev The user must have a completed game with proof checked and should not have already claimed the reward.
+     */
+    function mint() public {
+        if (userLastContract[msg.sender] != address(0)) {
+            address contractAddr = userLastContract[msg.sender];
+            FHEWordle game = FHEWordle(contractAddr);
+            require(game.playerWon() && game.proofChecked() && !claimedWin[contractAddr], "has to win and check proof");
+            claimedWin[contractAddr] = true;
+            gamesWon[msg.sender] += 1;
+        }
+    }
 }
