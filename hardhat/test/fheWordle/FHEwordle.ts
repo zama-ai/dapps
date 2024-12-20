@@ -171,7 +171,7 @@ describe("FHEwordle contract directly", function () {
     expect(gameStarted).to.be.true;
   });
 
-  it.only("should return correct masks", async function () {
+  it("should return correct masks", async function () {
     const { validWordsList, answerVerified, guessVerified, ourWord } = setupAndVerifyMerkleRoots();
     expect(answerVerified).to.equal(true);
     expect(guessVerified).to.equal(true);
@@ -327,13 +327,13 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     this.FHEWordleGame = FHEWordleGame;
   });
 
-  // it.only("should get and validate word ID", async function () {
-  //   const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
-  //   console.log(wordId);
-  //   const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
+  it.only("should get and validate word ID with fhe wordle factory", async function () {
+    const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
+    console.log(wordId);
+    const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
 
-  //   // expect(wordIdBob).to.equal(3);
-  // });
+    // expect(wordIdBob).to.equal(3);
+  });
 
   // it("should return correct masks", async function () {
   // word
