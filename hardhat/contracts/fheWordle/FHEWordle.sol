@@ -17,7 +17,7 @@ import "fhevm/config/ZamaGatewayConfig.sol";
  * @dev This contract leverages the TFHE library for encryption operations and the MerkleProof library for verifying word sets.
  *      The game state and logic are managed using various public and private variables.
  */
-contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayCaller, Ownable2Step, Initializable {
+contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
     // /// Constants
     bytes32 public constant root = 0x918fd5f641d6c8bb0c5e07a42f975969c2575250dc3fb743346d1a3c11728bdd;
     bytes32 public constant rootAllowed = 0xd3e7a12d252dcf5de57a406f0bd646217ec1f340bad869182e5b2bfadd086993;
@@ -67,6 +67,8 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
 
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
         TFHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
+        Gateway.setGateway(ZamaGatewayConfig.getSepoliaConfig());
+
         relayerAddr = _relayerAddr;
         playerAddr = _playerAddr;
         testFlag = _testFlag;
@@ -252,7 +254,7 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
         }
     }
 
-    function revealWord() public onlyPlayer {
+    function revealWordAndStore() public onlyPlayer {
         // Prepare the ciphertext array for the five letters
         uint256[] memory cts = new uint256[](5);
 
@@ -272,18 +274,13 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
         uint8 _l2,
         uint8 _l3,
         uint8 _l4
-    ) public onlyPlayer returns (uint8, uint8, uint8, uint8, uint8) {
+    ) public onlyGateway returns (uint8, uint8, uint8, uint8, uint8) {
         l0 = _l0;
         l1 = _l1;
         l2 = _l2;
         l3 = _l3;
         l4 = _l4;
         // Handle the decrypted word letters here (e.g., emit events or store values)
-        return (l0, l1, l2, l3, l4); // Optionally emit an event
-    }
-
-    function revealWordAndStore() public onlyPlayer {
-        require(l0 != 0 || l1 != 0 || l2 != 0 || l3 != 0 || l4 != 0, "Word not revealed yet");
 
         word1 =
             uint32(l0) +
@@ -301,6 +298,8 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
             26 *
             26 *
             26;
+
+        return (l0, l1, l2, l3, l4); // Optionally emit an event
     }
 
     function checkProof(bytes32[] calldata proof) public onlyRelayer {
@@ -320,6 +319,7 @@ contract FHEWordle is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayC
         decryptedWordId = _decryptedWordId;
         // Handle the decrypted wordId and check the proof
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(decryptedWordId, word1))));
+
         if (MerkleProof.verify(storedProof, root, leaf)) {
             proofChecked = true;
         }

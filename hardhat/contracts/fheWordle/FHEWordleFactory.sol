@@ -4,10 +4,7 @@ pragma solidity ^0.8.20;
 
 import "./FHEWordle.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "fhevm/lib/TFHE.sol";
-import "fhevm/gateway/GatewayCaller.sol";
-import "fhevm/config/ZamaFHEVMConfig.sol";
-import "fhevm/config/ZamaGatewayConfig.sol";
+
 /**
  * @title FHEWordleFactory
  * @notice This contract is a factory for deploying new instances of the FHEWordle game using the minimal proxy pattern (Clones).
@@ -16,7 +13,7 @@ import "fhevm/config/ZamaGatewayConfig.sol";
  * @dev This contract uses OpenZeppelin's Clones library for creating deterministic contract instances and relies on the
  *      FHEWordle game logic deployed at a predefined implementation address.
  */
-contract FHEWordleFactory is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayCaller, Ownable2Step {
+contract FHEWordleFactory is Ownable2Step {
     address public creator;
 
     mapping(address => address) public userLastContract;
@@ -43,9 +40,8 @@ contract FHEWordleFactory is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, G
     function createGame(address _relayerAddr, bytes32 salt) public {
         require(gameNotStarted(), "Previous game still in progress");
 
-        // address cloneAdd = Clones.cloneDeterministic(implementation, salt);
         // Deploy a proxy for the FHEWordle implementation
-        address cloneAdd = Clones.clone(implementation);
+        address cloneAdd = Clones.cloneDeterministic(implementation, salt);
 
         FHEWordle(cloneAdd).initialize(msg.sender, _relayerAddr, 0);
         userLastContract[msg.sender] = cloneAdd;
@@ -62,9 +58,8 @@ contract FHEWordleFactory is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, G
         require(gameNotStarted(), "Previous game still in progress");
         require(userLastContract[msg.sender] == address(0), "kek");
 
-        // address cloneAdd = Clones.cloneDeterministic(implementation, salt);
         // Deploy a proxy for the FHEWordle implementation
-        address cloneAdd = Clones.clone(implementation);
+        address cloneAdd = Clones.cloneDeterministic(implementation, salt);
 
         FHEWordle(cloneAdd).initialize(msg.sender, _relayerAddr, id);
         userLastContract[msg.sender] = cloneAdd;
