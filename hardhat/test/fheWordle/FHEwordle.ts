@@ -151,7 +151,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
 
   it("should get and validate word ID with fhe wordle factory", async function () {
     const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
-    console.log(wordId);
+    // console.log(wordId);
     const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
 
     expect(wordIdBob).to.equal(3);
@@ -161,7 +161,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     // player carol
     // relayer bob
     const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
-    console.log(wordId);
+    // console.log(wordId);
     const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
 
     expect(wordIdBob).to.equal(3);
@@ -191,7 +191,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     // player carol
     // relayer bob
     const wordId = await this.FHEWordleGame.connect(this.signers.bob).getWord1Id(this.signers.bob);
-    console.log(wordId);
+    // console.log(wordId);
     const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
 
     expect(wordIdBob).to.equal(3);
@@ -207,7 +207,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     expect(wordSubmitted).to.be.true;
     expect(gameStarted).to.be.true;
 
-    console.log("guess 1");
+    // console.log("guess 1");
 
     // guess n.1
     {
@@ -241,7 +241,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
       expect(letterMask).to.equal(1 << 20);
     }
 
-    console.log("guess 2");
+    // console.log("guess 2");
     // guess 2
     // "about"
     const l0 = 0;
@@ -272,7 +272,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
       expect(letterMask).to.equal(1589251);
     }
 
-    console.log("claim win");
+    // console.log("claim win");
     // claim win
     {
       const tx1 = await this.FHEWordleGame.connect(this.signers.carol).claimWin(1);
@@ -284,7 +284,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
       expect(hasWon).to.be.true;
     }
 
-    console.log("reveal word");
+    // console.log("reveal word");
     // reveal word
     {
       const tx2 = await this.FHEWordleGame.connect(this.signers.carol).revealWordAndStore();
@@ -296,7 +296,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
       expect(word).to.equal(ourWord);
     }
 
-    console.log("check proof");
+    // console.log("check proof");
     // check proof
     {
       const tx1 = await this.FHEWordleGame.connect(this.signers.bob).checkProof(answerProof);
