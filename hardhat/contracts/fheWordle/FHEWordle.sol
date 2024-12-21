@@ -65,6 +65,13 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
 
     constructor() Ownable(msg.sender) {}
 
+    /**
+     * @notice Initializes a new FHEWordle game instance
+     * @dev Sets up the FHE configuration, game state variables and generates the secret word
+     * @param _playerAddr Address of the player who will play this game instance
+     * @param _relayerAddr Address of the relayer who will help with FHE operations
+     * @param _testFlag If non-zero, uses this value as the word ID for testing purposes
+     */
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
         TFHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
         Gateway.setGateway(ZamaGatewayConfig.getSepoliaConfig());
@@ -92,17 +99,25 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         word1 = 0;
     }
 
-    // function getWord1Id(
-    //     bytes32 publicKey,
-    //     bytes calldata signature
-    // ) public view virtual onlySignedPublicKey(publicKey, signature) onlyRelayer returns (bytes memory) {
-    //     return TFHE.reencrypt(word1Id, publicKey);
-    // }
-
+    /**
+     * @notice Gets the encrypted word ID for this game instance
+     * @dev Can only be called by the relayer
+     * @return euint16 The encrypted word ID
+     */
     function getWord1Id() public view virtual onlyRelayer returns (euint16) {
         return (word1Id);
     }
 
+    /**
+     * @notice Submits the encrypted letters of a word
+     * @dev Takes encrypted inputs and converts them to euint8 before calling internal submission function
+     * @param el0 Encrypted first letter
+     * @param el1 Encrypted second letter
+     * @param el2 Encrypted third letter
+     * @param el3 Encrypted fourth letter
+     * @param el4 Encrypted fifth letter
+     * @param inputProof Proof for the encrypted inputs
+     */
     function submitWord1(
         einput el0,
         einput el1,
@@ -126,6 +141,15 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         _submitWord1(_l0, _l1, _l2, _l3, _l4);
     }
 
+    /**
+     * @notice Internal function to submit encrypted word letters
+     * @dev Stores the letters and creates an encrypted mask of the word
+     * @param _l0 First letter as euint8
+     * @param _l1 Second letter as euint8
+     * @param _l2 Third letter as euint8
+     * @param _l3 Fourth letter as euint8
+     * @param _l4 Fifth letter as euint8
+     */
     function _submitWord1(euint8 _l0, euint8 _l1, euint8 _l2, euint8 _l3, euint8 _l4) public {
         require(!wordSubmitted, "word submitted");
         word1Letters[0] = _l0;
@@ -149,6 +173,12 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         gameStarted = true;
     }
 
+    /**
+     * @notice Allows player to submit a guess word
+     * @dev Verifies the word is valid using a Merkle proof
+     * @param word The guessed word encoded as a uint32
+     * @param proof Merkle proof to verify the word is valid
+     */
     function guessWord1(uint32 word, bytes32[] calldata proof) public onlyPlayer {
         require(gameStarted, "game not started");
         require(nGuesses < 5, "cannot exceed five guesses!");
@@ -160,6 +190,12 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         nGuesses += 1;
     }
 
+    /**
+     * @notice Creates an encrypted mask showing which letters match exactly
+     * @dev Internal function used by getGuess
+     * @param guessN Index of the guess to check
+     * @return euint8 Encrypted mask where 1 bits indicate exact matches
+     */
     function getEqMask(uint8 guessN) internal returns (euint8) {
         uint32 word = guessHist[guessN];
         uint8 _l0 = uint8((word) % 26);
@@ -173,20 +209,21 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         euint8 g2 = TFHE.asEuint8(TFHE.eq(word1Letters[2], _l2));
         euint8 g3 = TFHE.asEuint8(TFHE.eq(word1Letters[3], _l3));
         euint8 g4 = TFHE.asEuint8(TFHE.eq(word1Letters[4], _l4));
-        TFHE.allowThis(g0);
-        TFHE.allowThis(g1);
-        TFHE.allowThis(g2);
-        TFHE.allowThis(g3);
-        TFHE.allowThis(g4);
+
         euint8 eqMask = TFHE.or(
             TFHE.shl(g0, 0),
             TFHE.or(TFHE.shl(g1, 1), TFHE.or(TFHE.shl(g2, 2), TFHE.or(TFHE.shl(g3, 3), TFHE.shl(g4, 4))))
         );
-        // euint8 eqMask = TFHE.randEuint8();
         TFHE.allowThis(eqMask);
         return eqMask;
     }
 
+    /**
+     * @notice Creates an encrypted mask showing which letters are present in the target word
+     * @dev Internal function used by getGuess
+     * @param guessN Index of the guess to check
+     * @return euint32 Encrypted mask where 1 bits indicate letter presence
+     */
     function getLetterMaskGuess(uint8 guessN) internal returns (euint32) {
         uint32 word = guessHist[guessN];
         uint32 _l0 = (word) % 26;
@@ -201,15 +238,17 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         return lettermaskGuess;
     }
 
+    /**
+     * @notice Gets feedback for a specific guess
+     * @dev Requests decryption of the equality and letter presence masks
+     * @param guessN Index of the guess to check
+     */
     function getGuess(uint8 guessN) public onlyPlayer {
         require(guessN < nGuesses, "cannot exceed nGuesses");
 
         // Get the encrypted values
         euint8 eqMask = getEqMask(guessN);
-        // euint8 eqMask = TFHE.randEuint8();
-        TFHE.allowThis(eqMask);
         euint32 letterMaskGuess = getLetterMaskGuess(guessN);
-        TFHE.allowThis(letterMaskGuess);
 
         // Prepare an array of ciphertexts to decrypt
         uint256[] memory cts = new uint256[](2);
@@ -223,6 +262,13 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         Gateway.requestDecryption(cts, this.callbackGuess.selector, 0, block.timestamp + 100, false);
     }
 
+    /**
+     * @notice Callback function for guess decryption
+     * @dev Called by the gateway after decrypting guess feedback
+     * @param _decryptedEqMask Decrypted equality mask
+     * @param _decryptedLetterMask Decrypted letter presence mask
+     * @return Tuple of the decrypted masks
+     */
     function callbackGuess(
         uint256 /*requestID*/,
         uint8 _decryptedEqMask,
@@ -234,11 +280,14 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         return (decryptedEqMask, decryptedLetterMask);
     }
 
+    /**
+     * @notice Allows player to claim they've won with a specific guess
+     * @dev Requests decryption to verify if the guess matches completely
+     * @param guessN Index of the winning guess
+     */
     function claimWin(uint8 guessN) public onlyPlayer {
         euint8 fullMask = TFHE.asEuint8(31);
-        TFHE.allowThis(fullMask);
         ebool is_equal = TFHE.eq(fullMask, getEqMask(guessN));
-        TFHE.allowThis(is_equal);
         // Request decryption via the Gateway
         uint256[] memory cts = new uint256[](1);
         cts[0] = Gateway.toUint256(is_equal);
@@ -247,6 +296,11 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         Gateway.requestDecryption(cts, this.callbackClaimWin.selector, 0, block.timestamp + 100, false);
     }
 
+    /**
+     * @notice Callback function for win claim verification
+     * @dev Sets playerWon flag if the claim is valid
+     * @param decryptedComparison Result of win verification
+     */
     function callbackClaimWin(uint256 /*requestID*/, bool decryptedComparison) public onlyGateway {
         // Handle the decrypted comparison result
         if (decryptedComparison) {
@@ -254,6 +308,10 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         }
     }
 
+    /**
+     * @notice Reveals the target word after game completion
+     * @dev Requests decryption of all word letters
+     */
     function revealWordAndStore() public onlyPlayer {
         // Prepare the ciphertext array for the five letters
         uint256[] memory cts = new uint256[](5);
@@ -267,6 +325,16 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         Gateway.requestDecryption(cts, this.callbackRevealWord.selector, 0, block.timestamp + 100, false);
     }
 
+    /**
+     * @notice Callback function for word revelation
+     * @dev Stores decrypted letters and computes final word value
+     * @param _l0 First decrypted letter
+     * @param _l1 Second decrypted letter
+     * @param _l2 Third decrypted letter
+     * @param _l3 Fourth decrypted letter
+     * @param _l4 Fifth decrypted letter
+     * @return Tuple of all decrypted letters
+     */
     function callbackRevealWord(
         uint256 /*requestID*/,
         uint8 _l0,
@@ -302,6 +370,11 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         return (l0, l1, l2, l3, l4); // Optionally emit an event
     }
 
+    /**
+     * @notice Verifies the game outcome using a Merkle proof
+     * @dev Can only be called by relayer after game completion
+     * @param proof Merkle proof to verify the game outcome
+     */
     function checkProof(bytes32[] calldata proof) public onlyRelayer {
         assert(nGuesses == 5 || playerWon);
         // Store the proof for use in the callback
@@ -315,6 +388,11 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         Gateway.requestDecryption(cts, this.callbackCheckProof.selector, 0, block.timestamp + 100, false);
     }
 
+    /**
+     * @notice Callback function for proof verification
+     * @dev Verifies the Merkle proof using decrypted word ID
+     * @param _decryptedWordId The decrypted word ID
+     */
     function callbackCheckProof(uint256 /*requestID*/, uint16 _decryptedWordId) public onlyGateway {
         decryptedWordId = _decryptedWordId;
         // Handle the decrypted wordId and check the proof
@@ -325,11 +403,17 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         }
     }
 
+    /**
+     * @notice Modifier to restrict function access to relayer only
+     */
     modifier onlyRelayer() {
         require(msg.sender == relayerAddr);
         _;
     }
 
+    /**
+     * @notice Modifier to restrict function access to player only
+     */
     modifier onlyPlayer() {
         require(msg.sender == playerAddr);
         _;
