@@ -22,16 +22,14 @@ contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, Gatew
 
     /// @notice Ticket corresponding to the highest bid
     /// @dev Used during reencryption to know if a user has won the bid
-    euint64 private winningTicket;
+    euint256 private winningTicket;
 
     /// @notice Decryption of winningTicket
     /// @dev Can be requested by anyone after auction ends
-    uint64 private decryptedWinningTicket;
+    uint256 private decryptedWinningTicket;
 
     /// @notice Ticket randomly sampled for each user
-    /// @dev WARNING: We assume probability of duplicated tickets is null
-    /// @dev An improved implementation could sample 4 random euint64 tickets per user for negligible collision probability
-    mapping(address account => euint64 ticket) private userTickets;
+    mapping(address account => euint256 ticket) private userTickets;
 
     /// @notice Mapping from bidder to their bid value
     mapping(address account => euint64 bidAmount) private bids;
@@ -122,10 +120,14 @@ contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, Gatew
         TFHE.allowThis(currentBid);
         TFHE.allow(currentBid, msg.sender);
 
-        euint64 randTicket = TFHE.randEuint64();
-        euint64 userTicket;
+        euint256 randTicket = TFHE.randEuint256();
+        euint256 userTicket;
         if (TFHE.isInitialized(highestBid)) {
-            userTicket = TFHE.select(TFHE.ne(sentBalance, 0), randTicket, userTickets[msg.sender]); // don't update ticket if sentBalance is null (or else winner sending an additional zero bid would lose the prize)
+            if (TFHE.isInitialized(userTickets[msg.sender])) {
+                userTicket = TFHE.select(TFHE.ne(sentBalance, 0), randTicket, userTickets[msg.sender]); // don't update ticket if sentBalance is null (or else winner sending an additional zero bid would lose the prize)
+            } else {
+                userTicket = TFHE.select(TFHE.ne(sentBalance, 0), randTicket, TFHE.asEuint256(0));
+            }
         } else {
             userTicket = randTicket;
         }
@@ -141,6 +143,7 @@ contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, Gatew
         }
         TFHE.allowThis(highestBid);
         TFHE.allowThis(winningTicket);
+        TFHE.allowThis(userTicket);
         TFHE.allow(userTicket, msg.sender);
     }
 
@@ -163,7 +166,7 @@ contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, Gatew
     /// @dev Can be used in a reencryption request
     /// @param account The address of the bidder
     /// @return The encrypted ticket
-    function ticketUser(address account) external view returns (euint64) {
+    function ticketUser(address account) external view returns (euint256) {
         return userTickets[account];
     }
 
@@ -178,14 +181,14 @@ contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, Gatew
     /// @notice Callback function to set the decrypted winning ticket
     /// @dev Can only be called by the Gateway
     /// @param resultDecryption The decrypted winning ticket
-    function setDecryptedWinningTicket(uint256, uint64 resultDecryption) public onlyGateway {
+    function setDecryptedWinningTicket(uint256, uint256 resultDecryption) public onlyGateway {
         decryptedWinningTicket = resultDecryption;
     }
 
     /// @notice Get the decrypted winning ticket
     /// @dev Can only be called after the winning ticket has been decrypted - if `userTickets[account]` is an encryption of decryptedWinningTicket, then `account` won and can call `claim` succesfully
     /// @return The decrypted winning ticket
-    function getDecryptedWinningTicket() external view returns (uint64) {
+    function getDecryptedWinningTicket() external view returns (uint256) {
         require(decryptedWinningTicket != 0, "Winning ticket has not been decrypted yet");
         return decryptedWinningTicket;
     }

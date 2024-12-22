@@ -143,9 +143,11 @@ export const reencryptRequestMocked = async (
   const acl = await hre.ethers.getContractAt(aclArtifact.abi, ACL_ADDRESS);
   const userAllowed = await acl.persistAllowed(handle, userAddress);
   const contractAllowed = await acl.persistAllowed(handle, contractAddress);
-  const isAllowed = userAllowed && contractAllowed;
-  if (!isAllowed) {
+  if (!userAllowed) {
     throw new Error("User is not authorized to reencrypt this handle!");
+  }
+  if (!contractAllowed) {
+    throw new Error("dApp contract is not authorized to reencrypt this handle!");
   }
   if (userAddress === contractAddress) {
     throw new Error("userAddress should not be equal to contractAddress when requesting reencryption!");
