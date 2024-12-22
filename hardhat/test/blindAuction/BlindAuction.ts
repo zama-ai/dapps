@@ -76,13 +76,6 @@ describe("BlindAuction", function () {
     await Promise.all([txBobApprove.wait(), txCarolApprove.wait()]);
 
     // Submit bids
-    // Need to add gasLimit to avoid a gas limit issue for two parallel bids
-    // When two tx are consecutive in the same block, if the similar second is asking more gas the tx will fail
-    // because the allocated gas will be the first one gas amount.
-    // This is typically the case for the bid method and the if, else branch inside, i.e. the first bid has no further computation
-    // concerning the highestBid but all the following need to check against the current one.
-
-    // part 1
     const input3 = this.instance.createEncryptedInput(this.contractAddress, this.signers.bob.address);
     input3.add64(10);
     const bobBidAmount_auction = await input3.encrypt();
@@ -92,7 +85,6 @@ describe("BlindAuction", function () {
       .bid(bobBidAmount_auction.handles[0], bobBidAmount_auction.inputProof, { gasLimit: 5000000 });
     txBobBid.wait();
 
-    // part 2
     const input4 = this.instance.createEncryptedInput(this.contractAddress, this.signers.carol.address);
     input4.add64(20);
     const carolBidAmount_auction = await input4.encrypt();
