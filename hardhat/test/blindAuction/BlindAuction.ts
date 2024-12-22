@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 
 import { awaitAllDecryptionResults, initGateway } from "../asyncDecrypt";
 import { createInstance } from "../instance";
-import { reencryptEuint64 } from "../reencrypt";
+import { reencryptEuint64, reencryptEuint256 } from "../reencrypt";
 import { getSigners, initSigners } from "../signers";
 import { deployBlindAuctionFixture } from "./BlindAuction.fixture";
 import { deployConfidentialERC20Fixture } from "./ConfidentialERC20.fixture";
@@ -87,10 +87,10 @@ describe("BlindAuction", function () {
     input3.add64(10);
     const bobBidAmount_auction = await input3.encrypt();
 
-    // const txBobBid = await this.blindAuction
-    //   .connect(this.signers.bob)
-    //   .bid(bobBidAmount_auction.handles[0], bobBidAmount_auction.inputProof, { gasLimit: 5000000 });
-    // txBobBid.wait();
+    const txBobBid = await this.blindAuction
+      .connect(this.signers.bob)
+      .bid(bobBidAmount_auction.handles[0], bobBidAmount_auction.inputProof, { gasLimit: 5000000 });
+    txBobBid.wait();
 
     // part 2
     const input4 = this.instance.createEncryptedInput(this.contractAddress, this.signers.carol.address);
@@ -107,9 +107,9 @@ describe("BlindAuction", function () {
     await txAliceStop.wait();
 
     // Get and verify bids
-    // const bobBidHandle = await this.blindAuction.getBid(this.signers.bob.address);
-    // const bobBidDecrypted = await reencryptEuint64(this.signers.bob, this.instance, bobBidHandle, this.contractAddress);
-    // expect(bobBidDecrypted).to.equal(10);
+    const bobBidHandle = await this.blindAuction.getBid(this.signers.bob.address);
+    const bobBidDecrypted = await reencryptEuint64(this.signers.bob, this.instance, bobBidHandle, this.contractAddress);
+    expect(bobBidDecrypted).to.equal(10);
 
     const carolBidHandle = await this.blindAuction.getBid(this.signers.carol.address);
     const carolBidDecrypted = await reencryptEuint64(
@@ -121,24 +121,24 @@ describe("BlindAuction", function () {
     expect(carolBidDecrypted).to.equal(20);
 
     // Do I have the highest bid?
-    // const carolHighestBidEnc = await this.blindAuction
-    //   .connect(this.signers.carol)
-    //   .doIHaveHighestBid(tokenCarol.publicKey, tokenCarol.signature);
-    // const carolHighestBidDec = this.instance.carol.decrypt(this.contractAddress, carolHighestBidEnc);
-    // expect(carolHighestBidDec).to.equal(1);
+    //const carolHighestBidEnc = await this.blindAuction
+    //  .connect(this.signers.carol)
+    //  .doIHaveHighestBid(tokenCarol.publicKey, tokenCarol.signature);
+    //const carolHighestBidDec = this.instance.carol.decrypt(this.contractAddress, carolHighestBidEnc);
+    //expect(carolHighestBidDec).to.equal(1);
     // Get and verify tickets
 
-    // const bobTicketHandle = await this.blindAuction.ticketUser(this.signers.bob.address);
-    // const bobTicketDecrypted = await reencryptEuint64(
-    //   this.signers.bob,
-    //   this.instance,
-    //   bobTicketHandle,
-    //   this.contractAddress,
-    // );
-    // expect(bobTicketDecrypted).to.not.equal(0);
+    const bobTicketHandle = await this.blindAuction.ticketUser(this.signers.bob.address);
+    const bobTicketDecrypted = await reencryptEuint256(
+      this.signers.bob,
+      this.instance,
+      bobTicketHandle,
+      this.contractAddress,
+    );
+    expect(bobTicketDecrypted).to.not.equal(0);
 
     const carolTicketHandle = await this.blindAuction.ticketUser(this.signers.carol.address);
-    const carolTicketDecrypted = await reencryptEuint64(
+    const carolTicketDecrypted = await reencryptEuint256(
       this.signers.carol,
       this.instance,
       carolTicketHandle,
