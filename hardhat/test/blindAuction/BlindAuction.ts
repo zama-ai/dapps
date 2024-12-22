@@ -120,14 +120,6 @@ describe("BlindAuction", function () {
     );
     expect(carolBidDecrypted).to.equal(20);
 
-    // Do I have the highest bid?
-    //const carolHighestBidEnc = await this.blindAuction
-    //  .connect(this.signers.carol)
-    //  .doIHaveHighestBid(tokenCarol.publicKey, tokenCarol.signature);
-    //const carolHighestBidDec = this.instance.carol.decrypt(this.contractAddress, carolHighestBidEnc);
-    //expect(carolHighestBidDec).to.equal(1);
-    // Get and verify tickets
-
     const bobTicketHandle = await this.blindAuction.ticketUser(this.signers.bob.address);
     const bobTicketDecrypted = await reencryptEuint256(
       this.signers.bob,
