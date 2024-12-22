@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle } from "lucide-react";
+import { VALID_WORDS } from "./validWordsList";
 
 const WORD_LENGTH = 5;
 const MAX_GUESSES = 6;
-const WORDS = ["REACT", "NEXTJ", "VERCEL", "TAILW", "STYLE"];
+const WORDS = VALID_WORDS.map((word) => word.toUpperCase());
 
 export default function WordleGame() {
   const [targetWord, setTargetWord] = useState("");
@@ -25,6 +26,11 @@ export default function WordleGame() {
       return;
     }
 
+    if (!WORDS.includes(currentGuess)) {
+      setMessage("Not a valid word");
+      return;
+    }
+
     const newFeedback = currentGuess.split("").map((letter, index) => {
       if (letter === targetWord[index]) return "correct";
       if (targetWord.includes(letter)) return "present";
@@ -34,6 +40,7 @@ export default function WordleGame() {
     setGuesses([...guesses, currentGuess]);
     setFeedback([...feedback, newFeedback]);
     setCurrentGuess("");
+    setMessage("");
 
     if (currentGuess === targetWord) {
       setGameOver(true);
@@ -64,7 +71,7 @@ export default function WordleGame() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mt-4 mb-4">
         {guesses.map((guess, i) => (
           <div key={i} className="flex space-x-2">
             {renderGuess(guess, feedback[i])}
