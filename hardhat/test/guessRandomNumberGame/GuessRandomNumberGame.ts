@@ -162,5 +162,14 @@ describe("EncryptedSecretKeeper", function () {
     closestOwnerDecrypted = await contract.closestPreviousWinnerDecrypted();
     // console.log("Second game closest Owner: ", closestOwnerDecrypted);
     expect(closestOwnerDecrypted).to.be.oneOf([this.signers.bob.address, this.signers.alice.address]);
+
+    // Check player scores are updated correctly
+    const aliceScore = await contract.playerScores(this.signers.alice.address);
+    const bobScore = await contract.playerScores(this.signers.bob.address);
+    // console.log("Alice's score:", aliceScore);
+    // console.log("Bob's score:", bobScore);
+
+    // At least one of them should have points after two games
+    expect(aliceScore + bobScore).to.be.equal(2n); // Total score should be 2 after 2 games since each game has 1 winner
   });
 });

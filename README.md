@@ -1,36 +1,18 @@
-# fhevm-react-template
+# fhEVM dApp examples
 
-This is an example dApp made with React.js to let users do transfers of a `ConfidentialERC20` token on fhEVM. It contains also a button to request the decryption of an encrypted secret value.
-
+This repository contains example dApps built using fhEVM (Fully Homomorphic EVM). Each example demonstrates different aspects of building privacy-preserving smart contracts using FHE operations.
 
 ## Examples featured
 
 ### Confidential Counter
+The Confidential Counter examples demonstrate progressively more complex uses of FHE operations through four samples:
 
-The Confidential Counter examples demonstrate progressively more complex uses of FHE operations:
+1. **Basic Counter**: Simple encrypted counter with basic increment operations
+2. **Input Counter**: Handles encrypted inputs with proofs and type conversions 
+3. **Decryptable Counter**: Adds decryption capabilities and state management
+4. **Multi-User Counter**: Supports per-user encrypted counters with access control
 
-1. **Basic Counter (Sample 1)**
-   - Simple encrypted counter using `euint8` type
-   - Basic increment operation using FHE addition
-   - Demonstrates minimal FHE setup and operations
-
-2. **Input Counter (Sample 2)** 
-   - Accepts encrypted input values to increment by
-   - Shows how to handle encrypted inputs with proofs
-   - Demonstrates converting between encrypted types
-
-3. **Decryptable Counter (Sample 3)**
-   - Adds decryption capability via Gateway integration
-   - Shows how to request and handle decryption callbacks
-   - Maintains both encrypted and decrypted state
-
-4. **Multi-User Counter (Sample 4)**
-   - Individual encrypted counters per user address
-   - Demonstrates access control with FHE
-   - Shows re-encryption for specific users
-   - Uses mapping for multiple encrypted values
-
-Each sample builds on the previous one to showcase different FHE capabilities while maintaining security and privacy of the counter values.
+Each sample builds on the previous one to showcase different FHE capabilities.
 
 ### GuessRandomNumberGame
 
@@ -117,34 +99,13 @@ The system leverages FHE operations to enable privacy-preserving identity and cr
 ### MyConfidentialERC20.sol
 
 **How it works**
+1. **Confidential Token**: A privacy-preserving ERC20 token using FHE with encrypted balances, transfers and approvals.
 
-1. **Confidential Token**: A privacy-preserving ERC20 token implementation using Fully Homomorphic Encryption (FHE):
-   - Balances and allowances are stored as encrypted values
-   - Transfers and approvals operate on encrypted data
-   - Inherits from ConfidentialERC20Mintable for basic token functionality
+2. **Key Features**: Encrypted balances (euint64), standard ERC20 functions with FHE, and owner-restricted minting.
 
-2. **Key Features**:
-   - Encrypted balances using euint64 type
-   - Standard ERC20 functions (transfer, approve, etc.) with FHE
-   - Minting capability restricted to owner
-   - Built-in decryption request/callback mechanism
+3. **Privacy Protection**: All operations are encrypted using TFHE, with balances visible only to transaction participants.
 
-3. **Secret Value Demo**:
-   - Contains an encrypted SECRET value (set to 42)
-   - Demonstrates Gateway decryption flow:
-     - requestSecret() initiates decryption request
-     - callbackSecret() receives and stores decrypted value
-   - Shows basic FHE operations and Gateway integration
-
-4. **Privacy Protection**:
-   - All token balances and transfers are encrypted
-   - Only transaction participants can view their own balances
-   - Uses TFHE library for homomorphic operations
-   - Integrates with Zama's FHE infrastructure
-
-The contract showcases how to implement confidential tokens while maintaining ERC20 compatibility and leveraging FHE for privacy preservation.
-
-
+The contract implements confidential tokens with ERC20 compatibility using FHE for privacy.
 
 ## How to use this repo
 

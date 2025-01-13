@@ -144,6 +144,9 @@ contract GuessRandomNumberGame is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConf
         closestPreviousWinningValueDecrypted = _closestValueDecrypted;
         closestPreviousWinnerDecrypted = _closestOwnerDecrypted;
 
+        // Increment winner's score
+        playerScores[closestPreviousWinnerDecrypted] += 1;
+
         // Emit winner information
         emit WinnerDeclared(closestPreviousWinnerDecrypted, closestPreviousWinningValueDecrypted);
 
