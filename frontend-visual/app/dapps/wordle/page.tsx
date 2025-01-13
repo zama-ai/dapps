@@ -3,13 +3,9 @@
 import Header from "@/components/Header";
 import Link from "next/link";
 import Image from "next/image";
+import WordleGame from "@/components/fheWordle/WordleGame";
 
-export default function DAppPage({ params }: { params: { slug: string } }) {
-  const dAppTitle = params.slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-
+export default function DAppPage() {
   return (
     <>
       <Header />
@@ -20,12 +16,17 @@ export default function DAppPage({ params }: { params: { slug: string } }) {
         <div className="w-full max-w-2xl mx-auto mt-8">
           <div className="bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)] p-8 relative overflow-hidden">
             <h1 className="text-4xl font-bold mb-4 text-gray-800 font-telegraf relative z-10">
-              {dAppTitle}
+              FHEWordle
             </h1>
             <p className="text-gray-600 relative z-10">
-              This is the page for the {dAppTitle} dApp. More details and
-              functionality can be added here.
+              FHEWordle is a privacy-preserving version of the popular word game
+              Wordle, powered by Fully Homomorphic Encryption (FHE). In this
+              game, your guesses and the target word remain encrypted at all
+              times, ensuring complete privacy while still allowing you to play
+              the classic word-guessing game. Try to guess the 5-letter word in
+              6 attempts or less!
             </p>
+            <WordleGame />
           </div>
         </div>
       </main>
