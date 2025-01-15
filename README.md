@@ -7,10 +7,10 @@ This repository contains example dApps built using fhEVM (Fully Homomorphic EVM)
 ### Confidential Counter
 The Confidential Counter examples demonstrate progressively more complex uses of FHE operations through four samples:
 
-1. **Basic Counter**: Simple encrypted counter with basic increment operations
-2. **Input Counter**: Handles encrypted inputs with proofs and type conversions 
-3. **Decryptable Counter**: Adds decryption capabilities and state management
-4. **Multi-User Counter**: Supports per-user encrypted counters with access control
+1. **Basic Counter**: Simple encrypted counter with basic increment operations.
+2. **Input Counter**: Handles encrypted inputs with proofs and type conversions.
+3. **Decryptable Counter**: Adds decryption capabilities and state management.
+4. **Multi-User Counter**: Supports per-user encrypted counters with access control.
 
 Each sample builds on the previous one to showcase different FHE capabilities.
 
@@ -44,13 +44,13 @@ The game showcases FHE capabilities for secure random number generation, private
 2. **Word Submission**: The relayer submits the encrypted target word letters using `submitWord1`. The letters are stored as encrypted uint8 values.
 
 3. **Player Guessing**: Players submit guesses by calling `guessWord1` with:
-   - A word encoded as a uint32 (each letter as index 0-25)
-   - A Merkle proof verifying the word is valid
-   - Limited to 5 guesses total
+   - A word encoded as a uint32 (each letter as index 0-25).
+   - A Merkle proof verifying the word is valid.
+   - Limited to 5 guesses total.
 
 4. **Guess Feedback**: After each guess, players can request feedback via `getGuess` which returns:
-   - An encrypted equality mask showing exact letter matches (green)
-   - An encrypted letter presence mask showing letters in wrong positions (yellow)
+   - An encrypted equality mask showing exact letter matches (green).
+   - An encrypted letter presence mask showing letters in wrong positions (yellow).
 
 5. **Winning**: Players can claim victory using `claimWin` if they get all letters correct. The contract verifies this using FHE operations.
 
@@ -66,33 +66,33 @@ The game leverages FHE operations to keep the target word encrypted while still 
 **How it works**
 
 1. **Identity Management**: The system consists of four main contracts:
-   - `IdMapping`: Maps user addresses to unique IDs for identity tracking
-   - `PassportID`: Stores encrypted passport/identity data like name, birthdate
-   - `Diploma`: Manages encrypted educational credentials and degrees
-   - `EmployerClaim`: Generates verifiable claims about age and education
+   - `IdMapping`: Maps user addresses to unique IDs for identity tracking.
+   - `PassportID`: Stores encrypted passport/identity data like name, birthdate.
+   - `Diploma`: Manages encrypted educational credentials and degrees.
+   - `EmployerClaim`: Generates verifiable claims about age and education.
 
 2. **Identity Registration**:
-   - Users first get a unique ID from `IdMapping` via `generateId()`
-   - Authorized registrars can register encrypted passport data using `PassportID.registerIdentity()`
-   - Educational institutions can register encrypted diploma data via `Diploma.registerDiploma()`
+   - Users first get a unique ID from `IdMapping` via `generateId()`.
+   - Authorized registrars can register encrypted passport data using `PassportID.registerIdentity()`.
+   - Educational institutions can register encrypted diploma data via `Diploma.registerDiploma()`.
 
 3. **Encrypted Data Storage**: All sensitive data is stored encrypted using FHE:
-   - Names, birthdates, and biometric data in `PassportID`
-   - University, degree type, and grades in `Diploma`
-   - Access controlled through TFHE permissions
+   - Names, birthdates, and biometric data in `PassportID`.
+   - University, degree type, and grades in `Diploma`.
+   - Access controlled through TFHE permissions.
 
 4. **Claim Generation**:
-   - Users can generate verifiable claims about their identity/credentials
+   - Users can generate verifiable claims about their identity/credentials.
    - `EmployerClaim` supports two types of claims:
-     - Adult verification (18+ age check)
-     - Degree verification (specific degree requirements)
-   - Claims preserve privacy by using encrypted comparisons
+     - Adult verification (18+ age check).
+     - Degree verification (specific degree requirements).
+   - Claims preserve privacy by using encrypted comparisons.
 
 5. **Verification Process**:
-   - Claims are generated as encrypted boolean results
-   - Employers can verify claims without seeing actual data
-   - Combined verification checks both age and education requirements
-   - Results stored as encrypted verification status
+   - Claims are generated as encrypted boolean results.
+   - Employers can verify claims without seeing actual data.
+   - Combined verification checks both age and education requirements.
+   - Results stored as encrypted verification status.
 
 The system leverages FHE operations to enable privacy-preserving identity and credential verification without exposing sensitive personal data.
 
