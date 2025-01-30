@@ -56,7 +56,7 @@ describe("BlindAuction", function () {
     this.blindAuction = blindAuctionContract;
   });
 
-  it.only("should check Carol won the bid", async function () {
+  it("should check Carol won the bid", async function () {
     // Create encrypted bid amounts
     const input1 = this.instance.createEncryptedInput(this.contractERC20Address, this.signers.bob.address);
     input1.add64(10);
