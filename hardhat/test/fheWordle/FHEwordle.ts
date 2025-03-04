@@ -122,6 +122,7 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
   before(async function () {
     await initSigners();
     this.signers = await getSigners();
+    await initGateway();
   });
 
   beforeEach(async function () {
