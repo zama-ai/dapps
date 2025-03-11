@@ -446,8 +446,6 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
 
       // Claim potential refunds
       await this.auction.connect(this.signers.bob).claimUserRefund();
-      // Wait for refunds to process
-      await time.increase(15 * 24 * 60 * 60 + 1);
       await this.auction.connect(this.signers.alice).claimSeller();
 
       // Get final balances
@@ -495,6 +493,12 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
         finalPaymentTokenBob,
         this.paymentTokenAddress,
       );
+
+      // Verify that the auction state hasn't changed
+      await this.auction.connect(this.signers.alice).requestTokensLeftReveal();
+      await awaitAllDecryptionResults();
+      const endAuctionTokensLeft = await this.auction.tokensLeftReveal();
+      expect(endAuctionTokensLeft).to.equal(0);
 
       // Verify auction token balances
       expect(decryptedInitialAuctionTokenAlice).to.equal(0n); // Alice transferred all tokens to auction contract
@@ -617,9 +621,6 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       // Claim refunds (this will now handle the refund for both bids at once)
       await this.auction.connect(this.signers.bob).claimUserRefund();
 
-      // Wait for claims period to end
-      await time.increase(15 * 24 * 60 * 60 + 1);
-
       // Claim seller proceeds
       await this.auction.connect(this.signers.alice).claimSeller();
 
@@ -725,9 +726,6 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
 
       // Verify final balance after refund
       expect(decryptedInitialBalance - decryptedFinalBalance).to.equal(expectedFinalCost);
-
-      // Move time to after claims period
-      await time.increase(15 * 24 * 60 * 60 + 1);
 
       // Seller claims proceeds
       await this.auction.connect(this.signers.alice).claimSeller();
@@ -862,9 +860,6 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
         finalPaymentTokenBob,
         this.paymentTokenAddress,
       );
-
-      // Move to after claims period
-      await time.increase(15 * 24 * 60 * 60);
 
       // Seller claims
       await this.auction.connect(this.signers.alice).claimSeller();

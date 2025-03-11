@@ -86,8 +86,8 @@ Both implementations follow a Dutch auction mechanism where:
 4. Tokens are transferred immediately upon successful bid
 
 The key difference is in how prices and refunds are handled:
-- DutchAuctionSellingConfidentialERC20.sol adjusts all previous bids to the latest (lower) price
-- DutchAuctionSellingConfidentialERC20NoRefund.sol keeps track of each bid at its original price
+- `DutchAuctionSellingConfidentialERC20.sol` adjusts all previous bids to the latest (lower) price
+- `DutchAuctionSellingConfidentialERC20NoRefund.sol` keeps track of each bid at its original price
 
 ### Immediate Token Transfer on Bid
 Tokens are transferred to buyers immediately upon successfully bidding rather than requiring a separate claim step. This design choice:
@@ -98,31 +98,6 @@ Tokens are transferred to buyers immediately upon successfully bidding rather th
 - Improves overall user experience
 
 The tradeoff is higher FHE gas costs during bidding, but this is outweighed by the UX benefits and reduced support overhead.
-
-### Two-phase Auction Conclusion
-The auction uses a two-phase conclusion process:
-
-1. Bidding Phase (`startTime` to `expiresAt`):
-   - Active bidding period
-   - Price decreases according to discount rate
-   - Immediate token transfers on successful bids
-
-2. Claims Phase (`expiresAt` to `claimsExpiresAt`):
-   - No new bids accepted
-   - Users can claim refunds using `claimUserRefund()`
-   - Duration is 3x the bidding period
-
-3. Seller Claim Phase (`claimsExpiresAt` onward):
-   - Users cannot claim refunds any longer
-   - Seller claims remaining funds and tokens using `claimSeller()`
-
-This design:
-- Ensures users have adequate time to claim refunds
-- Prevents the seller from withdrawing funds before users can claim
-- Provides clear timeframes for all participants
-- Maintains fairness for all participants
-
-The extended claims period (3x bidding time) could be adjusted based on specific needs, but provides a reasonable window for users to act while not indefinitely locking seller funds.
 
 ## Mathematics of Refunds
 
