@@ -109,7 +109,7 @@ The contract implements confidential tokens with ERC20 compatibility using FHE f
 
 ## How to use this repo
 
-You can either deploy the dApp on the real fhEVM coprocessor on the Ethereum Sepolia testnet, or on a local Hardhat node (i.e a mocked corpocessor).
+You can either deploy the dApp on the real fhEVM coprocessor on the Ethereum Sepolia testnet, or on a local Hardhat node (i.e a mocked coprocessor).
 
 ### Sepolia Testnet Deployment
 1. Deploy the contract:
