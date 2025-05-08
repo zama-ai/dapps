@@ -4,14 +4,9 @@ Privacy-preserving Dutch auction implementations for selling confidential ERC20 
 
 ## Overview
 
-This folder contains two implementations of a Dutch auction mechanism:
+This folder contains the following implementation of the Dutch auction mechanism:
 
-1. **DutchAuctionSellingConfidentialERC20.sol**:
-   - Implements refunds during bidding
-   - More complex
-   - Users can get refunds immediately when prices decrease
-
-2. **DutchAuctionSellingConfidentialERC20NoRefund.sol**:
+1. **DutchAuctionSellingConfidentialERC20NoRefund.sol**:
    - Simpler implementation without intermediate refunds
    - All refunds are processed at the end of the auction
    - More straightforward but might require more funds locked during auction
