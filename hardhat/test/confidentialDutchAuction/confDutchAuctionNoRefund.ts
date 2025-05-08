@@ -8,11 +8,11 @@ import { reencryptEuint64 } from "../reencrypt";
 import { getSigners, initSigners } from "../signers";
 
 describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
-  const STARTING_PRICE = ethers.parseEther("0.0001");
-  const DISCOUNT_RATE = ethers.parseEther("0.0000000001");
+  const STARTING_PRICE = 10n; // starting price for 1 token // 0.00001 ETH
+  const DISCOUNT_RATE = 1n;
   const TOKEN_AMOUNT = 1000n;
-  const USDC_AMOUNT = 100000000000000000n;
-  const RESERVE_PRICE = ethers.parseEther("0.00001");
+  const WETH_AMOUNT = 10000n; // 0.01 ETH
+  const RESERVE_PRICE = 1n;
   const STOPPABLE = true;
   const DURATION = 7 * 24 * 60 * 60; // 7 days in seconds
 
@@ -36,7 +36,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     const t1 = await tx.wait();
     expect(t1?.status).to.eq(1);
 
-    const tx2 = await this.paymentToken.mint(this.signers.bob, USDC_AMOUNT); // minting 10000 usdc to BOB
+    const tx2 = await this.paymentToken.mint(this.signers.bob, WETH_AMOUNT); // minting 10000 usdc to BOB
     const t2 = await tx2.wait();
     expect(t2?.status).to.eq(1);
 
@@ -51,7 +51,9 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       RESERVE_PRICE,
       DURATION,
       STOPPABLE,
+      this.signers.alice.address,
     );
+
     await this.auction.waitForDeployment();
     this.auctionAddress = await this.auction.getAddress();
 
@@ -62,9 +64,10 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     const aliceTokenAmount = await input1.encrypt();
 
     // Approve auction contract to spend tokens
-    const txAliceApprove = await this.auctionToken
-      .connect(this.signers.alice)
-      ["approve(address,bytes32,bytes)"](this.auctionAddress, aliceTokenAmount.handles[0], aliceTokenAmount.inputProof);
+    const txAliceApprove = await this.auctionToken.connect(this.signers.alice)[
+      // eslint-disable-next-line no-unexpected-multiline
+      "approve(address,bytes32,bytes)"
+    ](this.auctionAddress, aliceTokenAmount.handles[0], aliceTokenAmount.inputProof);
     await txAliceApprove.wait();
 
     const txInit = await this.auction.connect(this.signers.alice).initialize();
@@ -75,12 +78,13 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
 
     // Approve payment token for Bob
     const input = this.instance.createEncryptedInput(this.paymentTokenAddress, this.signers.bob.address);
-    input.add64(USDC_AMOUNT);
+    input.add64(WETH_AMOUNT);
     const bobPaymentAmount = await input.encrypt();
 
-    const txBobApprove = await this.paymentToken
-      .connect(this.signers.bob)
-      ["approve(address,bytes32,bytes)"](this.auctionAddress, bobPaymentAmount.handles[0], bobPaymentAmount.inputProof);
+    const txBobApprove = await this.paymentToken.connect(this.signers.bob)[
+      // eslint-disable-next-line no-unexpected-multiline
+      "approve(address,bytes32,bytes)"
+    ](this.auctionAddress, bobPaymentAmount.handles[0], bobPaymentAmount.inputProof);
     await txBobApprove.wait();
   });
 
@@ -94,19 +98,20 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     });
 
     it("Should revert if starting price is too low", async function () {
-      const AuctionFactory = await ethers.getContractFactory("DutchAuctionSellingConfidentialERC20");
-      await expect(
-        AuctionFactory.connect(this.signers.alice).deploy(
-          RESERVE_PRICE, // Starting price too low
-          DISCOUNT_RATE,
-          await this.auctionToken.getAddress(),
-          await this.paymentToken.getAddress(),
-          TOKEN_AMOUNT,
-          RESERVE_PRICE,
-          DURATION,
-          STOPPABLE,
-        ),
-      ).to.be.revertedWith("Starting price too low");
+      const AuctionFactory = await ethers.getContractFactory("DutchAuctionSellingConfidentialERC20NoRefund");
+      const deployment = AuctionFactory.connect(this.signers.alice).deploy(
+        RESERVE_PRICE, // Starting price too low
+        DISCOUNT_RATE,
+        await this.auctionToken.getAddress(),
+        await this.paymentToken.getAddress(),
+        TOKEN_AMOUNT,
+        RESERVE_PRICE,
+        DURATION,
+        STOPPABLE,
+        this.signers.alice.address,
+      );
+
+      await expect(deployment).to.be.revertedWithCustomError(AuctionFactory, "StartingPriceBelowReservePrice");
     });
   });
 
@@ -127,8 +132,10 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     it("Should not go below reserve price", async function () {
       const sevenDays = 7 * 24 * 60 * 60;
       await time.increase(sevenDays);
+      const expectedSevenDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(DURATION)) / 3600n / 24n;
+      const endPrice = expectedSevenDayPrice > RESERVE_PRICE ? expectedSevenDayPrice : RESERVE_PRICE;
 
-      expect(await this.auction.getPrice()).to.equal(RESERVE_PRICE);
+      expect(await this.auction.getPrice()).to.equal(endPrice);
     });
   });
 
@@ -241,7 +248,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       const carolPaymentAmount = await input.encrypt();
 
       const txcarolApprove = await this.paymentToken
-        .connect(this.signers.carol)
+        .connect(this.signers.carol) // eslint-disable-next-line no-unexpected-multiline
         ["approve(address,bytes32,bytes)"](
           this.auctionAddress,
           carolPaymentAmount.handles[0],
@@ -265,7 +272,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       expect(finalTokensLeft).to.equal(initialTokensLeft);
 
       // Verify that no bid was recorded
-      const [bidTokens, bidPaid] = await this.auction.connect(this.signers.carol).getUserBid();
+      const [bidTokens] = await this.auction.connect(this.signers.carol).getUserBid();
       const decryptedBidTokens = await reencryptEuint64(
         this.signers.carol,
         this.instance,
@@ -277,7 +284,6 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
 
     it("Should process bid only up to token amount and not over", async function () {
       // Get initial token balances and auction state
-      const initialTokensLeft = await this.auction.tokensLeftReveal();
       const initialPaymentBalance = await this.paymentToken.balanceOf(this.signers.bob);
 
       // Create a bid larger than Bob's approved amount
@@ -319,7 +325,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       expect(decryptedInitialBalance - decryptedFinalBalance).to.be.closeTo(cost, 500000000000);
 
       // Verify that the bid was not recorded
-      const [bidTokens, bidPaid] = await this.auction.connect(this.signers.bob).getUserBid();
+      const [bidTokens] = await this.auction.connect(this.signers.bob).getUserBid();
       const decryptedBidTokens = await reencryptEuint64(
         this.signers.bob,
         this.instance,
@@ -510,9 +516,9 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       const expectedPayment = finalPrice * bidAmount;
 
       // Verify payment token balances
-      expect(decryptedInitialPaymentTokenBob).to.equal(USDC_AMOUNT);
+      expect(decryptedInitialPaymentTokenBob).to.equal(WETH_AMOUNT);
       expect(decryptedFinalPaymentTokenAlice).to.equal(expectedPayment);
-      expect(decryptedFinalPaymentTokenBob).to.equal(USDC_AMOUNT - expectedPayment);
+      expect(decryptedFinalPaymentTokenBob).to.equal(WETH_AMOUNT - expectedPayment);
     });
 
     it("Should return tokens to seller after cancellation", async function () {
@@ -742,13 +748,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     });
 
     it("Should correctly handle price adjustments at auction end", async function () {
-      // Place bid near start
-      const bidAmount = 100n;
-      const input = this.instance.createEncryptedInput(this.auctionAddress, this.signers.bob.address);
-      input.add64(bidAmount);
-      const encryptedBid = await input.encrypt();
-
-      const initialPrice = await this.auction.getPrice();
+      // Verify refund amount
       const initialPaymentTokenBob = await this.paymentToken.balanceOf(this.signers.bob.address);
       const decryptedInitialBalance = await reencryptEuint64(
         this.signers.bob,
@@ -757,15 +757,24 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
         this.paymentTokenAddress,
       );
 
+      // Place bid near start
+      const bidAmount = 100n;
+      const input = this.instance.createEncryptedInput(this.auctionAddress, this.signers.bob.address);
+      input.add64(bidAmount);
+      const encryptedBid = await input.encrypt();
+
       // Place bid
       await this.auction.connect(this.signers.bob).bid(encryptedBid.handles[0], encryptedBid.inputProof);
 
       // Move time to end of auction
       await time.increase(7 * 24 * 60 * 60 + 1);
 
-      // Get final price
+      const expectedSevenDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(DURATION)) / 3600n / 24n;
+      const endPrice = expectedSevenDayPrice > RESERVE_PRICE ? expectedSevenDayPrice : RESERVE_PRICE;
+
+      // Get final price - should be reserve price
       const finalPrice = await this.auction.getPrice();
-      expect(finalPrice).to.equal(RESERVE_PRICE);
+      expect(finalPrice).to.equal(endPrice);
 
       // Claim tokens
       await this.auction.connect(this.signers.bob).claimUserRefund();
@@ -780,11 +789,8 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       );
 
       // Calculate expected costs and refund
-      const initialCost = initialPrice * bidAmount;
       const finalCost = finalPrice * bidAmount;
-      const expectedRefund = initialCost - finalCost;
 
-      // Verify refund amount
       expect(decryptedInitialBalance - decryptedFinalBalance).to.equal(finalCost);
     });
 
@@ -847,19 +853,9 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       // Get final price
       const finalPrice = await this.auction.getPrice();
       const expectedFinalCost = finalPrice * totalTokens;
-      const expectedRefund = expectedTotalPaid - expectedFinalCost;
 
       // Claim refund
       await this.auction.connect(this.signers.bob).claimUserRefund();
-
-      // Verify final payment token balances
-      const finalPaymentTokenBob = await this.paymentToken.balanceOf(this.signers.bob.address);
-      const decryptedFinalBalanceBob = await reencryptEuint64(
-        this.signers.bob,
-        this.instance,
-        finalPaymentTokenBob,
-        this.paymentTokenAddress,
-      );
 
       // Seller claims
       await this.auction.connect(this.signers.alice).claimSeller();
@@ -878,6 +874,97 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
     });
   });
 
+  describe("Price behavior over time", function () {
+    it("Should correctly decrease price over time", async function () {
+      const initialPrice = await this.auction.getPrice();
+      console.log("\nInitial price:", initialPrice.toString());
+      expect(initialPrice).to.equal(STARTING_PRICE);
+
+      // Check price after 1 day
+      await time.increase(24 * 60 * 60);
+      const oneDayPrice = await this.auction.getPrice();
+      const expectedOneDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 1 day:", oneDayPrice.toString());
+      console.log("Expected 1 day price:", expectedOneDayPrice.toString());
+      expect(oneDayPrice).to.equal(expectedOneDayPrice);
+
+      // Check price after 2 days
+      await time.increase(24 * 60 * 60);
+      const twoDayPrice = await this.auction.getPrice();
+      const expectedTwoDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(2 * 24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 2 days:", twoDayPrice.toString());
+      console.log("Expected 2 day price:", expectedTwoDayPrice.toString());
+      expect(twoDayPrice).to.equal(expectedTwoDayPrice);
+
+      // Check price after 3 days
+      await time.increase(24 * 60 * 60);
+      const threeDayPrice = await this.auction.getPrice();
+      const expectedThreeDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(3 * 24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 3 days:", threeDayPrice.toString());
+      console.log("Expected 3 day price:", expectedThreeDayPrice.toString());
+      expect(threeDayPrice).to.equal(expectedThreeDayPrice);
+
+      // Check price after 4 days
+      await time.increase(24 * 60 * 60);
+      const fourDayPrice = await this.auction.getPrice();
+      const expectedFourDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(4 * 24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 4 days:", fourDayPrice.toString());
+      console.log("Expected 4 day price:", expectedFourDayPrice.toString());
+      expect(fourDayPrice).to.equal(expectedFourDayPrice);
+
+      // Check price after 5 days
+      await time.increase(24 * 60 * 60);
+      const fiveDayPrice = await this.auction.getPrice();
+      const expectedFiveDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(5 * 24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 5 days:", fiveDayPrice.toString());
+      console.log("Expected 5 day price:", expectedFiveDayPrice.toString());
+      expect(fiveDayPrice).to.equal(expectedFiveDayPrice);
+
+      // Check price after 6 days
+      await time.increase(24 * 60 * 60);
+      const sixDayPrice = await this.auction.getPrice();
+      const expectedSixDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(6 * 24 * 60 * 60)) / 3600n / 24n;
+      console.log("Price after 6 days:", sixDayPrice.toString());
+      console.log("Expected 6 day price:", expectedSixDayPrice.toString());
+      expect(sixDayPrice).to.equal(expectedSixDayPrice);
+
+      // Check price at auction end (7 days)
+      await time.increase(24 * 60 * 60);
+      const endPrice = await this.auction.getPrice();
+      let expectedSevenDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(DURATION)) / 3600n / 24n;
+      expectedSevenDayPrice = expectedSevenDayPrice > RESERVE_PRICE ? expectedSevenDayPrice : RESERVE_PRICE;
+      console.log("Price at auction end (7 days):", endPrice.toString());
+      console.log("Reserve price:", RESERVE_PRICE.toString());
+      expect(endPrice).to.equal(expectedSevenDayPrice);
+
+      // Check price after auction end
+      await time.increase(24 * 60 * 60);
+      const afterEndPrice = await this.auction.getPrice();
+      console.log("Price after auction end:", afterEndPrice.toString());
+      expect(afterEndPrice).to.equal(endPrice);
+
+      // Verify price never went below reserve price
+      expect(oneDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(twoDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(threeDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(fourDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(fiveDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(sixDayPrice).to.be.gte(RESERVE_PRICE);
+      expect(endPrice).to.be.gte(RESERVE_PRICE);
+      expect(afterEndPrice).to.be.gte(RESERVE_PRICE);
+    });
+
+    it("Should maintain max minimum reserve price or ", async function () {
+      // Fast forward to well past auction end
+      await time.increase(14 * 24 * 60 * 60); // 14 days
+      const expectedSevenDayPrice = STARTING_PRICE - (DISCOUNT_RATE * BigInt(DURATION)) / 3600n / 24n;
+      const endPrice = expectedSevenDayPrice > RESERVE_PRICE ? expectedSevenDayPrice : RESERVE_PRICE;
+
+      const price = await this.auction.getPrice();
+      expect(price).to.equal(endPrice);
+    });
+  });
+
   describe("Edge cases", function () {
     it("Should not accept zero amount bids", async function () {
       const bidAmount = 0n;
@@ -888,7 +975,7 @@ describe("DutchAuctionSellingConfidentialERC20NoRefund", function () {
       await this.auction.connect(this.signers.bob).bid(encryptedBid.handles[0], encryptedBid.inputProof);
 
       // Verify no bid was recorded
-      const [bidTokens, bidPaid] = await this.auction.connect(this.signers.bob).getUserBid();
+      const [bidTokens] = await this.auction.connect(this.signers.bob).getUserBid();
       const decryptedBidTokens = await reencryptEuint64(
         this.signers.bob,
         this.instance,
