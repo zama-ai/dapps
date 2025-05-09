@@ -1,10 +1,10 @@
 # Fhevm React Template
 
-A modern React template for building decentralized applications (dApps) with Fully Homomorphic Encryption (FHE) capabilities using fhevmjs.
+A modern React template for building decentralized applications (dApps) with Fully Homomorphic Encryption (FHE) capabilities using fhevm-js.
 
 ## Features
 
-- **fhevmjs**: Fully Homomorphic Encryption for Ethereum Virtual Machine
+- **fhevm-js**: Fully Homomorphic Encryption for Ethereum Virtual Machine
 - **React**: Modern UI framework for building interactive interfaces
 - **Vite**: Next-generation frontend build tool
 - **Wagmi**: React hooks for Ethereum
