@@ -25,7 +25,6 @@ export function useTokenBalance({
   if (!tokenAddress) {
     throw new Error('tokenAddress is required');
   }
-  console.log(tokenAddress);
 
   const [balance, setBalance] = useState('0');
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));
@@ -168,17 +167,6 @@ export function useTokenBalance({
     tokenDecimals,
     tokenSymbol,
   ]);
-
-  // Get the appropriate native token symbol based on the chain
-  const getNativeSymbol = () => {
-    return 'ETH'; // Default for Ethereum networks (mainnet, sepolia, etc.)
-  };
-
-  // Get the appropriate native token name based on the chain
-  const getNativeName = () => {
-    if (chainId === sepolia.id) return 'Sepolia ETH';
-    return 'Sepolia ETH'; // Default
-  };
 
   const decrypt = async () => {
     if (isConfidential) {
