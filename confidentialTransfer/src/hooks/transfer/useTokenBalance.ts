@@ -25,6 +25,7 @@ export function useTokenBalance({
   if (!tokenAddress) {
     throw new Error('tokenAddress is required');
   }
+  console.log(tokenAddress);
 
   const [balance, setBalance] = useState('0');
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));

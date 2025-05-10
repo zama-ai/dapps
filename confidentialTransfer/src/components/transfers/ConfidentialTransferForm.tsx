@@ -35,7 +35,7 @@ export const ConfidentialTransferForm = () => {
     enabled: !!address,
     isConfidential: true,
   });
-  console.log(tokenBalance);
+  // console.log(tokenBalance);
 
   const {
     transfer: confidentialTransfer,
