@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        telegraf: ['Telegraf', 'sans-serif'],
+        telegraf: ['Telegraf', 'Arial', 'sans-serif'],
         sans: ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['SF Mono', 'monospace'],
       },

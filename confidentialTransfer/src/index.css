@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Telegraf:wght@300;400;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -48,6 +46,8 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 240 5.9% 90%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --w3m-font-family: 'Telegraf Regular', 'Arial', 'sans-serif';
   }
 
   .dark {
@@ -104,4 +104,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@font-face {
+  font-family: 'Telegraf';
+  font-style: normal;
+  font-weight: 200;
+  src:
+    local('Telegraf UltraLight'),
+    url('/assets/fonts/telegraf/Telegraf UltraLight 200.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Telegraf';
+  font-style: normal;
+  font-weight: 400;
+  src:
+    local('Telegraf Regular'),
+    url('/assets/fonts/telegraf/TelegrafRegular_272984568a25d8528fe2de8b20b29011.woff')
+      format('woff');
+}
+
+@font-face {
+  font-family: 'Telegraf';
+  font-style: normal;
+  font-weight: 800;
+  src:
+    local('Telegraf UltraBold'),
+    url('/assets/fonts/telegraf/Telegraf UltraBold 800.woff') format('woff');
 }

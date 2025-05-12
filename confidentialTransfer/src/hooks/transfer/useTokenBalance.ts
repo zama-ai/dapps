@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useBalance, useReadContract, useChainId } from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
+import { useReadContract, useChainId } from 'wagmi';
 import { formatUnits } from '@/lib/helper';
 import { confidentialErc20Abi } from '@/abi/confidentialErc20Abi';
 import { useSigner } from '../wallet/useSigner';
@@ -28,7 +27,6 @@ export function useTokenBalance({
 
   const [balance, setBalance] = useState('0');
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));
-  const [value, setValue] = useState<string | number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [tokenSymbol, setTokenSymbol] = useState<string>('');
@@ -108,20 +106,6 @@ export function useTokenBalance({
       setRawBalance(rawBalance);
       const formattedBalance = formatUnits(rawBalance, tokenDecimals);
       setBalance(formattedBalance);
-
-      // Mock price calculation based on token symbol
-      const mockPrice =
-        tokenSymbol === 'LINK'
-          ? 11.5
-          : tokenSymbol === 'MATIC'
-            ? 1.1
-            : tokenSymbol === 'WETH'
-              ? 1940
-              : tokenSymbol === 'UNI'
-                ? 9.8
-                : 5;
-
-      setValue(parseFloat(formattedBalance) * mockPrice);
     }
 
     // For Confidential tokens
@@ -131,24 +115,8 @@ export function useTokenBalance({
         setRawBalance(rawBalance);
         const formattedBalance = formatUnits(decryptedBalance, tokenDecimals);
         setBalance(formattedBalance);
-        // Mock price calculation based on token symbol
-        const mockPrice =
-          tokenSymbol === 'LINK'
-            ? 11.5
-            : tokenSymbol === 'MATIC'
-              ? 1.1
-              : tokenSymbol === 'WETH'
-                ? 1940
-                : tokenSymbol === 'WETHc'
-                  ? 1940
-                  : tokenSymbol === 'UNI'
-                    ? 9.8
-                    : 5;
-
-        setValue(parseFloat(formattedBalance) * mockPrice);
       } else {
         setBalance('•••••••');
-        setValue('•••••••');
       }
     }
   }, [
@@ -179,11 +147,11 @@ export function useTokenBalance({
     rawBalance,
     lastUpdated,
     decryptedBalance,
-    value,
     decrypt,
     isLoading,
     isDecrypting,
     error,
+    decryptionError,
     symbol: tokenSymbol,
     name: tokenSymbol,
     decimals: tokenDecimals,
