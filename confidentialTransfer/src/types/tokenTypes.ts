@@ -3,11 +3,11 @@ export interface Token {
   rawBalance: bigint;
   lastUpdated: string;
   decryptedBalance: bigint;
-  value: string | number;
   decrypt: () => Promise<void>;
   isLoading: boolean;
   isDecrypting: boolean;
   error: Error;
+  decryptionError: string;
   symbol: string;
   name: string;
   decimals: number;
