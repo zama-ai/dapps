@@ -1,5 +1,4 @@
 import { Token } from '@/types/tokenTypes';
-import { VITE_CONF_TOKEN_ADDRESS } from '@/config/env';
 
 interface ValidateFormParams {
   isSepoliaChain: boolean;
@@ -16,11 +15,6 @@ export const validateForm = ({
 }: ValidateFormParams): boolean => {
   if (!isSepoliaChain) {
     setFormError('Confidential tokens are only available on Sepolia testnet');
-    return false;
-  }
-
-  if (!VITE_CONF_TOKEN_ADDRESS) {
-    setFormError('Please select contract address');
     return false;
   }
 

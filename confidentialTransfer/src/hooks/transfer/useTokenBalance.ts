@@ -20,14 +20,10 @@ export function useTokenBalance({
 }: UseTokenBalanceProps) {
   const chainId = useChainId();
 
-  // Add validation for tokenAddress
-  if (!tokenAddress) {
-    throw new Error('tokenAddress is required');
-  }
-
+  // Remove validation that throws error
   const [balance, setBalance] = useState('0');
   const [rawBalance, setRawBalance] = useState<bigint>(BigInt(0));
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start as false instead of true
   const [error, setError] = useState<Error | null>(null);
   const [tokenSymbol, setTokenSymbol] = useState<string>('');
   const [tokenDecimals, setTokenDecimals] = useState<number>(18);

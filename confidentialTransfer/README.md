@@ -51,7 +51,6 @@ Update `.env` with your specific configuration:
 - `VITE_KMS_ADDRESS`: fhevm specific
 - `VITE_GATEWAY_URL`: fhevm specific
 - `VITE_PROJECT_ID`: Obtain your project ID by signing up at [reown.com](https://reown.com/). This enables social login and multi-wallet support.
-- `VITE_CONF_TOKEN_ADDRESS`: The address of your deployed confidential ERC20 token contract on Sepolia testnet. You'll get this after deploying the smart contract.
 
 ## Development
 
