@@ -16,7 +16,7 @@ import {
     euint32,
     externalEuint8
 } from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {SepoliaConfig, ZamaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 /**
  * @title FHEordle
@@ -84,15 +84,18 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
         // FHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
         // FHE.setFHE(ZamaFHEConfig.getSepoliaConfig());
+        FHE.setCoprocessor(ZamaConfig.getSepoliaConfig());
+        FHE.setDecryptionOracle(ZamaConfig.getSepoliaOracleAddress());
 
         relayerAddr = _relayerAddr;
         playerAddr = _playerAddr;
         testFlag = _testFlag;
-        if (testFlag > 0) {
-            word1Id = FHE.asEuint16(testFlag);
-        } else {
-            word1Id = FHE.rem(FHE.randEuint16(), wordSetSz);
-        }
+        // if (testFlag > 0) {
+        word1Id = FHE.asEuint16(testFlag);
+        // Division (FHE.div) and remainder (FHE.rem) operations are currently supported only with plaintext divisors.
+        // } else {
+        //     word1Id = FHE.rem(FHE.randEuint16(), wordSetSz);
+        // }
         FHE.allowThis(word1Id);
         FHE.allow(word1Id, relayerAddr);
         word1LettersMask = FHE.asEuint32(0);

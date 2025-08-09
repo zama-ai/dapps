@@ -4,7 +4,12 @@ import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import * as hre from "hardhat";
 
-import type { Signers } from "../types";
+type Signers = {
+  owner: HardhatEthersSigner;
+  alice: HardhatEthersSigner;
+  bob: HardhatEthersSigner;
+};
+
 import { deployBlindAuctionFixture } from "./BlindAuction.fixture";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
