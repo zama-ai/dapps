@@ -1,6 +1,6 @@
 # Confidential Dutch Auction Contracts
 
-Privacy-preserving Dutch auction implementations for selling confidential ERC20 tokens, built using fhEVM (Fully Homomorphic Encryption Virtual Machine).
+Privacy-preserving Dutch auction implementations for selling confidential tokens, built using fhEVM (Fully Homomorphic Encryption Virtual Machine).
 
 ## Overview
 
@@ -10,11 +10,9 @@ This folder contains the following implementation of the Dutch auction mechanism
    - Simpler implementation without intermediate refunds
    - All refunds are processed at the end of the auction
    - More straightforward but might require more funds locked during auction
-
-Both implementations share these common features:
-- The price starts high and decreases linearly over time
-- Token amounts and payments are encrypted using FHE
-- Users can bid multiple times, with later bids taking advantage of lower prices
+   - The price starts high and decreases linearly over time
+   - Token amounts and payments are encrypted using FHE
+   - Users can bid multiple times, with later bids taking advantage of lower prices
 
 ## Key Features
 
@@ -43,7 +41,7 @@ Both implementations share these common features:
 
 ## Design Choices
 
-#### Without Intermediate Refunds (DutchAuctionSellingConfidentialERC20NoRefund.sol)
+#### Without Intermediate Refunds
 - Simpler implementation
 - All refunds processed at auction end
 - Lower gas costs during bidding
@@ -58,16 +56,11 @@ Both implementations share these common features:
 - Owner controls
 
 ### Dutch Auction Mechanism
-Both implementations follow a Dutch auction mechanism where:
-
 1. Users can place bids at any time during the auction period
 2. Price decreases linearly over time until reaching reserve price
 3. Users can bid multiple times at different price points
 4. Tokens are transferred immediately upon successful bid
 
-The key difference is in how prices and refunds are handled:
-- `DutchAuctionSellingConfidentialERC20.sol` adjusts all previous bids to the latest (lower) price
-- `DutchAuctionSellingConfidentialERC20NoRefund.sol` keeps track of each bid at its original price
 
 ### Immediate Token Transfer on Bid
 Tokens are transferred to buyers immediately upon successfully bidding rather than requiring a separate claim step. This design choice:
