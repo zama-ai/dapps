@@ -1,156 +1,173 @@
+import { FhevmType } from "@fhevm/hardhat-plugin";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
+import * as hre from "hardhat";
 
-import { awaitAllDecryptionResults, initGateway } from "../asyncDecrypt";
-import { createInstance } from "../instance";
-import { reencryptEuint64, reencryptEuint256 } from "../reencrypt";
-import { getSigners, initSigners } from "../signers";
+type Signers = {
+  owner: HardhatEthersSigner;
+  alice: HardhatEthersSigner;
+  bob: HardhatEthersSigner;
+};
+
 import { deployBlindAuctionFixture } from "./BlindAuction.fixture";
-import { deployConfidentialERC20Fixture } from "./ConfidentialERC20.fixture";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-describe("BlindAuction", function () {
+describe("ConfidentialERC20", function () {
   before(async function () {
-    await initSigners();
-    this.signers = await getSigners();
-    await initGateway();
+    if (!hre.fhevm.isMock) {
+      throw new Error(`This hardhat test suite cannot run on Sepolia Testnet`);
+    }
+    this.signers = {} as Signers;
+
+    const signers = await ethers.getSigners();
+    this.signers.owner = signers[0];
+    this.signers.alice = signers[1];
+    this.signers.bob = signers[2];
   });
 
   beforeEach(async function () {
-    // Deploy ERC20 contract with Alice account
-    const contractErc20 = await deployConfidentialERC20Fixture();
-    this.contractERC20Address = await contractErc20.getAddress();
-    this.erc20 = contractErc20;
-    this.instance = await createInstance();
+    const deployment = await deployBlindAuctionFixture(this.signers.owner);
 
-    // Mint with Alice account
-    const tx1 = await this.erc20.mint(this.signers.alice, 1000);
-    tx1.wait();
+    this.USDCc = deployment.USDCc;
+    this.prizeItem = deployment.prizeItem;
+    this.blindAuction = deployment.blindAuction;
 
-    // Transfer 100 tokens to Bob
-    const input = this.instance.createEncryptedInput(this.contractERC20Address, this.signers.alice.address);
-    input.add64(100);
-    const encryptedTransferAmount = await input.encrypt();
-    const tx = await this.erc20["transfer(address,bytes32,bytes)"](
-      this.signers.bob.address,
-      encryptedTransferAmount.handles[0],
-      encryptedTransferAmount.inputProof,
-    );
+    this.USDCcAddress = deployment.USDCc_address;
+    this.prizeItemAddress = deployment.prizeItem_address;
+    this.blindAuctionAddress = deployment.blindAuction_address;
 
-    // Transfer 100 tokens to Carol
-    const tx2 = await this.erc20["transfer(address,bytes32,bytes)"](
-      this.signers.carol.address,
-      encryptedTransferAmount.handles[0],
-      encryptedTransferAmount.inputProof,
-    );
-    await Promise.all([tx.wait(), tx2.wait()]);
+    this.getUSDcBalance = async (signer: HardhatEthersSigner) => {
+      const encryptedBalance = await this.USDCc.confidentialBalanceOf(signer.address);
+      return await hre.fhevm.userDecryptEuint(FhevmType.euint64, encryptedBalance, this.USDCcAddress, signer);
+    };
 
-    // Deploy blind auction
-    const blindAuctionContract = await deployBlindAuctionFixture(
-      this.signers.alice,
-      this.contractERC20Address,
-      1000000,
-      true,
-    );
+    this.encryptBid = async (targetContract: string, userAddress: string, amount: number) => {
+      const bidInput = hre.fhevm.createEncryptedInput(targetContract, userAddress);
+      bidInput.add64(amount);
+      return await bidInput.encrypt();
+    };
 
-    this.contractAddress = await blindAuctionContract.getAddress();
-    this.blindAuction = blindAuctionContract;
+    this.approve = async (signer: HardhatEthersSigner) => {
+      // Approve to send the fund
+      const approveTx = await this.USDCc.connect(signer)["setOperator(address, uint48)"](
+        this.blindAuctionAddress,
+        Math.floor(Date.now() / 1000) + 60 * 60,
+      );
+      await approveTx.wait();
+    };
+
+    this.bid = async (signer: HardhatEthersSigner, amount: number) => {
+      const encryptedBid = await this.encryptBid(this.blindAuctionAddress, signer.address, amount);
+      const bidTx = await this.blindAuction.connect(signer).bid(encryptedBid.handles[0], encryptedBid.inputProof);
+      await bidTx.wait();
+    };
+
+    this.mintUSDc = async (signer: HardhatEthersSigner, amount: number) => {
+      // Use the simpler mint function that doesn't require FHE encryption
+      const mintTx = await this.USDCc.mockMintClear(signer.address, amount);
+      await mintTx.wait();
+    };
   });
 
-  it("should check Carol won the bid", async function () {
-    // Create encrypted bid amounts
-    const input1 = this.instance.createEncryptedInput(this.contractERC20Address, this.signers.bob.address);
-    input1.add64(10);
-    const bobBidAmount = await input1.encrypt();
+  it("should mint confidential USDC", async function () {
+    const aliceSigner = this.signers.alice;
+    const aliceAddress = aliceSigner.address;
 
-    const input2 = this.instance.createEncryptedInput(this.contractERC20Address, this.signers.carol.address);
-    input2.add64(20);
-    const carolBidAmount = await input2.encrypt();
+    // Check initial balance
+    const initialEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
+    console.log("Initial encrypted balance:", initialEncryptedBalance);
 
-    // Approve auction contract to spend tokens
-    const txBobApprove = await this.erc20
-      .connect(this.signers.bob)
-      ["approve(address,bytes32,bytes)"](this.contractAddress, bobBidAmount.handles[0], bobBidAmount.inputProof);
-    const txCarolApprove = await this.erc20
-      .connect(this.signers.carol)
-      ["approve(address,bytes32,bytes)"](this.contractAddress, carolBidAmount.handles[0], carolBidAmount.inputProof);
-    await Promise.all([txBobApprove.wait(), txCarolApprove.wait()]);
+    // Mint some confidential USDC
+    await this.mintUSDc(aliceSigner, 1_000_000);
 
-    // Submit bids
-    const input3 = this.instance.createEncryptedInput(this.contractAddress, this.signers.bob.address);
-    input3.add64(10);
-    const bobBidAmount_auction = await input3.encrypt();
+    // Check balance after minting
+    const finalEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
+    console.log("Final encrypted balance:", finalEncryptedBalance);
 
-    const txBobBid = await this.blindAuction
-      .connect(this.signers.bob)
-      .bid(bobBidAmount_auction.handles[0], bobBidAmount_auction.inputProof, { gasLimit: 5000000 });
-    txBobBid.wait();
+    // The balance should be different (not zero)
+    expect(finalEncryptedBalance).to.not.equal(initialEncryptedBalance);
+  });
 
-    const input4 = this.instance.createEncryptedInput(this.contractAddress, this.signers.carol.address);
-    input4.add64(20);
-    const carolBidAmount_auction = await input4.encrypt();
+  it("should place an encrypted bid", async function () {
+    const aliceSigner = this.signers.alice;
+    const aliceAddress = aliceSigner.address;
 
-    const txCarolBid = await this.blindAuction
-      .connect(this.signers.carol)
-      .bid(carolBidAmount_auction.handles[0], carolBidAmount_auction.inputProof, { gasLimit: 5000000 });
-    txCarolBid.wait();
+    // Mint some confidential USDC
+    await this.mintUSDc(aliceSigner, 1_000_000);
 
-    // Stop auction and verify results
-    const txAliceStop = await this.blindAuction.connect(this.signers.alice).stop();
-    await txAliceStop.wait();
+    // Bid amount
+    const bidAmount = 10_000;
 
-    // Get and verify bids
-    const bobBidHandle = await this.blindAuction.getBid(this.signers.bob.address);
-    const bobBidDecrypted = await reencryptEuint64(this.signers.bob, this.instance, bobBidHandle, this.contractAddress);
-    expect(bobBidDecrypted).to.equal(10);
+    await this.approve(aliceSigner);
+    await this.bid(aliceSigner, bidAmount);
 
-    const carolBidHandle = await this.blindAuction.getBid(this.signers.carol.address);
-    const carolBidDecrypted = await reencryptEuint64(
-      this.signers.carol,
-      this.instance,
-      carolBidHandle,
-      this.contractAddress,
+    // Check payment transfer
+    const aliceEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
+    const aliceClearBalance = await hre.fhevm.userDecryptEuint(
+      FhevmType.euint64,
+      aliceEncryptedBalance,
+      this.USDCcAddress,
+      aliceSigner,
     );
-    expect(carolBidDecrypted).to.equal(20);
+    expect(aliceClearBalance).to.equal(1_000_000 - bidAmount);
 
-    const bobTicketHandle = await this.blindAuction.ticketUser(this.signers.bob.address);
-    const bobTicketDecrypted = await reencryptEuint256(
-      this.signers.bob,
-      this.instance,
-      bobTicketHandle,
-      this.contractAddress,
+    // Check bid value
+    const aliceEncryptedBid = await this.blindAuction.getEncryptedBid(aliceAddress);
+    const aliceClearBid = await hre.fhevm.userDecryptEuint(
+      FhevmType.euint64,
+      aliceEncryptedBid,
+      this.blindAuctionAddress,
+      aliceSigner,
     );
-    expect(bobTicketDecrypted).to.not.equal(0);
+    expect(aliceClearBid).to.equal(bidAmount);
+  });
 
-    const carolTicketHandle = await this.blindAuction.ticketUser(this.signers.carol.address);
-    const carolTicketDecrypted = await reencryptEuint256(
-      this.signers.carol,
-      this.instance,
-      carolTicketHandle,
-      this.contractAddress,
-    );
-    expect(carolTicketDecrypted).to.not.equal(0);
+  it("bob should win auction", async function () {
+    const aliceSigner = this.signers.alice;
+    const bobSigner = this.signers.bob;
+    const beneficiary = this.signers.owner;
 
-    // Decrypt winning ticket and verify winner
-    await this.blindAuction.decryptWinningTicket();
-    await awaitAllDecryptionResults();
-    const winningTicket = await this.blindAuction.getDecryptedWinningTicket();
-    expect(winningTicket).to.equal(carolTicketDecrypted);
+    // Mint some confidential USDC
+    await this.mintUSDc(aliceSigner, 1_000_000);
+    await this.mintUSDc(bobSigner, 1_000_000);
 
-    // Carol claims and ends auction
-    const txCarolClaim = await this.blindAuction.connect(this.signers.carol).claim();
-    await txCarolClaim.wait();
+    // Alice bid
+    await this.approve(aliceSigner);
+    await this.bid(aliceSigner, 10_000);
 
-    const txCarolWithdraw = await this.blindAuction.connect(this.signers.carol).auctionEnd();
-    await txCarolWithdraw.wait();
+    // Bob bid
+    await this.approve(bobSigner);
+    await this.bid(bobSigner, 15_000);
 
-    // Verify final balances
-    const aliceBalanceHandle = await this.erc20.balanceOf(this.signers.alice);
-    const aliceBalance = await reencryptEuint64(
-      this.signers.alice,
-      this.instance,
-      aliceBalanceHandle,
-      this.contractERC20Address,
-    );
-    expect(aliceBalance).to.equal(1000 - 100 - 100 + 20);
+    // Wait end auction
+    await time.increase(3600);
+
+    await this.blindAuction.decryptWinningAddress();
+    await hre.fhevm.awaitDecryptionOracle();
+
+    // Verify the winner
+    expect(await this.blindAuction.getWinnerAddress()).to.be.equal(bobSigner.address);
+
+    // Bob cannot withdraw any money
+    await expect(this.blindAuction.withdraw(bobSigner.address)).to.be.reverted;
+
+    // Claimed NFT Item
+    expect(await this.prizeItem.ownerOf(await this.blindAuction.tokenId())).to.be.equal(this.blindAuctionAddress);
+    await this.blindAuction.connect(bobSigner).winnerClaimPrize();
+    expect(await this.prizeItem.ownerOf(await this.blindAuction.tokenId())).to.be.equal(bobSigner.address);
+
+    // Refund user
+    const aliceBalanceBefore = await this.getUSDcBalance(aliceSigner);
+    await this.blindAuction.withdraw(aliceSigner.address);
+    const aliceBalanceAfter = await this.getUSDcBalance(aliceSigner);
+    expect(aliceBalanceAfter).to.be.equal(aliceBalanceBefore + 10_000n);
+
+    // Bob cannot withdraw any money
+    await expect(this.blindAuction.withdraw(bobSigner.address)).to.be.reverted;
+
+    // Check beneficiary balance
+    const beneficiaryBalance = await this.getUSDcBalance(beneficiary);
+    expect(beneficiaryBalance).to.be.equal(15_000);
   });
 });

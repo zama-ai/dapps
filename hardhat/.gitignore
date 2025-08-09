@@ -1,3 +1,6 @@
+# fhevm
+fhevmTemp
+
 # directories
 .coverage_artifacts
 .coverage_cache
@@ -10,22 +13,13 @@ dist
 node_modules
 types
 deployments
-kms-fhe-keys/
-network-fhe-keys/
-fhevmTemp/
-abi/
+tmp
 
 # files
 *.env
 *.log
-.env.docker
 .DS_Store
 .pnp.*
 coverage.json
-package-lock.json
+pnpm-lock.yaml
 yarn.lock
-
-res/
-running_node/
-
-sql.db

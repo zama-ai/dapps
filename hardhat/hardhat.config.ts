@@ -1,118 +1,62 @@
-import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
-import { spawn } from "child_process";
-import dotenv from "dotenv";
+import "@fhevm/hardhat-plugin";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
+import "@typechain/hardhat";
 import "hardhat-deploy";
-import "hardhat-ignore-warnings";
-import { HardhatUserConfig, extendProvider } from "hardhat/config";
-import { task } from "hardhat/config";
-import type { NetworkUserConfig } from "hardhat/types";
+import "hardhat-gas-reporter";
+import type { HardhatUserConfig } from "hardhat/config";
+import { vars } from "hardhat/config";
+import "solidity-coverage";
 
-import CustomProvider from "./CustomProvider";
-// Adjust the import path as needed
 import "./tasks/accounts";
-import "./tasks/etherscanVerify";
-import "./tasks/mintMyConfidentialERC20";
-import { setCodeMocked } from "./test/mockedSetup";
+import "./tasks/FHECounter";
 
-extendProvider(async (provider) => {
-  const newProvider = new CustomProvider(provider);
-  return newProvider;
-});
+// Run 'npx hardhat vars setup' to see the list of variables that need to be set
 
-dotenv.config();
-
-// Ensure that we have all the environment variables we need.
-const mnemonic: string = process.env.MNEMONIC!;
-
-const chainIds = {
-  zama: 8009,
-  local: 9000,
-  localCoprocessor: 12345,
-  sepolia: 11155111,
-};
-
-function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
-  let jsonRpcUrl: string;
-  switch (chain) {
-    case "local":
-      jsonRpcUrl = "http://localhost:8545";
-      break;
-    case "localCoprocessor":
-      jsonRpcUrl = "http://localhost:8745";
-      break;
-    case "zama":
-      jsonRpcUrl = "https://devnet.zama.ai";
-      break;
-    case "sepolia":
-      jsonRpcUrl = process.env.SEPOLIA_RPC_URL!;
-  }
-  return {
-    accounts: {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
-    chainId: chainIds[chain],
-    url: jsonRpcUrl,
-  };
-}
-
-task("coverage").setAction(async (taskArgs, hre, runSuper) => {
-  hre.config.networks.hardhat.allowUnlimitedContractSize = true;
-  hre.config.networks.hardhat.blockGasLimit = 1099511627775;
-
-  await runSuper(taskArgs);
-});
-
-task("test", async (_taskArgs, hre, runSuper) => {
-  // Run modified test task
-  if (hre.network.name === "hardhat") {
-    await setCodeMocked(hre);
-  }
-  await runSuper();
-});
-
-task("node", async (_taskArgs, hre, runSuper) => {
-  await setCodeMocked(hre);
-  const server = spawn("ts-node", ["--transpile-only", "mockedServices/server.ts"], {
-    stdio: "inherit",
-  });
-
-  process.on("SIGINT", () => {
-    server.kill();
-    process.exit(0);
-  });
-  await runSuper();
-});
+const MNEMONIC: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
+const INFURA_API_KEY: string = vars.get("INFURA_API_KEY", "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: 0,
   },
-  mocha: {
-    timeout: 500000,
+  etherscan: {
+    apiKey: {
+      sepolia: vars.get("ETHERSCAN_API_KEY", ""),
+    },
   },
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
-    src: "./contracts",
   },
   networks: {
     hardhat: {
       accounts: {
-        count: 10,
-        mnemonic,
-        path: "m/44'/60'/0'/0",
+        mnemonic: MNEMONIC,
       },
+      chainId: 31337,
     },
-    sepolia: getChainConfig("sepolia"),
-    zama: getChainConfig("zama"),
-    localDev: getChainConfig("local"),
-    local: getChainConfig("local"),
-    localCoprocessor: getChainConfig("localCoprocessor"),
+    anvil: {
+      accounts: {
+        mnemonic: MNEMONIC,
+        path: "m/44'/60'/0'/0/",
+        count: 10,
+      },
+      chainId: 31337,
+      url: "http://localhost:8545",
+    },
+    sepolia: {
+      accounts: {
+        mnemonic: MNEMONIC,
+        path: "m/44'/60'/0'/0/",
+        count: 10,
+      },
+      chainId: 11155111,
+      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+    },
   },
   paths: {
     artifacts: "./artifacts",
@@ -121,7 +65,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   solidity: {
-    version: "0.8.24",
+    version: "0.8.27",
     settings: {
       metadata: {
         // Not including the metadata hash
@@ -135,15 +79,6 @@ const config: HardhatUserConfig = {
         runs: 800,
       },
       evmVersion: "cancun",
-      viaIR: true,
-    },
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY!,
-  },
-  warnings: {
-    "*": {
-      "transient-storage": false,
     },
   },
   typechain: {
