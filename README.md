@@ -9,6 +9,8 @@ The repository contains two main components:
 - **`/hardhat`** - Smart contract examples and development environment
 - **`/confidentialTransfer`** - React-based frontend dApp for confidential token transfers
 
+> NOTE: `/confidentialTransfer` folder is currently still outdated and it's not v0.7, but v0.6 
+
 ## Smart Contract Examples
 
 The `/hardhat` folder contains several privacy-preserving smart contract examples:
