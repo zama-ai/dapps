@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_CONF_TOKEN_ADDRESS: `0x${string}`;
   readonly VITE_PROJECT_ID: string;
 }
 
