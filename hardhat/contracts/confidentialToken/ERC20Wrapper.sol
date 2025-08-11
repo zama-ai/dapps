@@ -8,7 +8,7 @@ import { SepoliaConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
 
-import { IsPausable } from "./interfaces/IsPausable.sol";
+import { IsPausable } from "../interfaces/IsPausable.sol";
 
 /// @title ERC20Wrapper
 /// @notice A wrapper contract that allows wrapping an ERC20 token into a confidential fungible token
