@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 
 import "./FHEWordle.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 /**
  * @title FHEWordleFactory
@@ -13,7 +14,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
  * @dev This contract uses OpenZeppelin's Clones library for creating deterministic contract instances and relies on the
  *      FHEWordle game logic deployed at a predefined implementation address.
  */
-contract FHEWordleFactory is Ownable2Step {
+contract FHEWordleFactory is SepoliaConfig, Ownable2Step {
     address public creator;
 
     mapping(address => address) public userLastContract;

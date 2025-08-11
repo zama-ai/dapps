@@ -5,19 +5,28 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
-import "fhevm/lib/TFHE.sol";
-import "fhevm/gateway/GatewayCaller.sol";
-import "fhevm/config/ZamaFHEVMConfig.sol";
-import "fhevm/config/ZamaGatewayConfig.sol";
+import {
+    FHE,
+    externalEuint64,
+    euint64,
+    eaddress,
+    ebool,
+    euint8,
+    euint16,
+    euint32,
+    externalEuint8
+} from "@fhevm/solidity/lib/FHE.sol";
+import {SepoliaConfig, ZamaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+
 /**
  * @title FHEordle
  * @notice This contract implements a fully homomorphic encryption (FHE) version of the classic word game, similar to "Wordle".
  *         It allows players to submit encrypted guesses and receive feedback on whether their guess is correct.
  *         The contract is integrated with a secure gateway that handles decryption requests to ensure confidentiality.
- * @dev This contract leverages the TFHE library for encryption operations and the MerkleProof library for verifying word sets.
+ * @dev This contract leverages the FHE library for encryption operations and the MerkleProof library for verifying word sets.
  *      The game state and logic are managed using various public and private variables.
  */
-contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
+contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
     // /// Constants
     bytes32 public constant root = 0x918fd5f641d6c8bb0c5e07a42f975969c2575250dc3fb743346d1a3c11728bdd;
     bytes32 public constant rootAllowed = 0xd3e7a12d252dcf5de57a406f0bd646217ec1f340bad869182e5b2bfadd086993;
@@ -73,21 +82,24 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      * @param _testFlag If non-zero, uses this value as the word ID for testing purposes
      */
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
-        TFHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
-        Gateway.setGateway(ZamaGatewayConfig.getSepoliaConfig());
+        // FHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
+        // FHE.setFHE(ZamaFHEConfig.getSepoliaConfig());
+        FHE.setCoprocessor(ZamaConfig.getSepoliaConfig());
+        FHE.setDecryptionOracle(ZamaConfig.getSepoliaOracleAddress());
 
         relayerAddr = _relayerAddr;
         playerAddr = _playerAddr;
         testFlag = _testFlag;
-        if (testFlag > 0) {
-            word1Id = TFHE.asEuint16(testFlag);
-        } else {
-            word1Id = TFHE.rem(TFHE.randEuint16(), wordSetSz);
-        }
-        TFHE.allowThis(word1Id);
-        TFHE.allow(word1Id, relayerAddr);
-        word1LettersMask = TFHE.asEuint32(0);
-        TFHE.allowThis(word1LettersMask);
+        // if (testFlag > 0) {
+        word1Id = FHE.asEuint16(testFlag);
+        // Division (FHE.div) and remainder (FHE.rem) operations are currently supported only with plaintext divisors.
+        // } else {
+        //     word1Id = FHE.rem(FHE.randEuint16(), wordSetSz);
+        // }
+        FHE.allowThis(word1Id);
+        FHE.allow(word1Id, relayerAddr);
+        word1LettersMask = FHE.asEuint32(0);
+        FHE.allowThis(word1LettersMask);
         for (uint8 i = 0; i < 5; i++) {
             guessHist[i] = 0;
         }
@@ -119,23 +131,23 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      * @param inputProof Proof for the encrypted inputs
      */
     function submitWord1(
-        einput el0,
-        einput el1,
-        einput el2,
-        einput el3,
-        einput el4,
+        externalEuint8 el0,
+        externalEuint8 el1,
+        externalEuint8 el2,
+        externalEuint8 el3,
+        externalEuint8 el4,
         bytes calldata inputProof
     ) external {
-        euint8 _l0 = TFHE.asEuint8(el0, inputProof);
-        euint8 _l1 = TFHE.asEuint8(el1, inputProof);
-        euint8 _l2 = TFHE.asEuint8(el2, inputProof);
-        euint8 _l3 = TFHE.asEuint8(el3, inputProof);
-        euint8 _l4 = TFHE.asEuint8(el4, inputProof);
-        TFHE.allowThis(_l0);
-        TFHE.allowThis(_l1);
-        TFHE.allowThis(_l2);
-        TFHE.allowThis(_l3);
-        TFHE.allowThis(_l4);
+        euint8 _l0 = FHE.fromExternal(el0, inputProof);
+        euint8 _l1 = FHE.fromExternal(el1, inputProof);
+        euint8 _l2 = FHE.fromExternal(el2, inputProof);
+        euint8 _l3 = FHE.fromExternal(el3, inputProof);
+        euint8 _l4 = FHE.fromExternal(el4, inputProof);
+        FHE.allowThis(_l0);
+        FHE.allowThis(_l1);
+        FHE.allowThis(_l2);
+        FHE.allowThis(_l3);
+        FHE.allowThis(_l4);
 
         // Call the overloaded submitWord1 with euint8 values
         _submitWord1(_l0, _l1, _l2, _l3, _l4);
@@ -158,17 +170,17 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         word1Letters[3] = _l3;
         word1Letters[4] = _l4;
 
-        word1LettersMask = TFHE.or(
-            TFHE.shl(TFHE.asEuint32(1), word1Letters[0]),
-            TFHE.or(
-                TFHE.shl(TFHE.asEuint32(1), word1Letters[1]),
-                TFHE.or(
-                    TFHE.shl(TFHE.asEuint32(1), word1Letters[2]),
-                    TFHE.or(TFHE.shl(TFHE.asEuint32(1), word1Letters[3]), TFHE.shl(TFHE.asEuint32(1), word1Letters[4]))
+        word1LettersMask = FHE.or(
+            FHE.shl(FHE.asEuint32(1), word1Letters[0]),
+            FHE.or(
+                FHE.shl(FHE.asEuint32(1), word1Letters[1]),
+                FHE.or(
+                    FHE.shl(FHE.asEuint32(1), word1Letters[2]),
+                    FHE.or(FHE.shl(FHE.asEuint32(1), word1Letters[3]), FHE.shl(FHE.asEuint32(1), word1Letters[4]))
                 )
             )
         );
-        TFHE.allowThis(word1LettersMask);
+        FHE.allowThis(word1LettersMask);
         wordSubmitted = true;
         gameStarted = true;
     }
@@ -204,17 +216,17 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         uint8 _l3 = uint8((word / 26 / 26 / 26) % 26);
         uint8 _l4 = uint8((word / 26 / 26 / 26 / 26) % 26);
 
-        euint8 g0 = TFHE.asEuint8(TFHE.eq(word1Letters[0], _l0));
-        euint8 g1 = TFHE.asEuint8(TFHE.eq(word1Letters[1], _l1));
-        euint8 g2 = TFHE.asEuint8(TFHE.eq(word1Letters[2], _l2));
-        euint8 g3 = TFHE.asEuint8(TFHE.eq(word1Letters[3], _l3));
-        euint8 g4 = TFHE.asEuint8(TFHE.eq(word1Letters[4], _l4));
+        euint8 g0 = FHE.asEuint8(FHE.eq(word1Letters[0], _l0));
+        euint8 g1 = FHE.asEuint8(FHE.eq(word1Letters[1], _l1));
+        euint8 g2 = FHE.asEuint8(FHE.eq(word1Letters[2], _l2));
+        euint8 g3 = FHE.asEuint8(FHE.eq(word1Letters[3], _l3));
+        euint8 g4 = FHE.asEuint8(FHE.eq(word1Letters[4], _l4));
 
-        euint8 eqMask = TFHE.or(
-            TFHE.shl(g0, 0),
-            TFHE.or(TFHE.shl(g1, 1), TFHE.or(TFHE.shl(g2, 2), TFHE.or(TFHE.shl(g3, 3), TFHE.shl(g4, 4))))
+        euint8 eqMask = FHE.or(
+            FHE.shl(g0, 0),
+            FHE.or(FHE.shl(g1, 1), FHE.or(FHE.shl(g2, 2), FHE.or(FHE.shl(g3, 3), FHE.shl(g4, 4))))
         );
-        TFHE.allowThis(eqMask);
+        FHE.allowThis(eqMask);
         return eqMask;
     }
 
@@ -233,8 +245,8 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         uint32 _l4 = (word / 26 / 26 / 26 / 26) % 26;
         uint32 base = 1;
         uint32 letterMask = (base << _l0) | (base << _l1) | (base << _l2) | (base << _l3) | (base << _l4);
-        euint32 lettermaskGuess = TFHE.and(word1LettersMask, TFHE.asEuint32(letterMask));
-        TFHE.allowThis(lettermaskGuess);
+        euint32 lettermaskGuess = FHE.and(word1LettersMask, FHE.asEuint32(letterMask));
+        FHE.allowThis(lettermaskGuess);
         return lettermaskGuess;
     }
 
@@ -251,15 +263,15 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         euint32 letterMaskGuess = getLetterMaskGuess(guessN);
 
         // Prepare an array of ciphertexts to decrypt
-        uint256[] memory cts = new uint256[](2);
-        cts[0] = Gateway.toUint256(eqMask);
-        cts[1] = Gateway.toUint256(letterMaskGuess);
+        bytes32[] memory cts = new bytes32[](2);
+        cts[0] = FHE.toBytes32(eqMask);
+        cts[1] = FHE.toBytes32(letterMaskGuess);
 
         // Emit an event for easier tracking of decryption requests
         emit GuessDecryptionRequested(guessN, block.timestamp);
 
         // Request decryption via the gateway
-        Gateway.requestDecryption(cts, this.callbackGuess.selector, 0, block.timestamp + 100, false);
+        FHE.requestDecryption(cts, this.callbackGuess.selector);
     }
 
     /**
@@ -273,7 +285,7 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         uint256 /*requestID*/,
         uint8 _decryptedEqMask,
         uint32 _decryptedLetterMask
-    ) public onlyGateway returns (uint8, uint32) {
+    ) external returns (uint8, uint32) {
         decryptedEqMask = _decryptedEqMask;
         decryptedLetterMask = _decryptedLetterMask;
         emit GuessDecrypted(decryptedEqMask, decryptedLetterMask);
@@ -286,14 +298,14 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      * @param guessN Index of the winning guess
      */
     function claimWin(uint8 guessN) public onlyPlayer {
-        euint8 fullMask = TFHE.asEuint8(31);
-        ebool is_equal = TFHE.eq(fullMask, getEqMask(guessN));
-        // Request decryption via the Gateway
-        uint256[] memory cts = new uint256[](1);
-        cts[0] = Gateway.toUint256(is_equal);
+        euint8 fullMask = FHE.asEuint8(31);
+        ebool is_equal = FHE.eq(fullMask, getEqMask(guessN));
+        // Request decryption via the FHE
+        bytes32[] memory cts = new bytes32[](1);
+        cts[0] = FHE.toBytes32(is_equal);
         emit WinDecryptionRequested(guessN, block.timestamp);
 
-        Gateway.requestDecryption(cts, this.callbackClaimWin.selector, 0, block.timestamp + 100, false);
+        FHE.requestDecryption(cts, this.callbackClaimWin.selector);
     }
 
     /**
@@ -301,7 +313,8 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      * @dev Sets playerWon flag if the claim is valid
      * @param decryptedComparison Result of win verification
      */
-    function callbackClaimWin(uint256 /*requestID*/, bool decryptedComparison) public onlyGateway {
+    function callbackClaimWin(uint256 requestID, bool decryptedComparison, bytes[] memory signatures) external {
+        FHE.checkSignatures(requestID, signatures);
         // Handle the decrypted comparison result
         if (decryptedComparison) {
             playerWon = true;
@@ -314,15 +327,15 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      */
     function revealWordAndStore() public onlyPlayer {
         // Prepare the ciphertext array for the five letters
-        uint256[] memory cts = new uint256[](5);
+        bytes32[] memory cts = new bytes32[](5);
 
         for (uint8 i = 0; i < 5; i++) {
-            cts[i] = Gateway.toUint256(word1Letters[i]);
+            cts[i] = FHE.toBytes32(word1Letters[i]);
         }
 
         emit WordRevealRequested(msg.sender, block.timestamp);
         // Request decryption of the letters
-        Gateway.requestDecryption(cts, this.callbackRevealWord.selector, 0, block.timestamp + 100, false);
+        FHE.requestDecryption(cts, this.callbackRevealWord.selector);
     }
 
     /**
@@ -342,7 +355,7 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         uint8 _l2,
         uint8 _l3,
         uint8 _l4
-    ) public onlyGateway returns (uint8, uint8, uint8, uint8, uint8) {
+    ) external returns (uint8, uint8, uint8, uint8, uint8) {
         l0 = _l0;
         l1 = _l1;
         l2 = _l2;
@@ -352,20 +365,10 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
 
         word1 =
             uint32(l0) +
-            uint32(l1) *
-            26 +
-            uint32(l2) *
-            26 *
-            26 +
-            uint32(l3) *
-            26 *
-            26 *
-            26 +
-            uint32(l4) *
-            26 *
-            26 *
-            26 *
-            26;
+            uint32(l1) * 26 +
+            uint32(l2) * 26 * 26 +
+            uint32(l3) * 26 * 26 * 26 +
+            uint32(l4) * 26 * 26 * 26 * 26;
 
         return (l0, l1, l2, l3, l4); // Optionally emit an event
     }
@@ -381,11 +384,11 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
         storedProof = proof;
 
         // Prepare the ciphertext for word1Id
-        uint256[] memory cts = new uint256[](1);
-        cts[0] = Gateway.toUint256(word1Id);
+        bytes32[] memory cts = new bytes32[](1);
+        cts[0] = FHE.toBytes32(word1Id);
 
         // Request decryption of word1Id
-        Gateway.requestDecryption(cts, this.callbackCheckProof.selector, 0, block.timestamp + 100, false);
+        FHE.requestDecryption(cts, this.callbackCheckProof.selector);
     }
 
     /**
@@ -393,7 +396,8 @@ contract FHEWordle is GatewayCaller, Ownable2Step, Initializable {
      * @dev Verifies the Merkle proof using decrypted word ID
      * @param _decryptedWordId The decrypted word ID
      */
-    function callbackCheckProof(uint256 /*requestID*/, uint16 _decryptedWordId) public onlyGateway {
+    function callbackCheckProof(uint256 requestID, uint16 _decryptedWordId, bytes[] memory signatures) external {
+        FHE.checkSignatures(requestID, signatures);
         decryptedWordId = _decryptedWordId;
         // Handle the decrypted wordId and check the proof
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(decryptedWordId, word1))));

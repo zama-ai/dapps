@@ -1,244 +1,214 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
-
 pragma solidity ^0.8.24;
 
-import "fhevm/lib/TFHE.sol";
-import { ConfidentialERC20 } from "fhevm-contracts/contracts/token/ERC20/ConfidentialERC20.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
-import "fhevm/config/ZamaFHEVMConfig.sol";
-import "fhevm/config/ZamaGatewayConfig.sol";
-import "fhevm/gateway/GatewayCaller.sol";
+import {FHE, externalEuint64, euint64, eaddress, ebool} from "@fhevm/solidity/lib/FHE.sol";
+import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-/// @notice Main contract for the blind auction
-contract BlindAuction is SepoliaZamaFHEVMConfig, SepoliaZamaGatewayConfig, GatewayCaller, Ownable2Step {
-    /// @notice Auction end time
-    uint256 public endTime;
+import {ConfidentialFungibleToken} from "openzeppelin-confidential-contracts/contracts/token/ConfidentialFungibleToken.sol";
 
-    /// @notice Address of the beneficiary
+contract BlindAuction is SepoliaConfig, ReentrancyGuard {
+    /// @notice The recipient of the highest bid once the auction ends
     address public beneficiary;
 
-    /// @notice Current highest bid
+    /// @notice Confidenctial Payment Token
+    ConfidentialFungibleToken public confidentialFungibleToken;
+
+    /// @notice Token for the auction
+    IERC721 public nftContract;
+    uint256 public tokenId;
+
+    /// @notice Auction duration
+    uint256 public auctionStartTime;
+    uint256 public auctionEndTime;
+
+    /// @notice Encrypted auction info
     euint64 private highestBid;
+    eaddress private winningAddress;
 
-    /// @notice Ticket corresponding to the highest bid
-    /// @dev Used during reencryption to know if a user has won the bid
-    euint256 private winningTicket;
+    /// @notice Winner address defined at the end of the auction
+    address public winnerAddress;
 
-    /// @notice Decryption of winningTicket
-    /// @dev Can be requested by anyone after auction ends
-    uint256 private decryptedWinningTicket;
+    /// @notice Indicate if the NFT of the auction has been claimed
+    bool public isNftClaimed;
 
-    /// @notice Ticket randomly sampled for each user
-    mapping(address account => euint256 ticket) private userTickets;
+    /// @notice Request ID used for decryption
+    uint256 internal _decryptionRequestId;
 
     /// @notice Mapping from bidder to their bid value
     mapping(address account => euint64 bidAmount) private bids;
 
-    /// @notice Number of bids
-    uint256 public bidCounter;
-
-    /// @notice The token contract used for encrypted bids
-    ConfidentialERC20 public tokenContract;
-
-    /// @notice Flag indicating whether the auction object has been claimed
-    /// @dev WARNING : If there is a draw, only the first highest bidder will get the prize
-    ///      An improved implementation could handle this case differently
-    ebool private objectClaimed;
-
-    /// @notice Flag to check if the token has been transferred to the beneficiary
-    bool public tokenTransferred;
-
-    /// @notice Flag to determine if the auction can be stopped manually
-    bool public stoppable;
-
-    /// @notice Flag to check if the auction has been manually stopped
-    bool public manuallyStopped = false;
+    // ========== Errors ==========
 
     /// @notice Error thrown when a function is called too early
     /// @dev Includes the time when the function can be called
-    error TooEarly(uint256 time);
+    error TooEarlyError(uint256 time);
 
     /// @notice Error thrown when a function is called too late
     /// @dev Includes the time after which the function cannot be called
-    error TooLate(uint256 time);
+    error TooLateError(uint256 time);
 
-    /// @notice Constructor to initialize the auction
-    /// @param _beneficiary Address of the beneficiary who will receive the highest bid
-    /// @param _tokenContract Address of the ConfidentialERC20 token contract used for bidding
-    /// @param biddingTime Duration of the auction in seconds
-    /// @param isStoppable Flag to determine if the auction can be stopped manually
-    constructor(
-        address _beneficiary,
-        ConfidentialERC20 _tokenContract,
-        uint256 biddingTime,
-        bool isStoppable
-    ) Ownable(msg.sender) {
-        // TFHE.setFHEVM(FHEVMConfig.defaultConfig());
-        // Gateway.setGateway(GatewayConfig.defaultGatewayContract());
-        beneficiary = _beneficiary;
-        tokenContract = _tokenContract;
-        endTime = block.timestamp + biddingTime;
-        objectClaimed = TFHE.asEbool(false);
-        TFHE.allowThis(objectClaimed);
-        tokenTransferred = false;
-        bidCounter = 0;
-        stoppable = isStoppable;
+    /// @notice Thrown when attempting an action that requires the winner to be resolved
+    /// @dev Indicates the winner has not yet been decrypted
+    error WinnerNotYetRevealed();
+
+    // ========== Modifiers ==========
+
+    /// @notice Modifier to ensure function is called before auction ends.
+    /// @dev Reverts if called after the auction end time.
+    modifier onlyDuringAuction() {
+        if (block.timestamp < auctionStartTime) revert TooEarlyError(auctionStartTime);
+        if (block.timestamp >= auctionEndTime) revert TooLateError(auctionEndTime);
+        _;
     }
 
-    /// @notice Submit a bid with an encrypted value
-    /// @dev Transfers tokens from the bidder to the contract
-    /// @param encryptedValue The encrypted bid amount
-    /// @param inputProof Proof for the encrypted input
-    function bid(einput encryptedValue, bytes calldata inputProof) external onlyBeforeEnd {
-        euint64 value = TFHE.asEuint64(encryptedValue, inputProof);
-        euint64 existingBid = bids[msg.sender];
-        euint64 sentBalance;
-        if (TFHE.isInitialized(existingBid)) {
-            euint64 balanceBefore = tokenContract.balanceOf(address(this));
-            ebool isHigher = TFHE.lt(existingBid, value);
-            euint64 toTransfer = TFHE.sub(value, existingBid);
-
-            // Transfer only if bid is higher, also to avoid overflow from previous line
-            euint64 amount = TFHE.select(isHigher, toTransfer, TFHE.asEuint64(0));
-            TFHE.allowTransient(amount, address(tokenContract));
-            tokenContract.transferFrom(msg.sender, address(this), amount);
-
-            euint64 balanceAfter = tokenContract.balanceOf(address(this));
-            sentBalance = TFHE.sub(balanceAfter, balanceBefore);
-            euint64 newBid = TFHE.add(existingBid, sentBalance);
-            bids[msg.sender] = newBid;
-        } else {
-            bidCounter++;
-            euint64 balanceBefore = tokenContract.balanceOf(address(this));
-            TFHE.allowTransient(value, address(tokenContract));
-            tokenContract.transferFrom(msg.sender, address(this), value);
-            euint64 balanceAfter = tokenContract.balanceOf(address(this));
-            sentBalance = TFHE.sub(balanceAfter, balanceBefore);
-            bids[msg.sender] = sentBalance;
-        }
-        euint64 currentBid = bids[msg.sender];
-        TFHE.allowThis(currentBid);
-        TFHE.allow(currentBid, msg.sender);
-
-        euint256 randTicket = TFHE.randEuint256();
-        euint256 userTicket;
-        if (TFHE.isInitialized(highestBid)) {
-            if (TFHE.isInitialized(userTickets[msg.sender])) {
-                userTicket = TFHE.select(TFHE.ne(sentBalance, 0), randTicket, userTickets[msg.sender]); // don't update ticket if sentBalance is null (or else winner sending an additional zero bid would lose the prize)
-            } else {
-                userTicket = TFHE.select(TFHE.ne(sentBalance, 0), randTicket, TFHE.asEuint256(0));
-            }
-        } else {
-            userTicket = randTicket;
-        }
-        userTickets[msg.sender] = userTicket;
-
-        if (!TFHE.isInitialized(highestBid)) {
-            highestBid = currentBid;
-            winningTicket = userTicket;
-        } else {
-            ebool isNewWinner = TFHE.lt(highestBid, currentBid);
-            highestBid = TFHE.select(isNewWinner, currentBid, highestBid);
-            winningTicket = TFHE.select(isNewWinner, userTicket, winningTicket);
-        }
-        TFHE.allowThis(highestBid);
-        TFHE.allowThis(winningTicket);
-        TFHE.allowThis(userTicket);
-        TFHE.allow(userTicket, msg.sender);
+    /// @notice Modifier to ensure function is called after auction ends.
+    /// @dev Reverts if called before the auction end time.
+    modifier onlyAfterEnd() {
+        if (block.timestamp < auctionEndTime) revert TooEarlyError(auctionEndTime);
+        _;
     }
 
-    /// @notice Get the encrypted bid of a specific account
-    /// @dev Can be used in a reencryption request
-    /// @param account The address of the bidder
-    /// @return The encrypted bid amount
-    function getBid(address account) external view returns (euint64) {
+    /// @notice Modifier to ensure function is called when the winner is revealed.
+    /// @dev Reverts if called before the winner is revealed.
+    modifier onlyAfterWinnerRevealed() {
+        if (winnerAddress == address(0)) revert WinnerNotYetRevealed();
+        _;
+    }
+
+    // ========== Views ==========
+
+    function getEncryptedBid(address account) external view returns (euint64) {
         return bids[account];
     }
 
-    /// @notice Manually stop the auction
-    /// @dev Can only be called by the owner and if the auction is stoppable
-    function stop() external onlyOwner {
-        require(stoppable);
-        manuallyStopped = true;
+    /// @notice Get the winning address when the auction is ended
+    /// @dev Can only be called after the winning address has been decrypted
+    /// @return winnerAddress The decrypted winning address
+    function getWinnerAddress() external view returns (address) {
+        require(winnerAddress != address(0), "Winning address has not been decided yet");
+        return winnerAddress;
     }
 
-    /// @notice Get the encrypted ticket of a specific account
-    /// @dev Can be used in a reencryption request
-    /// @param account The address of the bidder
-    /// @return The encrypted ticket
-    function ticketUser(address account) external view returns (euint256) {
-        return userTickets[account];
+    constructor(
+        address _nftContractAddress,
+        address _confidentialFungibleTokenAddress,
+        uint256 _tokenId,
+        uint256 _auctionStartTime,
+        uint256 _auctionEndTime
+    ) {
+        beneficiary = msg.sender;
+        confidentialFungibleToken = ConfidentialFungibleToken(_confidentialFungibleTokenAddress);
+        nftContract = IERC721(_nftContractAddress);
+
+        // Transfer the NFT to the contract for the auction
+        nftContract.safeTransferFrom(msg.sender, address(this), _tokenId);
+
+        require(_auctionStartTime < _auctionEndTime, "INVALID_TIME");
+        auctionStartTime = _auctionStartTime;
+        auctionEndTime = _auctionEndTime;
     }
 
-    /// @notice Initiate the decryption of the winning ticket
+    function bid(externalEuint64 encryptedAmount, bytes calldata inputProof) public onlyDuringAuction nonReentrant {
+        // Get and verify the amount from the user
+        euint64 amount = FHE.fromExternal(encryptedAmount, inputProof);
+
+        // Transfer the confidential token as payment
+        euint64 balanceBefore = confidentialFungibleToken.confidentialBalanceOf(address(this));
+        FHE.allowTransient(amount, address(confidentialFungibleToken));
+        confidentialFungibleToken.confidentialTransferFrom(msg.sender, address(this), amount);
+        euint64 balanceAfter = confidentialFungibleToken.confidentialBalanceOf(address(this));
+        euint64 sentBalance = FHE.sub(balanceAfter, balanceBefore);
+
+        // Need to update the bid balance
+        euint64 previousBid = bids[msg.sender];
+        if (FHE.isInitialized(previousBid)) {
+            // The user increase his bid
+            euint64 newBid = FHE.add(previousBid, sentBalance);
+            bids[msg.sender] = newBid;
+        } else {
+            // First bid for the user
+            bids[msg.sender] = sentBalance;
+        }
+
+        // Compare the total value of the user from the highest bid
+        euint64 currentBid = bids[msg.sender];
+        FHE.allowThis(currentBid);
+        FHE.allow(currentBid, msg.sender);
+
+        if (FHE.isInitialized(highestBid)) {
+            ebool isNewWinner = FHE.lt(highestBid, currentBid);
+            highestBid = FHE.select(isNewWinner, currentBid, highestBid);
+            winningAddress = FHE.select(isNewWinner, FHE.asEaddress(msg.sender), winningAddress);
+        } else {
+            highestBid = currentBid;
+            winningAddress = FHE.asEaddress(msg.sender);
+        }
+        FHE.allowThis(highestBid);
+        FHE.allowThis(winningAddress);
+    }
+
+    /// @notice Initiate the decryption of the winning address
     /// @dev Can only be called after the auction ends
-    function decryptWinningTicket() public onlyAfterEnd {
-        uint256[] memory cts = new uint256[](1);
-        cts[0] = Gateway.toUint256(winningTicket);
-        Gateway.requestDecryption(cts, this.setDecryptedWinningTicket.selector, 0, block.timestamp + 100, false);
+    function decryptWinningAddress() public onlyAfterEnd {
+        bytes32[] memory cts = new bytes32[](1);
+        cts[0] = FHE.toBytes32(winningAddress);
+        _decryptionRequestId = FHE.requestDecryption(cts, this.resolveAuctionCallback.selector);
     }
 
-    /// @notice Callback function to set the decrypted winning ticket
-    /// @dev Can only be called by the Gateway
-    /// @param resultDecryption The decrypted winning ticket
-    function setDecryptedWinningTicket(uint256, uint256 resultDecryption) public onlyGateway {
-        decryptedWinningTicket = resultDecryption;
-    }
+    /// @notice Claim the NFT prize.
+    /// @dev Only the winner can call this function when the auction is ended.
+    function winnerClaimPrize() public onlyAfterWinnerRevealed {
+        require(winnerAddress == msg.sender, "Only winner can claim item");
+        require(!isNftClaimed, "NFT has already been claimed");
+        isNftClaimed = true;
 
-    /// @notice Get the decrypted winning ticket
-    /// @dev Can only be called after the winning ticket has been decrypted - if `userTickets[account]` is an encryption of decryptedWinningTicket, then `account` won and can call `claim` succesfully
-    /// @return The decrypted winning ticket
-    function getDecryptedWinningTicket() external view returns (uint256) {
-        require(decryptedWinningTicket != 0, "Winning ticket has not been decrypted yet");
-        return decryptedWinningTicket;
-    }
+        // Reset bid value
+        bids[msg.sender] = FHE.asEuint64(0);
+        FHE.allowThis(bids[msg.sender]);
+        FHE.allow(bids[msg.sender], msg.sender);
 
-    /// @notice Claim the auction object
-    /// @dev Succeeds only if the caller was the first to get the highest bid
-    function claim() public onlyAfterEnd {
-        ebool canClaim = TFHE.and(TFHE.eq(winningTicket, userTickets[msg.sender]), TFHE.not(objectClaimed));
-        objectClaimed = TFHE.or(canClaim, objectClaimed);
-        TFHE.allowThis(objectClaimed);
-        euint64 newBid = TFHE.select(canClaim, TFHE.asEuint64(0), bids[msg.sender]);
-        bids[msg.sender] = newBid;
-        TFHE.allowThis(bids[msg.sender]);
-        TFHE.allow(bids[msg.sender], msg.sender);
-    }
+        // Transfer the highest bid to the beneficiary
+        FHE.allowTransient(highestBid, address(confidentialFungibleToken));
+        confidentialFungibleToken.confidentialTransfer(beneficiary, highestBid);
 
-    /// @notice Transfer the highest bid to the beneficiary
-    /// @dev Can only be called once after the auction ends
-    function auctionEnd() public onlyAfterEnd {
-        require(!tokenTransferred);
-        tokenTransferred = true;
-        TFHE.allowTransient(highestBid, address(tokenContract));
-        tokenContract.transfer(beneficiary, highestBid);
+        // Send the NFT to the winner
+        nftContract.safeTransferFrom(address(this), msg.sender, tokenId);
     }
 
     /// @notice Withdraw a bid from the auction
     /// @dev Can only be called after the auction ends and by non-winning bidders
-    function withdraw() public onlyAfterEnd {
-        euint64 bidValue = bids[msg.sender];
-        ebool canWithdraw = TFHE.ne(winningTicket, userTickets[msg.sender]);
-        euint64 amount = TFHE.select(canWithdraw, bidValue, TFHE.asEuint64(0));
-        TFHE.allowTransient(amount, address(tokenContract));
-        tokenContract.transfer(msg.sender, amount);
-        euint64 newBid = TFHE.select(canWithdraw, TFHE.asEuint64(0), bids[msg.sender]);
-        bids[msg.sender] = newBid;
-        TFHE.allowThis(newBid);
-        TFHE.allow(newBid, msg.sender);
+    function withdraw(address bidder) public onlyAfterWinnerRevealed {
+        if (bidder == winnerAddress) revert TooLateError(auctionEndTime);
+
+        // Get the user bid value
+        euint64 amount = bids[bidder];
+        FHE.allowTransient(amount, address(confidentialFungibleToken));
+
+        // Reset user bid value
+        euint64 newBid = FHE.asEuint64(0);
+        bids[bidder] = newBid;
+        FHE.allowThis(newBid);
+        FHE.allow(newBid, bidder);
+
+        // Refund the user with his bid amount
+        confidentialFungibleToken.confidentialTransfer(bidder, amount);
     }
 
-    /// @notice Modifier to ensure function is called before auction ends
-    /// @dev Reverts if called after the auction end time or if manually stopped
-    modifier onlyBeforeEnd() {
-        if (block.timestamp >= endTime || manuallyStopped == true) revert TooLate(endTime);
-        _;
-    }
+    // ========== Oracle Callback ==========
 
-    /// @notice Modifier to ensure function is called after auction ends
-    /// @dev Reverts if called before the auction end time and not manually stopped
-    modifier onlyAfterEnd() {
-        if (block.timestamp < endTime && manuallyStopped == false) revert TooEarly(endTime);
-        _;
+    /// @notice Callback function to set the decrypted winning address
+    /// @dev Can only be called by the Gateway
+    /// @param requestId Request Id created by the Oracle.
+    /// @param resultWinnerAddress The decrypted winning address.
+    /// @param signatures Signature to verify the decryption data.
+    function resolveAuctionCallback(uint256 requestId, address resultWinnerAddress, bytes[] memory signatures) public {
+        require(requestId == _decryptionRequestId, "Invalid requestId");
+        FHE.checkSignatures(requestId, signatures);
+
+        winnerAddress = resultWinnerAddress;
     }
 }

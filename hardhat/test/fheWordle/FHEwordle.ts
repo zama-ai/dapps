@@ -1,15 +1,19 @@
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, fhevm } from "hardhat";
+import { FhevmType } from "@fhevm/hardhat-plugin";
 
 import type { FHEWordle, FHEWordleFactory } from "../../types";
-import { awaitAllDecryptionResults, initGateway } from "../asyncDecrypt";
-import { createInstance } from "../instance";
-import { reencryptEuint16 } from "../reencrypt";
-import { getSigners, initSigners } from "../signers";
 import { deployFHEWordleFixture } from "./FHEwordle.fixture";
 import { VALID_WORDS } from "./validWordsList";
 import { WORDS } from "./wordslist";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+
+type Signers = {
+  alice: HardhatEthersSigner;
+  bob: HardhatEthersSigner;
+  carol: HardhatEthersSigner;
+};
 
 export function genProofAndRoot(values: any, key: any, encoding: string[]): [string, string[]] {
   const tree = StandardMerkleTree.of(values, encoding);
@@ -93,7 +97,7 @@ async function submitWordToContract(
   const l3 = Math.floor(word / 26 / 26 / 26) % 26;
   const l4 = Math.floor(word / 26 / 26 / 26 / 26) % 26;
 
-  const inputl0 = instances.createEncryptedInput(contractAddress, signer.address);
+  const inputl0 = fhevm.createEncryptedInput(contractAddress, signer.address);
   const input = inputl0.add8(l0).add8(l1).add8(l2).add8(l3).add8(l4);
   const encryptedAmount = await input.encrypt();
 
@@ -118,52 +122,48 @@ async function submitWordToContract(
 describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
   let contract: FHEWordle;
   let factoryContract: FHEWordleFactory;
+  let signers: any;
+  let instances: any;
+  let contractAddress: string;
+  let factoryContractAddress: string;
+  let FHEWordleAddress: string;
+  let FHEWordleGame: FHEWordle;
 
   before(async function () {
-    await initSigners();
-    this.signers = await getSigners();
-    await initGateway();
+    const ethSigners: HardhatEthersSigner[] = await ethers.getSigners();
+    signers = { alice: ethSigners[0], bob: ethSigners[1], carol: ethSigners[2] };
   });
 
   beforeEach(async function () {
+    // Check whether the tests are running against an FHEVM mock environment
+    if (!fhevm.isMock) {
+      console.warn(`This hardhat test suite cannot run on Sepolia Testnet`);
+      this.skip();
+    }
+
     const deployment = await deployFHEWordleFixture();
     contract = deployment.wordleContract;
     factoryContract = deployment.wordleFactory;
-    this.contractAddress = await contract.getAddress();
-    this.factoryContractAddress = await factoryContract.getAddress();
-
-    // Create contract instances
-    this.instances = await createInstance();
+    contractAddress = await contract.getAddress();
+    factoryContractAddress = await factoryContract.getAddress();
 
     // Create an instance of the test contract
     // Bob is the relayer
     const salt = ethers.encodeBytes32String("test_salt");
-    const createGameTx = await factoryContract
-      .connect(this.signers.carol)
-      .createTest(this.signers.bob.address, 3, salt);
+    const createGameTx = await factoryContract.connect(signers.carol).createTest(signers.bob.address, 3, salt);
     await createGameTx.wait();
 
     // Set up the game address and test contract
-    const gameAddress = await factoryContract.userLastContract(this.signers.carol.address);
-    const FHEWordleGame = await ethers.getContractAt("FHEWordle", gameAddress, this.signers.bob);
-    this.FHEWordleAddress = await FHEWordleGame.getAddress();
-    this.FHEWordleGame = FHEWordleGame;
+    const gameAddress = await factoryContract.userLastContract(signers.carol.address);
+    const FHEWordleGameContract = await ethers.getContractAt("FHEWordle", gameAddress, signers.bob);
+    FHEWordleAddress = await FHEWordleGameContract.getAddress();
+    FHEWordleGame = FHEWordleGameContract;
   });
 
   it("should get and validate word ID with fhe wordle factory", async function () {
-    const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
+    const wordId = await FHEWordleGame.connect(signers.bob).getWord1Id();
     // console.log(wordId);
-    const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
-
-    expect(wordIdBob).to.equal(3);
-  });
-
-  it("should get and validate word ID with fhe wordle factory", async function () {
-    // player carol
-    // relayer bob
-    const wordId = await this.FHEWordleGame.getWord1Id(this.signers.bob);
-    // console.log(wordId);
-    const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
+    const wordIdBob = await fhevm.userDecryptEuint(FhevmType.euint16, wordId, FHEWordleAddress, signers.bob);
 
     expect(wordIdBob).to.equal(3);
   });
@@ -173,10 +173,10 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     const ourWord = wordsList[3][1]; // "about"
 
     const { wordSubmitted, gameStarted } = await submitWordToContract(
-      this.FHEWordleGame,
-      this.instances,
-      this.FHEWordleAddress,
-      this.signers.carol,
+      FHEWordleGame,
+      instances,
+      FHEWordleAddress,
+      signers.carol,
       ourWord,
     );
 
@@ -191,17 +191,17 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
 
     // player carol
     // relayer bob
-    const wordId = await this.FHEWordleGame.connect(this.signers.bob).getWord1Id(this.signers.bob);
+    const wordId = await FHEWordleGame.connect(signers.bob).getWord1Id(signers.bob);
     // console.log(wordId);
-    const wordIdBob = await reencryptEuint16(this.signers.bob, this.instances, wordId, this.FHEWordleAddress);
+    const wordIdBob = await fhevm.userDecryptEuint(FhevmType.euint16, wordId, FHEWordleAddress, signers.bob);
 
     expect(wordIdBob).to.equal(3);
 
     const { wordSubmitted, gameStarted } = await submitWordToContract(
-      this.FHEWordleGame,
-      this.instances,
-      this.FHEWordleAddress,
-      this.signers.carol,
+      FHEWordleGame,
+      instances,
+      FHEWordleAddress,
+      signers.carol,
       ourWord,
     );
 
@@ -220,24 +220,24 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
       const l4 = 13;
       const word = l0 + 26 * (l1 + 26 * (l2 + 26 * (l3 + 26 * l4)));
       const [_vR, proof] = genProofAndRoot(validWordsList, [0, word], ["uint8", "uint32"]);
-      const tx1 = await this.FHEWordleGame.connect(this.signers.carol).guessWord1(word, proof);
+      const tx1 = await FHEWordleGame.connect(signers.carol).guessWord1(word, proof);
       await tx1.wait();
     }
 
     // number of guesses
     {
-      const nguess = await this.FHEWordleGame.nGuesses();
+      const nguess = await FHEWordleGame.nGuesses();
       expect(nguess).to.equal(1);
     }
 
     // check guess
     {
-      await this.FHEWordleGame.connect(this.signers.carol).getGuess(0);
+      await FHEWordleGame.connect(signers.carol).getGuess(0);
 
-      await awaitAllDecryptionResults();
+      await fhevm.awaitDecryptionOracle();
 
-      const eqMask = await this.FHEWordleGame.connect(this.signers.carol).decryptedEqMask();
-      const letterMask = await this.FHEWordleGame.connect(this.signers.carol).decryptedLetterMask();
+      const eqMask = await FHEWordleGame.connect(signers.carol).decryptedEqMask();
+      const letterMask = await FHEWordleGame.connect(signers.carol).decryptedLetterMask();
       expect(eqMask).to.equal(8);
       expect(letterMask).to.equal(1 << 20);
     }
@@ -252,23 +252,23 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     const l4 = 19;
     const word = l0 + 26 * (l1 + 26 * (l2 + 26 * (l3 + 26 * l4)));
     const [_validRoot, proof] = genProofAndRoot(validWordsList, [0, word], ["uint8", "uint32"]);
-    const tx1 = await this.FHEWordleGame.connect(this.signers.carol).guessWord1(word, proof);
+    const tx1 = await FHEWordleGame.connect(signers.carol).guessWord1(word, proof);
     await tx1.wait();
 
     // number of guesses
     {
-      const nguess = await this.FHEWordleGame.nGuesses();
+      const nguess = await FHEWordleGame.nGuesses();
       expect(nguess).to.equal(2);
     }
 
     // get guess
     {
-      await this.FHEWordleGame.connect(this.signers.carol).getGuess(1);
+      await FHEWordleGame.connect(signers.carol).getGuess(1);
 
-      await awaitAllDecryptionResults();
+      await fhevm.awaitDecryptionOracle();
 
-      const eqMask = await this.FHEWordleGame.connect(this.signers.carol).decryptedEqMask();
-      const letterMask = await this.FHEWordleGame.connect(this.signers.carol).decryptedLetterMask();
+      const eqMask = await FHEWordleGame.connect(signers.carol).decryptedEqMask();
+      const letterMask = await FHEWordleGame.connect(signers.carol).decryptedLetterMask();
       expect(eqMask).to.equal(31);
       expect(letterMask).to.equal(1589251);
     }
@@ -276,36 +276,36 @@ describe("FHEwordle contract via proxy via FHEwordleFactory", function () {
     // console.log("claim win");
     // claim win
     {
-      const tx1 = await this.FHEWordleGame.connect(this.signers.carol).claimWin(1);
+      const tx1 = await FHEWordleGame.connect(signers.carol).claimWin(1);
       await tx1.wait();
 
-      await awaitAllDecryptionResults();
+      await fhevm.awaitDecryptionOracle();
 
-      const hasWon = await this.FHEWordleGame.playerWon();
+      const hasWon = await FHEWordleGame.playerWon();
       expect(hasWon).to.be.true;
     }
 
     // console.log("reveal word");
     // reveal word
     {
-      const tx2 = await this.FHEWordleGame.connect(this.signers.carol).revealWordAndStore();
+      const tx2 = await FHEWordleGame.connect(signers.carol).revealWordAndStore();
       await tx2.wait();
 
-      await awaitAllDecryptionResults();
+      await fhevm.awaitDecryptionOracle();
 
-      const word = await this.FHEWordleGame.connect(this.signers.carol).word1();
+      const word = await FHEWordleGame.connect(signers.carol).word1();
       expect(word).to.equal(ourWord);
     }
 
     // console.log("check proof");
     // check proof
     {
-      const tx1 = await this.FHEWordleGame.connect(this.signers.bob).checkProof(answerProof);
+      const tx1 = await FHEWordleGame.connect(signers.bob).checkProof(answerProof);
       await tx1.wait();
 
-      await awaitAllDecryptionResults();
+      await fhevm.awaitDecryptionOracle();
 
-      const proofChecked = await this.FHEWordleGame.proofChecked();
+      const proofChecked = await FHEWordleGame.proofChecked();
       expect(proofChecked).to.be.true;
     }
   }).timeout(180000);

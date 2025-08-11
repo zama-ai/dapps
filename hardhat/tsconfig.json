@@ -2,11 +2,12 @@
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
+    "outDir": "dist",
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2020", "dom"],
+    "lib": ["es2022"], // get error cause (ErrorOptions)
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -14,7 +15,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2020"
+    "target": "es2022" // get error cause (ErrorOptions)
   },
   "exclude": ["node_modules"],
   "files": ["./hardhat.config.ts"],
