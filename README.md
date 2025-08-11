@@ -1,76 +1,49 @@
-# fhEVM dApp examples
+# fhEVM dApp Examples
 
 This repository contains example dApps built using fhEVM (Fully Homomorphic EVM). Each example demonstrates different aspects of building privacy-preserving smart contracts using FHE operations.
 
-## Examples featured
+## Project Structure
+
+The repository contains two main components:
+
+- **`/hardhat`** - Smart contract examples and development environment
+- **`/confidentialTransfer`** - React-based frontend dApp for confidential token transfers
+
+## Smart Contract Examples
 
 The `/hardhat` folder contains several privacy-preserving smart contract examples:
 
-1. **Confidential Counter** - Progressive examples demonstrating FHE operations from basic to multi-user counters
+### Basic FHE Operations
+- **Encryption/Decryption** - Examples of encrypting and decrypting values
+- **FHE Operators** - Basic homomorphic operations like addition and conditional logic
+- **User Decrypt** - User-side decryption examples
+- **Decrypt in Solidity** - On-chain decryption capabilities
 
-2. **Confidential ERC20** - Privacy-preserving token implementation with encrypted balances and transfers
+### Advanced Applications
+- **Confidential Counter** - Progressive examples demonstrating FHE operations from basic to multi-user counters
+- **FHE Wordle** - Privacy-preserving word guessing game using encrypted letter comparisons
+- **Confidential Auctions** - Multiple auction implementations with encrypted bids:
+  - Blind auctions with sealed bids
+  - Dutch auctions with descending prices
 
-3. **Decentralized Identity** - System for encrypted identity management and credential verification
+### Token & Wrapper Contracts
+- **ERC20 Wrapper** - Wrapper for standard ERC20 tokens
+- **ETH Wrapper** - Wrapper for native ETH
+- **Confidential Fungible Token** - Privacy-preserving token implementation
+- **Faucet Contract** - Test token distribution contract
 
-4. **FHE Wordle** - Privacy-preserving word guessing game using encrypted letter comparisons
+### Mock Contracts
+- **Confidential Token** - Mock confidential token for testing
+- **Mock USDZ** - Mock stablecoin implementation
+- **Prize Item** - Mock NFT-like contract
 
-5. **Confidential Auctions** - Multiple auction implementations with encrypted bids:
-   - Blind auctions with sealed bids
-   - Dutch auctions with descending prices
+Each example includes detailed documentation in its respective README explaining the implementation and FHE usage.
 
-Each example includes detailed documentation in its README explaining the implementation and FHE usage.
+## Contributing
 
-## How to use this repo
+This repository serves as a comprehensive example of building privacy-preserving dApps with fhEVM. Feel free to explore the examples, run the tests, and use them as a foundation for your own projects.
 
-You can either deploy the dApp on the real fhEVM coprocessor on the Ethereum Sepolia testnet, or on a local Hardhat node (i.e a mocked coprocessor).
+## License
 
-### Sepolia Testnet Deployment
-1. Deploy the contract:
-```bash
-cd hardhat/
-cp .env.example .env  # Or use custom mnemonic
-npm install
-npm run test # to check if everything works as it should
-npm run deploy-sepolia
-```
-> **Note:** Use your own private mnemonic in `.env`
-
-> **WARNING:** The Frontend is not currently implemented 
-
-2. Launch frontend:
-```bash
-cd frontend/
-cp .env.example .env  # Or use custom mnemonic
-npm install
-npm run dev
-```
-
-Access at [`http://localhost:4173/`](http://localhost:4173/)
-
-### Local Development (Mocked Mode)
-1. Setup local node:
-```bash
-cd hardhat/
-cp .env.example .env  # Or use custom mnemonic
-npm install
-npx hardhat node
-```
-
-2. Launch frontend:
-```bash
-cd frontend/
-cp .env.example .env  # Or use custom mnemonic
-npm install
-npm run dev-mocked
-```
-
-Access at [`http://localhost:4173/`](http://localhost:4173/)
-
-#### Troubleshooting
-
-**_Invalid nonce errors:_** 
-For invalid nonce errors after restarting Hardhat node:
-1. Open Metamask
-2. Select Hardhat network
-3. Go to `Settings` -> `Advanced` -> `Clear activity tab data`
+This project is licensed under the BSD-3-Clause-Clear license.
 
