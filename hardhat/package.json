@@ -26,12 +26,12 @@
   "dependencies": {
     "@fhevm/mock-utils": "0.0.1-6",
     "@fhevm/solidity": "^0.7.0",
-    "@zama-fhe/oracle-solidity": "^0.1.0",
-    "encrypted-types": "^0.0.4",
+    "@openzeppelin/confidential-contracts": "^0.2.0",
     "@openzeppelin/contracts": "^5.1.0",
     "@openzeppelin/contracts-upgradeable": "^5.1.0",
-    "openzeppelin-confidential-contracts": "github:OpenZeppelin/openzeppelin-confidential-contracts",
-    "@openzeppelin/merkle-tree": "^1.0.7"
+    "@openzeppelin/merkle-tree": "^1.0.7",
+    "@zama-fhe/oracle-solidity": "^0.1.0",
+    "encrypted-types": "^0.0.4"
   },
   "devDependencies": {
     "@fhevm/hardhat-plugin": "^0.0.1-6",
