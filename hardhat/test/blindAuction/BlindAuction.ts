@@ -65,7 +65,7 @@ describe("ConfidentialERC20", function () {
 
     this.mintUSDc = async (signer: HardhatEthersSigner, amount: number) => {
       // Use the simpler mint function that doesn't require FHE encryption
-      const mintTx = await this.USDCc.mockMintClear(signer.address, amount);
+      const mintTx = await this.USDCc.mint(signer.address, amount);
       await mintTx.wait();
     };
   });
