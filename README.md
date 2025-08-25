@@ -29,13 +29,12 @@ The `/hardhat` folder contains several privacy-preserving smart contract example
   - Dutch auctions with descending prices
 
 ### Token & Wrapper Contracts
+- **Confidential Token Example** - Mock confidential token for testing
 - **ERC20 Wrapper** - Wrapper for standard ERC20 tokens
 - **ETH Wrapper** - Wrapper for native ETH
-- **Confidential Fungible Token** - Privacy-preserving token implementation
 - **Faucet Contract** - Test token distribution contract
 
 ### Mock Contracts
-- **Confidential Token** - Mock confidential token for testing
 - **Mock USDZ** - Mock stablecoin implementation
 - **Prize Item** - Mock NFT-like contract
 
