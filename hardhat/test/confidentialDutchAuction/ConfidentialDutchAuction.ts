@@ -2,7 +2,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers, fhevm } from "hardhat";
-import { ConfidentialToken__factory } from "../../types";
+import { ConfidentialTokenExample__factory } from "../../types";
 import { FhevmType } from "@fhevm/mock-utils";
 
 describe("ConfidentialDutchAuction", function () {
@@ -27,29 +27,15 @@ describe("ConfidentialDutchAuction", function () {
     }
 
     // Deploy the token contracts first
-    const USDCcFactory = (await ethers.getContractFactory("ConfidentialToken")) as ConfidentialToken__factory;
-    this.auctionToken = await USDCcFactory.connect(this.signers.alice).deploy(
-      this.signers.alice.address,
-      "AuctionToken",
-      "AT",
-    );
-    this.paymentToken = await USDCcFactory.connect(this.signers.alice).deploy(
-      this.signers.alice.address,
-      "PaymentToken",
-      "PT",
-    );
+    const USDCcFactory = (await ethers.getContractFactory(
+      "ConfidentialTokenExample",
+    )) as ConfidentialTokenExample__factory;
+    this.auctionToken = await USDCcFactory.connect(this.signers.alice).deploy(TOKEN_AMOUNT, "AuctionToken", "AT", "");
+    this.paymentToken = await USDCcFactory.connect(this.signers.bob).deploy(WETH_AMOUNT, "PaymentToken", "PT", "");
     await this.auctionToken.waitForDeployment();
     await this.paymentToken.waitForDeployment();
     this.paymentTokenAddress = await this.paymentToken.getAddress();
     this.auctionTokenAddress = await this.auctionToken.getAddress();
-
-    const tx = await this.auctionToken.mint(this.signers.alice, TOKEN_AMOUNT); // minting 10000 auction tokens to ALICE
-    const t1 = await tx.wait();
-    expect(t1?.status).to.eq(1);
-
-    const tx2 = await this.paymentToken.mint(this.signers.bob, WETH_AMOUNT); // minting 10000 usdc to BOB
-    const t2 = await tx2.wait();
-    expect(t2?.status).to.eq(1);
 
     // Deploy the auction contract
     const AuctionFactory = await ethers.getContractFactory("ConfidentialDutchAuction");

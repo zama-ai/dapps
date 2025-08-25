@@ -13,7 +13,7 @@ type Signers = {
 import { deployBlindAuctionFixture } from "./BlindAuction.fixture";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-describe("ConfidentialERC20", function () {
+describe("BlindAuction", function () {
   before(async function () {
     if (!hre.fhevm.isMock) {
       throw new Error(`This hardhat test suite cannot run on Sepolia Testnet`);
@@ -37,7 +37,7 @@ describe("ConfidentialERC20", function () {
     this.prizeItemAddress = deployment.prizeItem_address;
     this.blindAuctionAddress = deployment.blindAuction_address;
 
-    this.getUSDcBalance = async (signer: HardhatEthersSigner) => {
+    this.getUSDCcBalance = async (signer: HardhatEthersSigner) => {
       const encryptedBalance = await this.USDCc.confidentialBalanceOf(signer.address);
       return await hre.fhevm.userDecryptEuint(FhevmType.euint64, encryptedBalance, this.USDCcAddress, signer);
     };
@@ -65,7 +65,7 @@ describe("ConfidentialERC20", function () {
 
     this.mintUSDc = async (signer: HardhatEthersSigner, amount: number) => {
       // Use the simpler mint function that doesn't require FHE encryption
-      const mintTx = await this.USDCc.mockMintClear(signer.address, amount);
+      const mintTx = await this.USDCc.mint(signer.address, amount);
       await mintTx.wait();
     };
   });
@@ -158,16 +158,16 @@ describe("ConfidentialERC20", function () {
     expect(await this.prizeItem.ownerOf(await this.blindAuction.tokenId())).to.be.equal(bobSigner.address);
 
     // Refund user
-    const aliceBalanceBefore = await this.getUSDcBalance(aliceSigner);
+    const aliceBalanceBefore = await this.getUSDCcBalance(aliceSigner);
     await this.blindAuction.withdraw(aliceSigner.address);
-    const aliceBalanceAfter = await this.getUSDcBalance(aliceSigner);
+    const aliceBalanceAfter = await this.getUSDCcBalance(aliceSigner);
     expect(aliceBalanceAfter).to.be.equal(aliceBalanceBefore + 10_000n);
 
     // Bob cannot withdraw any money
     await expect(this.blindAuction.withdraw(bobSigner.address)).to.be.reverted;
 
     // Check beneficiary balance
-    const beneficiaryBalance = await this.getUSDcBalance(beneficiary);
+    const beneficiaryBalance = await this.getUSDCcBalance(beneficiary);
     expect(beneficiaryBalance).to.be.equal(15_000);
   });
 });

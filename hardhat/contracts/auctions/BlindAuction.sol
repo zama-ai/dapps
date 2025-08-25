@@ -8,7 +8,7 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ConfidentialFungibleToken} from "openzeppelin-confidential-contracts/contracts/token/ConfidentialFungibleToken.sol";
+import {ConfidentialFungibleToken} from "@openzeppelin/confidential-contracts/token/ConfidentialFungibleToken.sol";
 
 contract BlindAuction is SepoliaConfig, ReentrancyGuard {
     /// @notice The recipient of the highest bid once the auction ends
