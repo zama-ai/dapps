@@ -31,8 +31,27 @@ contract ConfidentialTokenExample is SepoliaConfig, ConfidentialFungibleToken, O
     /// @param to Address to mint tokens to
     /// @param amount Plaintext amount to mint
     function mint(address to, uint64 amount) external onlyOwner {
-        euint64 encryptedAmount = FHE.asEuint64(amount);
-        _mint(to, encryptedAmount);
+        _mint(to, FHE.asEuint64(amount));
+    }
+
+    function confidentialMint(
+        address to,
+        externalEuint64 encryptedAmount,
+        bytes calldata inputProof
+    ) external onlyOwner returns (euint64 transferred) {
+        return _mint(to, FHE.fromExternal(encryptedAmount, inputProof));
+    }
+
+    function burn(address from, uint64 amount) external onlyOwner {
+        _burn(from, FHE.asEuint64(amount));
+    }
+
+    function confidentialBurn(
+        address from,
+        externalEuint64 encryptedAmount,
+        bytes calldata inputProof
+    ) public returns (euint64 transferred) {
+        return _burn(from, FHE.fromExternal(encryptedAmount, inputProof));
     }
 
     /// @inheritdoc ConfidentialFungibleToken

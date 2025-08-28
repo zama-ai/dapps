@@ -3,7 +3,7 @@ import { ethers, fhevm } from "hardhat";
 import { ConfidentialTokenExample, ConfidentialTokenExample__factory } from "../../types";
 import { expect } from "chai";
 import { FhevmType } from "@fhevm/hardhat-plugin";
-import { deployConfidentialTokenExampleFixture } from "./confToken.fixture";
+import { deployConfidentialTokenExampleFixture } from "./confTokenExample.fixture";
 
 type Signers = {
   deployer: HardhatEthersSigner;
