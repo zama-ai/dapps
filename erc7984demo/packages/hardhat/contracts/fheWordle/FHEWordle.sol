@@ -4,12 +4,9 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {
     FHE,
-    externalEuint64,
-    euint64,
-    eaddress,
     ebool,
     euint8,
     euint16,
@@ -18,14 +15,13 @@ import {
 } from "@fhevm/solidity/lib/FHE.sol";
 import {SepoliaConfig, ZamaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
-/**
- * @title FHEordle
- * @notice This contract implements a fully homomorphic encryption (FHE) version of the classic word game, similar to "Wordle".
- *         It allows players to submit encrypted guesses and receive feedback on whether their guess is correct.
- *         The contract is integrated with a secure gateway that handles decryption requests to ensure confidentiality.
- * @dev This contract leverages the FHE library for encryption operations and the MerkleProof library for verifying word sets.
- *      The game state and logic are managed using various public and private variables.
- */
+
+/// @title FHEordle
+/// @notice This contract implements a fully homomorphic encryption (FHE) version of the classic word game, similar to "Wordle".
+///         It allows players to submit encrypted guesses and receive feedback on whether their guess is correct.
+///         The contract is integrated with a secure gateway that handles decryption requests to ensure confidentiality.
+/// @dev This contract leverages the FHE library for encryption operations and the MerkleProof library for verifying word sets.
+///      The game state and logic are managed using various public and private variables.
 contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
     // /// Constants
     bytes32 public constant root = 0x918fd5f641d6c8bb0c5e07a42f975969c2575250dc3fb743346d1a3c11728bdd;
@@ -74,13 +70,11 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
 
     constructor() Ownable(msg.sender) {}
 
-    /**
-     * @notice Initializes a new FHEWordle game instance
-     * @dev Sets up the FHE configuration, game state variables and generates the secret word
-     * @param _playerAddr Address of the player who will play this game instance
-     * @param _relayerAddr Address of the relayer who will help with FHE operations
-     * @param _testFlag If non-zero, uses this value as the word ID for testing purposes
-     */
+    /// @notice Initializes a new FHEWordle game instance
+    /// @dev Sets up the FHE configuration, game state variables and generates the secret word
+    /// @param _playerAddr Address of the player who will play this game instance
+    /// @param _relayerAddr Address of the relayer who will help with FHE operations
+    /// @param _testFlag If non-zero, uses this value as the word ID for testing purposes
     function initialize(address _playerAddr, address _relayerAddr, uint16 _testFlag) external initializer {
         // FHE.setFHEVM(ZamaFHEVMConfig.getSepoliaConfig());
         // FHE.setFHE(ZamaFHEConfig.getSepoliaConfig());
@@ -111,25 +105,21 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         word1 = 0;
     }
 
-    /**
-     * @notice Gets the encrypted word ID for this game instance
-     * @dev Can only be called by the relayer
-     * @return euint16 The encrypted word ID
-     */
+    /// @notice Gets the encrypted word ID for this game instance
+    /// @dev Can only be called by the relayer
+    /// @return euint16 The encrypted word ID
     function getWord1Id() public view virtual onlyRelayer returns (euint16) {
         return (word1Id);
     }
 
-    /**
-     * @notice Submits the encrypted letters of a word
-     * @dev Takes encrypted inputs and converts them to euint8 before calling internal submission function
-     * @param el0 Encrypted first letter
-     * @param el1 Encrypted second letter
-     * @param el2 Encrypted third letter
-     * @param el3 Encrypted fourth letter
-     * @param el4 Encrypted fifth letter
-     * @param inputProof Proof for the encrypted inputs
-     */
+    /// @notice Submits the encrypted letters of a word
+    /// @dev Takes encrypted inputs and converts them to euint8 before calling internal submission function
+    /// @param el0 Encrypted first letter
+    /// @param el1 Encrypted second letter
+    /// @param el2 Encrypted third letter
+    /// @param el3 Encrypted fourth letter
+    /// @param el4 Encrypted fifth letter
+    /// @param inputProof Proof for the encrypted inputs
     function submitWord1(
         externalEuint8 el0,
         externalEuint8 el1,
@@ -153,15 +143,13 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         _submitWord1(_l0, _l1, _l2, _l3, _l4);
     }
 
-    /**
-     * @notice Internal function to submit encrypted word letters
-     * @dev Stores the letters and creates an encrypted mask of the word
-     * @param _l0 First letter as euint8
-     * @param _l1 Second letter as euint8
-     * @param _l2 Third letter as euint8
-     * @param _l3 Fourth letter as euint8
-     * @param _l4 Fifth letter as euint8
-     */
+    /// @notice Internal function to submit encrypted word letters
+    /// @dev Stores the letters and creates an encrypted mask of the word
+    /// @param _l0 First letter as euint8
+    /// @param _l1 Second letter as euint8
+    /// @param _l2 Third letter as euint8
+    /// @param _l3 Fourth letter as euint8
+    /// @param _l4 Fifth letter as euint8
     function _submitWord1(euint8 _l0, euint8 _l1, euint8 _l2, euint8 _l3, euint8 _l4) public {
         require(!wordSubmitted, "word submitted");
         word1Letters[0] = _l0;
@@ -185,12 +173,10 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         gameStarted = true;
     }
 
-    /**
-     * @notice Allows player to submit a guess word
-     * @dev Verifies the word is valid using a Merkle proof
-     * @param word The guessed word encoded as a uint32
-     * @param proof Merkle proof to verify the word is valid
-     */
+    /// @notice Allows player to submit a guess word
+    /// @dev Verifies the word is valid using a Merkle proof
+    /// @param word The guessed word encoded as a uint32
+    /// @param proof Merkle proof to verify the word is valid
     function guessWord1(uint32 word, bytes32[] calldata proof) public onlyPlayer {
         require(gameStarted, "game not started");
         require(nGuesses < 5, "cannot exceed five guesses!");
@@ -202,12 +188,10 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         nGuesses += 1;
     }
 
-    /**
-     * @notice Creates an encrypted mask showing which letters match exactly
-     * @dev Internal function used by getGuess
-     * @param guessN Index of the guess to check
-     * @return euint8 Encrypted mask where 1 bits indicate exact matches
-     */
+    /// @notice Creates an encrypted mask showing which letters match exactly
+    /// @dev Internal function used by getGuess
+    /// @param guessN Index of the guess to check
+    /// @return euint8 Encrypted mask where 1 bits indicate exact matches
     function getEqMask(uint8 guessN) internal returns (euint8) {
         uint32 word = guessHist[guessN];
         uint8 _l0 = uint8((word) % 26);
@@ -230,12 +214,10 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         return eqMask;
     }
 
-    /**
-     * @notice Creates an encrypted mask showing which letters are present in the target word
-     * @dev Internal function used by getGuess
-     * @param guessN Index of the guess to check
-     * @return euint32 Encrypted mask where 1 bits indicate letter presence
-     */
+    /// @notice Creates an encrypted mask showing which letters are present in the target word
+    /// @dev Internal function used by getGuess
+    /// @param guessN Index of the guess to check
+    /// @return euint32 Encrypted mask where 1 bits indicate letter presence
     function getLetterMaskGuess(uint8 guessN) internal returns (euint32) {
         uint32 word = guessHist[guessN];
         uint32 _l0 = (word) % 26;
@@ -250,11 +232,9 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         return lettermaskGuess;
     }
 
-    /**
-     * @notice Gets feedback for a specific guess
-     * @dev Requests decryption of the equality and letter presence masks
-     * @param guessN Index of the guess to check
-     */
+    /// @notice Gets feedback for a specific guess
+    /// @dev Requests decryption of the equality and letter presence masks
+    /// @param guessN Index of the guess to check
     function getGuess(uint8 guessN) public onlyPlayer {
         require(guessN < nGuesses, "cannot exceed nGuesses");
 
@@ -274,29 +254,26 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         FHE.requestDecryption(cts, this.callbackGuess.selector);
     }
 
-    /**
-     * @notice Callback function for guess decryption
-     * @dev Called by the gateway after decrypting guess feedback
-     * @param _decryptedEqMask Decrypted equality mask
-     * @param _decryptedLetterMask Decrypted letter presence mask
-     * @return Tuple of the decrypted masks
-     */
+    /// @notice Callback function for guess decryption
+    /// @dev Called by the gateway after decrypting guess feedback
+    /// @param requestID Request Id created by the Oracle.
+    /// @param cleartexts Cleartexts of the decrypted data.
+    /// @param decryptionProof Proof of the decryption.
     function callbackGuess(
-        uint256 /*requestID*/,
-        uint8 _decryptedEqMask,
-        uint32 _decryptedLetterMask
-    ) external returns (uint8, uint32) {
+        uint256 requestID,
+        bytes memory cleartexts,
+        bytes memory decryptionProof
+    ) external {
+        FHE.checkSignatures(requestID, cleartexts, decryptionProof);
+        (uint8 _decryptedEqMask, uint32 _decryptedLetterMask) = abi.decode(cleartexts, (uint8, uint32));
         decryptedEqMask = _decryptedEqMask;
         decryptedLetterMask = _decryptedLetterMask;
         emit GuessDecrypted(decryptedEqMask, decryptedLetterMask);
-        return (decryptedEqMask, decryptedLetterMask);
     }
 
-    /**
-     * @notice Allows player to claim they've won with a specific guess
-     * @dev Requests decryption to verify if the guess matches completely
-     * @param guessN Index of the winning guess
-     */
+    /// @notice Allows player to claim they've won with a specific guess
+    /// @dev Requests decryption to verify if the guess matches completely
+    /// @param guessN Index of the winning guess
     function claimWin(uint8 guessN) public onlyPlayer {
         euint8 fullMask = FHE.asEuint8(31);
         ebool is_equal = FHE.eq(fullMask, getEqMask(guessN));
@@ -327,10 +304,8 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         }
     }
 
-    /**
-     * @notice Reveals the target word after game completion
-     * @dev Requests decryption of all word letters
-     */
+    /// @notice Reveals the target word after game completion
+    /// @dev Requests decryption of all word letters
     function revealWordAndStore() public onlyPlayer {
         // Prepare the ciphertext array for the five letters
         bytes32[] memory cts = new bytes32[](5);
@@ -344,24 +319,19 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         FHE.requestDecryption(cts, this.callbackRevealWord.selector);
     }
 
-    /**
-     * @notice Callback function for word revelation
-     * @dev Stores decrypted letters and computes final word value
-     * @param _l0 First decrypted letter
-     * @param _l1 Second decrypted letter
-     * @param _l2 Third decrypted letter
-     * @param _l3 Fourth decrypted letter
-     * @param _l4 Fifth decrypted letter
-     * @return Tuple of all decrypted letters
-     */
+    /// @notice Callback function for word revelation
+    /// @dev Stores decrypted letters and computes final word value
+    /// @param requestID Request Id created by the Oracle.
+    /// @param cleartexts Cleartexts of the decrypted data.
+    /// @param decryptionProof Proof of the decryption.
     function callbackRevealWord(
-        uint256 /*requestID*/,
-        uint8 _l0,
-        uint8 _l1,
-        uint8 _l2,
-        uint8 _l3,
-        uint8 _l4
-    ) external returns (uint8, uint8, uint8, uint8, uint8) {
+        uint256 requestID,
+        bytes memory cleartexts,
+        bytes memory decryptionProof
+    ) external {
+        FHE.checkSignatures(requestID, cleartexts, decryptionProof);
+        (uint8 _l0, uint8 _l1, uint8 _l2, uint8 _l3, uint8 _l4) =
+            abi.decode(cleartexts, (uint8, uint8, uint8, uint8, uint8));
         l0 = _l0;
         l1 = _l1;
         l2 = _l2;
@@ -375,15 +345,11 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
             uint32(l2) * 26 * 26 +
             uint32(l3) * 26 * 26 * 26 +
             uint32(l4) * 26 * 26 * 26 * 26;
-
-        return (l0, l1, l2, l3, l4); // Optionally emit an event
     }
 
-    /**
-     * @notice Verifies the game outcome using a Merkle proof
-     * @dev Can only be called by relayer after game completion
-     * @param proof Merkle proof to verify the game outcome
-     */
+    /// @notice Verifies the game outcome using a Merkle proof
+    /// @dev Can only be called by relayer after game completion
+    /// @param proof Merkle proof to verify the game outcome
     function checkProof(bytes32[] calldata proof) public onlyRelayer {
         assert(nGuesses == 5 || playerWon);
         // Store the proof for use in the callback
@@ -418,17 +384,13 @@ contract FHEWordle is SepoliaConfig, Ownable2Step, Initializable {
         }
     }
 
-    /**
-     * @notice Modifier to restrict function access to relayer only
-     */
+    /// @notice Modifier to restrict function access to relayer only
     modifier onlyRelayer() {
         require(msg.sender == relayerAddr);
         _;
     }
 
-    /**
-     * @notice Modifier to restrict function access to player only
-     */
+    /// @notice Modifier to restrict function access to player only
     modifier onlyPlayer() {
         require(msg.sender == playerAddr);
         _;

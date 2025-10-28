@@ -55,6 +55,7 @@
     "verify:sepolia": "pnpm hardhat:verify:sepolia"
   },
   "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.8",
     "hardhat-deploy": "^0.11.45"
   },
   "devDependencies": {
