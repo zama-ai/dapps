@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     ERC7984Example: {
-      address: "0x380ee13b0039852314fFF513821729B052D06a71",
+      address: "0xd78666b4694e46d1C757ef741Dd9511c7aEaFCB5",
       abi: [
         {
           inputs: [
@@ -15,6 +15,21 @@ const deployedContracts = {
               internalType: "uint64",
               name: "amount",
               type: "uint64",
+            },
+            {
+              internalType: "string",
+              name: "name_",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "symbol_",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "tokenURI_",
+              type: "string",
             },
           ],
           stateMutability: "nonpayable",
@@ -28,7 +43,7 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidGatewayRequest",
+          name: "ERC7984InvalidGatewayRequest",
           type: "error",
         },
         {
@@ -39,7 +54,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidReceiver",
+          name: "ERC7984InvalidReceiver",
           type: "error",
         },
         {
@@ -50,7 +65,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidSender",
+          name: "ERC7984InvalidSender",
           type: "error",
         },
         {
@@ -61,7 +76,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedCaller",
+          name: "ERC7984UnauthorizedCaller",
           type: "error",
         },
         {
@@ -77,7 +92,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedSpender",
+          name: "ERC7984UnauthorizedSpender",
           type: "error",
         },
         {
@@ -93,7 +108,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedUseOfEncryptedAmount",
+          name: "ERC7984UnauthorizedUseOfEncryptedAmount",
           type: "error",
         },
         {
@@ -104,7 +119,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenZeroBalance",
+          name: "ERC7984ZeroBalance",
           type: "error",
         },
         {
@@ -557,6 +572,19 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "contractURI",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "decimals",
           outputs: [
             {
@@ -626,6 +654,24 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint64",
+              name: "amount",
+              type: "uint64",
+            },
+          ],
+          name: "mint",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -719,19 +765,6 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [],
-          name: "tokenURI",
-          outputs: [
-            {
-              internalType: "string",
-              name: "",
-              type: "string",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
           inputs: [
             {
               internalType: "address",
@@ -745,8 +778,41 @@ const deployedContracts = {
           type: "function",
         },
       ],
-      inheritedFunctions: {},
-      deployedOnBlock: 4,
+      inheritedFunctions: {
+        confidentialBalanceOf:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTotalSupply:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransfer:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferAndCall:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferFrom:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferFromAndCall:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        contractURI:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        decimals:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        discloseEncryptedAmount:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        finalizeDiscloseEncryptedAmount:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        isOperator:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        name: "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        setOperator:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        symbol:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        acceptOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        owner: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        pendingOwner: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+      },
+      deployedOnBlock: 6,
     },
     FHECounter: {
       address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
@@ -820,7 +886,7 @@ const deployedContracts = {
   },
   11155111: {
     ERC7984Example: {
-      address: "0x380ee13b0039852314fFF513821729B052D06a71",
+      address: "0xd78666b4694e46d1C757ef741Dd9511c7aEaFCB5",
       abi: [
         {
           inputs: [
@@ -828,6 +894,21 @@ const deployedContracts = {
               internalType: "uint64",
               name: "amount",
               type: "uint64",
+            },
+            {
+              internalType: "string",
+              name: "name_",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "symbol_",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "tokenURI_",
+              type: "string",
             },
           ],
           stateMutability: "nonpayable",
@@ -841,7 +922,7 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidGatewayRequest",
+          name: "ERC7984InvalidGatewayRequest",
           type: "error",
         },
         {
@@ -852,7 +933,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidReceiver",
+          name: "ERC7984InvalidReceiver",
           type: "error",
         },
         {
@@ -863,7 +944,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenInvalidSender",
+          name: "ERC7984InvalidSender",
           type: "error",
         },
         {
@@ -874,7 +955,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedCaller",
+          name: "ERC7984UnauthorizedCaller",
           type: "error",
         },
         {
@@ -890,7 +971,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedSpender",
+          name: "ERC7984UnauthorizedSpender",
           type: "error",
         },
         {
@@ -906,7 +987,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenUnauthorizedUseOfEncryptedAmount",
+          name: "ERC7984UnauthorizedUseOfEncryptedAmount",
           type: "error",
         },
         {
@@ -917,7 +998,7 @@ const deployedContracts = {
               type: "address",
             },
           ],
-          name: "ConfidentialFungibleTokenZeroBalance",
+          name: "ERC7984ZeroBalance",
           type: "error",
         },
         {
@@ -1370,6 +1451,19 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "contractURI",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "decimals",
           outputs: [
             {
@@ -1439,6 +1533,24 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint64",
+              name: "amount",
+              type: "uint64",
+            },
+          ],
+          name: "mint",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -1532,19 +1644,6 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [],
-          name: "tokenURI",
-          outputs: [
-            {
-              internalType: "string",
-              name: "",
-              type: "string",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
           inputs: [
             {
               internalType: "address",
@@ -1558,8 +1657,41 @@ const deployedContracts = {
           type: "function",
         },
       ],
-      inheritedFunctions: {},
-      deployedOnBlock: 9516245,
+      inheritedFunctions: {
+        confidentialBalanceOf:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTotalSupply:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransfer:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferAndCall:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferFrom:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        confidentialTransferFromAndCall:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        contractURI:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        decimals:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        discloseEncryptedAmount:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        finalizeDiscloseEncryptedAmount:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        isOperator:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        name: "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        setOperator:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        symbol:
+          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+        acceptOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        owner: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        pendingOwner: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
+      },
+      deployedOnBlock: 9516761,
     },
     FHECounter: {
       address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
