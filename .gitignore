@@ -1,2 +1,14 @@
 .DS_Store
 .env
+.vscode
+.env
+node_modules
+.DS_Store
+packages/*/node_modules
+packages/*/.DS_Store
+packages/*/dist
+packages/*/.env
+packages/*/.turbo
+packages/*/coverage
+tmp*
+.vscode
