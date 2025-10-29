@@ -1,17 +1,17 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 
-import type { ConfidentialTokenExample, PrizeItem, BlindAuction } from "../../types";
-import type { ConfidentialTokenExample__factory, PrizeItem__factory, BlindAuction__factory } from "../../types";
+import type { ERC7984Example, PrizeItem, BlindAuction } from "../../types";
+import type { ERC7984Example__factory, PrizeItem__factory, BlindAuction__factory } from "../../types";
 
 export async function deployBlindAuctionFixture(owner: HardhatEthersSigner) {
   const [deployer] = await ethers.getSigners();
 
   // Create Confidential ERC20
   const USDCcFactory = (await ethers.getContractFactory(
-    "ConfidentialTokenExample",
-  )) as ConfidentialTokenExample__factory;
-  const USDCc = (await USDCcFactory.deploy(0, "USDCc", "USDCc", "")) as ConfidentialTokenExample;
+    "ERC7984Example",
+  )) as ERC7984Example__factory;
+  const USDCc = (await USDCcFactory.deploy(0, "USDCc", "USDCc", "")) as ERC7984Example;
   const USDCc_address = await USDCc.getAddress();
 
   // Create NFT Prize

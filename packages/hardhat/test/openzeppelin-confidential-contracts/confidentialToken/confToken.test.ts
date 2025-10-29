@@ -1,9 +1,9 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers, fhevm } from "hardhat";
-import { ConfidentialTokenExample, ConfidentialTokenExample__factory } from "../../types";
+import { ERC7984Example, ERC7984Example__factory } from "../../types";
 import { expect } from "chai";
 import { FhevmType } from "@fhevm/hardhat-plugin";
-import { deployConfidentialTokenExampleFixture } from "./confToken.fixture";
+import { deployERC7984ExampleFixture } from "./confToken.fixture";
 
 type Signers = {
   deployer: HardhatEthersSigner;
@@ -14,7 +14,7 @@ type Signers = {
 
 describe("ConfidentialToken", function () {
   let signers: Signers;
-  let confidentialToken: ConfidentialTokenExample;
+  let confidentialToken: ERC7984Example;
   let confidentialTokenAddress: string;
 
   before(async function () {
@@ -34,8 +34,8 @@ describe("ConfidentialToken", function () {
       this.skip();
     }
 
-    ({ ConfidentialTokenExample: confidentialToken, ConfidentialTokenExampleAddress: confidentialTokenAddress } =
-      await deployConfidentialTokenExampleFixture(signers.deployer));
+    ({ ERC7984Example: confidentialToken, ERC7984ExampleAddress: confidentialTokenAddress } =
+      await deployERC7984ExampleFixture(signers.deployer));
   });
 
   describe("Deployment", function () {
@@ -186,14 +186,14 @@ describe("ConfidentialToken", function () {
     it("should handle different initial amounts", async function () {
       // Deploy a new contract with different initial amount
       const ConfidentialTokenFactory = (await ethers.getContractFactory(
-        "ConfidentialTokenExample",
-      )) as ConfidentialTokenExample__factory;
+        "ERC7984Example",
+      )) as ERC7984Example__factory;
       const newToken = (await ConfidentialTokenFactory.deploy(
         500, // Different initial amount
         "Test Token",
         "TEST",
         "https://test.com/token",
-      )) as ConfidentialTokenExample;
+      )) as ERC7984Example;
 
       const newTokenAddress = await newToken.getAddress();
       const balance = await newToken.confidentialBalanceOf(signers.deployer.address);
@@ -205,14 +205,14 @@ describe("ConfidentialToken", function () {
 
     it("should handle empty token URI", async function () {
       const ConfidentialTokenFactory = (await ethers.getContractFactory(
-        "ConfidentialTokenExample",
-      )) as ConfidentialTokenExample__factory;
+        "ERC7984Example",
+      )) as ERC7984Example__factory;
       const newToken = (await ConfidentialTokenFactory.deploy(
         100,
         "Empty URI Token",
         "EMPTY",
         "", // Empty token URI
-      )) as ConfidentialTokenExample;
+      )) as ERC7984Example;
 
       expect(await newToken.contractURI()).to.equal("");
     });

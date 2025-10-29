@@ -15,8 +15,11 @@ contract ERC7984Example is SepoliaConfig, ERC7984, Ownable2Step {
     /// @notice Deploys the token and mints an initial supply to the deployer.
     /// @param amount Initial plaintext supply to be minted to `msg.sender`.
     constructor(
-        uint64 amount
-    ) ERC7984("GOLD_token", "GLD", "") Ownable(msg.sender) {
+        uint64 amount,
+        string memory name_,
+        string memory symbol_,
+        string memory tokenURI_
+    ) ERC7984(name_, symbol_, tokenURI_) Ownable(msg.sender) {
         _mint(msg.sender, FHE.asEuint64(amount));
     }
 

@@ -2,7 +2,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { ethers, fhevm } from "hardhat";
-import { ConfidentialTokenExample__factory } from "../../types";
+import { ERC7984Example__factory } from "../../types";
 import { FhevmType } from "@fhevm/mock-utils";
 
 describe("ConfidentialDutchAuction", function () {
@@ -28,8 +28,8 @@ describe("ConfidentialDutchAuction", function () {
 
     // Deploy the token contracts first
     const USDCcFactory = (await ethers.getContractFactory(
-      "ConfidentialTokenExample",
-    )) as ConfidentialTokenExample__factory;
+      "ERC7984Example",
+    )) as ERC7984Example__factory;
     this.auctionToken = await USDCcFactory.connect(this.signers.alice).deploy(TOKEN_AMOUNT, "AuctionToken", "AT", "");
     this.paymentToken = await USDCcFactory.connect(this.signers.bob).deploy(WETH_AMOUNT, "PaymentToken", "PT", "");
     await this.auctionToken.waitForDeployment();
