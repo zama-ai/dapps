@@ -186,7 +186,7 @@ importers:
         specifier: ^5.8.3
         version: 5.9.2
 
-  packages/nextjs:
+  packages/erc7984example:
     dependencies:
       '@fhevm-sdk':
         specifier: workspace:*

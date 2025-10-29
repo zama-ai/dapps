@@ -66,9 +66,6 @@ The `./packages/erc7984example` directory contains a simple React-based frontend
 git clone <repository-url>
 cd dapps
 
-# Initialize submodules (includes fhevm-hardhat-template)
-git submodule update --init --recursive
-
 # Install dependencies
 pnpm install
 ```
@@ -93,7 +90,7 @@ pnpm chain
 pnpm deploy:localhost
 
 # Terminal 3: Start the frontend
-pnpm start
+pnpm run start
 ```
 
 **Option B: Sepolia Testnet**
@@ -103,7 +100,7 @@ pnpm start
 pnpm deploy:sepolia
 
 # Start the frontend
-pnpm start
+pnpm run start
 ```
 
 ### 4. Connect MetaMask
@@ -118,10 +115,10 @@ pnpm start
 
 ### ⚠️ Sepolia Production note
 
-- In production, `NEXT_PUBLIC_ALCHEMY_API_KEY` must be set (see `packages/nextjs/scaffold.config.ts`). The app throws if missing.
-- Ensure `packages/nextjs/contracts/deployedContracts.ts` points to your live contract addresses.
+- In production, `NEXT_PUBLIC_ALCHEMY_API_KEY` must be set (see `packages/erc7984example/scaffold.config.ts`). The app throws if missing.
+- Ensure `packages/erc7984example/contracts/deployedContracts.ts` points to your live contract addresses.
 - Optional: set `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` for better WalletConnect reliability.
-- Optional: add per-chain RPCs via `rpcOverrides` in `packages/nextjs/scaffold.config.ts`.
+- Optional: add per-chain RPCs via `rpcOverrides` in `packages/erc7984example/scaffold.config.ts`.
 
 ## 🔧 Troubleshooting
 
