@@ -9,7 +9,7 @@ import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {ConfidentialFungibleToken} from "@openzeppelin/confidential-contracts/token/ConfidentialFungibleToken.sol";
+import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
 
 /// @title Dutch Auction for Selling Confidential ERC20 Tokens
 /// @notice Implements a Dutch auction mechanism for selling confidential ERC20 tokens
@@ -17,9 +17,9 @@ import {ConfidentialFungibleToken} from "@openzeppelin/confidential-contracts/to
 
 contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Step {
     /// @notice The ERC20 token being auctioned
-    ConfidentialFungibleToken public immutable auctionToken;
+    ERC7984 public immutable auctionToken;
     /// @notice The token used for payments
-    ConfidentialFungibleToken public immutable paymentToken;
+    ERC7984 public immutable paymentToken;
     /// @notice Encrypted amount of tokens remaining in the auction
     euint64 private tokensLeft;
 
@@ -95,8 +95,8 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
     constructor(
         uint64 _startingPrice,
         uint64 _discountRate,
-        ConfidentialFungibleToken _token,
-        ConfidentialFungibleToken _paymentToken,
+        ERC7984 _token,
+        ERC7984 _paymentToken,
         uint64 _amount,
         uint64 _reservePrice,
         uint256 _biddingTime,

@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@fhevm/solidity": "^0.8.0",
-    "@openzeppelin/confidential-contracts": "https://gitpkg.vercel.app/OpenZeppelin/openzeppelin-confidential-contracts/contracts?chore/migrate-0.2-0.8.0",
+    "@openzeppelin/confidential-contracts": "0.3.0-rc.0",
     "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "@zama-fhe/oracle-solidity": "^0.1.0",

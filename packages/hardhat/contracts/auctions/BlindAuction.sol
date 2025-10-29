@@ -8,14 +8,14 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ConfidentialFungibleToken} from "@openzeppelin/confidential-contracts/token/ConfidentialFungibleToken.sol";
+import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
 
 contract BlindAuction is SepoliaConfig, ReentrancyGuard {
     /// @notice The recipient of the highest bid once the auction ends
     address public beneficiary;
 
     /// @notice Confidenctial Payment Token
-    ConfidentialFungibleToken public confidentialFungibleToken;
+    ERC7984 public erc7984;
 
     /// @notice Token for the auction
     IERC721 public nftContract;
@@ -95,13 +95,13 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
 
     constructor(
         address _nftContractAddress,
-        address _confidentialFungibleTokenAddress,
+        address _erc7984Address,
         uint256 _tokenId,
         uint256 _auctionStartTime,
         uint256 _auctionEndTime
     ) {
         beneficiary = msg.sender;
-        confidentialFungibleToken = ConfidentialFungibleToken(_confidentialFungibleTokenAddress);
+        erc7984 = ERC7984(_erc7984Address);
         nftContract = IERC721(_nftContractAddress);
 
         // Transfer the NFT to the contract for the auction
@@ -117,10 +117,10 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
         euint64 amount = FHE.fromExternal(encryptedAmount, inputProof);
 
         // Transfer the confidential token as payment
-        euint64 balanceBefore = confidentialFungibleToken.confidentialBalanceOf(address(this));
-        FHE.allowTransient(amount, address(confidentialFungibleToken));
-        confidentialFungibleToken.confidentialTransferFrom(msg.sender, address(this), amount);
-        euint64 balanceAfter = confidentialFungibleToken.confidentialBalanceOf(address(this));
+        euint64 balanceBefore = erc7984.confidentialBalanceOf(address(this));
+        FHE.allowTransient(amount, address(erc7984));
+        erc7984.confidentialTransferFrom(msg.sender, address(this), amount);
+        euint64 balanceAfter = erc7984.confidentialBalanceOf(address(this));
         euint64 sentBalance = FHE.sub(balanceAfter, balanceBefore);
 
         // Need to update the bid balance
@@ -172,8 +172,8 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
         FHE.allow(bids[msg.sender], msg.sender);
 
         // Transfer the highest bid to the beneficiary
-        FHE.allowTransient(highestBid, address(confidentialFungibleToken));
-        confidentialFungibleToken.confidentialTransfer(beneficiary, highestBid);
+        FHE.allowTransient(highestBid, address(erc7984));
+        erc7984.confidentialTransfer(beneficiary, highestBid);
 
         // Send the NFT to the winner
         nftContract.safeTransferFrom(address(this), msg.sender, tokenId);
@@ -186,7 +186,7 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
 
         // Get the user bid value
         euint64 amount = bids[bidder];
-        FHE.allowTransient(amount, address(confidentialFungibleToken));
+        FHE.allowTransient(amount, address(erc7984));
 
         // Reset user bid value
         euint64 newBid = FHE.asEuint64(0);
@@ -195,7 +195,7 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
         FHE.allow(newBid, bidder);
 
         // Refund the user with his bid amount
-        confidentialFungibleToken.confidentialTransfer(bidder, amount);
+        erc7984.confidentialTransfer(bidder, amount);
     }
 
     // ========== Oracle Callback ==========

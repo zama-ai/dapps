@@ -2,8 +2,8 @@
 pragma solidity ^0.8.24;
 
 import {euint64} from "@fhevm/solidity/lib/FHE.sol";
-import {ConfidentialFungibleToken} from "@openzeppelin/confidential-contracts/token/ConfidentialFungibleToken.sol";
-import {ConfidentialFungibleTokenERC20Wrapper} from "@openzeppelin/confidential-contracts/token/extensions/ConfidentialFungibleTokenERC20Wrapper.sol";
+import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
+import {ERC7984ERC20Wrapper} from "@openzeppelin/confidential-contracts/token/ERC7984/extensions/ERC7984ERC20Wrapper.sol";
 import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -14,7 +14,7 @@ import {IsPausable} from "../interfaces/IsPausable.sol";
 /// @notice A wrapper contract that allows wrapping an ERC20 token into a confidential fungible token
 ///         with pausable functionality.
 /// @dev The pausable functionality is implemented by checking the `paused` state of the underlying ERC20 token.
-contract ERC20Wrapper is SepoliaConfig, ConfidentialFungibleTokenERC20Wrapper {
+contract ERC20Wrapper is SepoliaConfig, ERC7984ERC20Wrapper {
     /// @notice Use the underling token's pausable interface to check if the contract is paused.
     IsPausable public immutable pausableToken;
 
@@ -28,7 +28,7 @@ contract ERC20Wrapper is SepoliaConfig, ConfidentialFungibleTokenERC20Wrapper {
         string memory name,
         string memory symbol,
         string memory uri
-    ) ConfidentialFungibleToken(name, symbol, uri) ConfidentialFungibleTokenERC20Wrapper(IERC20(tokenAddress)) {
+    ) ERC7984(name, symbol, uri) ERC7984ERC20Wrapper(IERC20(tokenAddress)) {
         pausableToken = IsPausable(tokenAddress);
     }
 

@@ -42,7 +42,7 @@ describe("ConfidentialToken", function () {
     it("should deploy with correct initial parameters", async function () {
       expect(await confidentialToken.name()).to.equal("Confidential Token");
       expect(await confidentialToken.symbol()).to.equal("CTKN");
-      expect(await confidentialToken.tokenURI()).to.equal("https://example.com/token");
+      expect(await confidentialToken.contractURI()).to.equal("https://example.com/token");
     });
 
     it("should set deployer as owner", async function () {
@@ -113,7 +113,7 @@ describe("ConfidentialToken", function () {
     });
 
     it("should return correct token URI", async function () {
-      expect(await confidentialToken.tokenURI()).to.equal("https://example.com/token");
+      expect(await confidentialToken.contractURI()).to.equal("https://example.com/token");
     });
   });
 
@@ -214,7 +214,7 @@ describe("ConfidentialToken", function () {
         "", // Empty token URI
       )) as ConfidentialTokenExample;
 
-      expect(await newToken.tokenURI()).to.equal("");
+      expect(await newToken.contractURI()).to.equal("");
     });
   });
 });
