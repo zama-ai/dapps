@@ -12,3 +12,4 @@ packages/*/.turbo
 packages/*/coverage
 tmp*
 .vscode
+.vercel

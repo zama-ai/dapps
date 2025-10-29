@@ -48,9 +48,8 @@
     "preinstall": "pnpm sdk:build",
     "start": "pnpm --filter ./packages/erc7984example dev",
     "test": "pnpm hardhat:test",
-    "vercel": "pnpm --filter ./packages/erc7984example vercel",
-    "vercel:login": "pnpm --filter ./packages/erc7984example vercel:login",
-    "vercel:yolo": "pnpm --filter ./packages/erc7984example vercel:yolo",
+    "vercel": "vercel deploy --prod",
+    "vercel:login": "vercel login",
     "verify": "pnpm hardhat:verify",
     "verify:sepolia": "pnpm hardhat:verify:sepolia"
   },
