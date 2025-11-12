@@ -250,11 +250,11 @@ export const ERC7984Demo = () => {
               ) : claimStatus === "checking" ? (
                 "⏳ Checking..."
               ) : claimStatus === "claiming" ? (
-                "⏳ Claiming..."
+                "⏳ Claiming Tokens..."
               ) : alreadyClaimed ? (
-                "✅ Claimed"
+                "✅ Already Claimed"
               ) : (
-                "💧 Claim"
+                "💧 Get Free Tokens"
               )}
             </button>
           </div>
