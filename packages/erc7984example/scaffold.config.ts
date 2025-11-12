@@ -23,7 +23,8 @@ if (!rawAlchemyKey) {
 
 const isProduction = process.env.NODE_ENV === "production";
 const baseTargets = [chains.sepolia] as const;
-const targetNetworks = (isProduction ? baseTargets : ([chains.hardhat, ...baseTargets] as const));
+// Sepolia first, then hardhat (so Sepolia is default and hardhat is optional)
+const targetNetworks = (isProduction ? baseTargets : ([...baseTargets, chains.hardhat] as const));
 
 const scaffoldConfig = {
   // The networks on which your DApp is live

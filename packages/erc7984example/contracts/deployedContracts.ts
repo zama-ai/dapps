@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     ERC7984Example: {
-      address: "0xd78666b4694e46d1C757ef741Dd9511c7aEaFCB5",
+      address: "0xC1A360D04A2eb19831cd12B51a7923aF8f70616D",
       abi: [
         {
           inputs: [
@@ -883,10 +883,53 @@ const deployedContracts = {
       inheritedFunctions: {},
       deployedOnBlock: 3,
     },
+    Airdrop: {
+      address: "0xBB1FcB76bCc92B7Db65A4431CA90F84A6A11fB00",
+      abi: [
+        {
+          type: "function",
+          name: "claim",
+          inputs: [{ name: "_token", type: "address", internalType: "address" }],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "hasClaimed",
+          inputs: [
+            { name: "user", type: "address", internalType: "address" },
+            { name: "token", type: "address", internalType: "address" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "alreadyClaimed",
+          inputs: [
+            { name: "", type: "address", internalType: "address" },
+            { name: "", type: "address", internalType: "address" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "view",
+        },
+        {
+          type: "error",
+          name: "AlreadyClaimed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidToken",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+    },
   },
   11155111: {
     ERC7984Example: {
-      address: "0xd78666b4694e46d1C757ef741Dd9511c7aEaFCB5",
+      address: "0xC1A360D04A2eb19831cd12B51a7923aF8f70616D",
       abi: [
         {
           inputs: [
@@ -1761,6 +1804,49 @@ const deployedContracts = {
       ],
       inheritedFunctions: {},
       deployedOnBlock: 9516244,
+    },
+    Airdrop: {
+      address: "0xBB1FcB76bCc92B7Db65A4431CA90F84A6A11fB00",
+      abi: [
+        {
+          type: "function",
+          name: "claim",
+          inputs: [{ name: "_token", type: "address", internalType: "address" }],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "hasClaimed",
+          inputs: [
+            { name: "user", type: "address", internalType: "address" },
+            { name: "token", type: "address", internalType: "address" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "alreadyClaimed",
+          inputs: [
+            { name: "", type: "address", internalType: "address" },
+            { name: "", type: "address", internalType: "address" },
+          ],
+          outputs: [{ name: "", type: "bool", internalType: "bool" }],
+          stateMutability: "view",
+        },
+        {
+          type: "error",
+          name: "AlreadyClaimed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidToken",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
     },
   },
 } as const;

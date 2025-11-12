@@ -29,7 +29,10 @@ export const wagmiConfig = createConfig({
     }
     return createClient({
       chain,
-      transport: fallback(rpcFallbacks),
+      transport: fallback(rpcFallbacks, {
+        // Retry config to make hardhat optional when not running
+        rank: chain.id === (hardhat as Chain).id ? false : true,
+      }),
       ...(chain.id !== (hardhat as Chain).id ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
     });
   },
