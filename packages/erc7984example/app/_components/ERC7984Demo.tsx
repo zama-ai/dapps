@@ -165,40 +165,40 @@ export const ERC7984Demo = () => {
   //////////////////////////////////////////////////////////////////////////////
 
   const buttonClass =
-    "glass-button inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl " +
+    "glass-button inline-flex items-center justify-center px-6 py-3 font-semibold " +
     "transition-all duration-300 " +
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 " +
+    "focus-visible:outline-none " +
     "disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed";
 
-  // Primary (accent) button with glassmorphism
+  // Primary (accent) button
   const primaryButtonClass =
     buttonClass +
-    " text-[#1d1d1f] cursor-pointer";
+    " text-[#2D2D2D] cursor-pointer";
 
-  // Secondary button with dark glass effect
+  // Secondary button
   const secondaryButtonClass =
     buttonClass +
-    " !bg-[rgba(29,29,31,0.8)] text-white hover:!bg-[rgba(29,29,31,0.9)] cursor-pointer";
+    " !bg-[#2D2D2D] text-white hover:!bg-[#A38025] cursor-pointer";
 
-  // Success/confirmed state with green-yellow glass
+  // Success/confirmed state
   const successButtonClass =
     buttonClass +
     " !bg-[rgba(48,209,88,0.85)] text-white hover:!bg-[rgba(48,209,88,0.95)]";
 
-  const titleClass = "font-semibold text-[#1d1d1f] text-2xl mb-4 pb-3 border-b border-white/30";
-  const sectionClass = "glass-card-strong p-8 mb-6 text-[#1d1d1f] rounded-2xl relative z-10";
+  const titleClass = "font-semibold text-[#2D2D2D] text-2xl mb-4 pb-3 border-b border-[#2D2D2D]";
+  const sectionClass = "glass-card-strong p-8 mb-6 text-[#2D2D2D] relative z-10";
 
   if (!isConnected) {
     return (
       <div className="max-w-6xl mx-auto p-6 min-h-[60vh] flex items-center justify-center relative z-10">
-        <div className="glass-card-strong p-12 text-center rounded-3xl max-w-md">
+        <div className="glass-card-strong p-12 text-center max-w-md">
           <div className="mb-6">
-            <span className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[rgba(255,214,10,0.2)] text-5xl">
+            <span className="inline-flex items-center justify-center w-20 h-20 bg-[#FFD208] text-5xl">
               ⚠️
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-[#1d1d1f] mb-3">Wallet not connected</h2>
-          <p className="text-[#1d1d1f]/80 mb-8 text-lg">Connect your wallet to use the ERC7984 confidential token demo.</p>
+          <h2 className="text-3xl font-bold text-[#2D2D2D] mb-3">Wallet not connected</h2>
+          <p className="text-[#2D2D2D]/80 mb-8 text-lg">Connect your wallet to use the ERC7984 confidential token demo.</p>
           <div className="flex items-center justify-center">
             <RainbowKitCustomConnectButton />
           </div>
@@ -211,8 +211,8 @@ export const ERC7984Demo = () => {
     <div className="max-w-6xl mx-auto p-6 space-y-6 relative z-10">
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-5xl font-bold mb-4 text-[#1d1d1f] tracking-tight">ERC7984 Confidential Token Demo</h1>
-        <p className="text-xl text-[#1d1d1f]/70">Interact with the Fully Homomorphic Encryption confidential token contract</p>
+        <h1 className="text-5xl font-bold mb-4 text-[#A38025] tracking-tight">ERC7984 Confidential Token Demo</h1>
+        <p className="text-xl text-[#2D2D2D]/70">Interact with the Fully Homomorphic Encryption confidential token contract</p>
       </div>
 
       {/* Balance Handle Display */}
@@ -221,25 +221,25 @@ export const ERC7984Demo = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Column 1 - Encrypted Handle */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-[#1d1d1f]/60 mb-2">Encrypted Handle</h4>
+            <h4 className="text-sm font-semibold text-[#2D2D2D]/60 mb-2">Encrypted Handle</h4>
             {printPropertyTruncated("Handle", erc7984.handle || "No handle available")}
           </div>
 
           {/* Column 2 - Decrypted Value */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-[#1d1d1f]/60 mb-2">Decrypted Value</h4>
+            <h4 className="text-sm font-semibold text-[#2D2D2D]/60 mb-2">Decrypted Value</h4>
             {printProperty("Balance", erc7984.isDecrypted ? erc7984.clear : "Not decrypted yet")}
           </div>
 
           {/* Column 3 - Your Address */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-[#1d1d1f]/60 mb-2">Your Address</h4>
+            <h4 className="text-sm font-semibold text-[#2D2D2D]/60 mb-2">Your Address</h4>
             {printPropertyTruncated("Address", erc7984.address || "N/A")}
           </div>
 
           {/* Column 4 - Faucet */}
           <div className="flex flex-col justify-center">
-            <h4 className="text-sm font-semibold text-[#1d1d1f]/60 mb-2">🚰 Faucet</h4>
+            <h4 className="text-sm font-semibold text-[#2D2D2D]/60 mb-2">🚰 Faucet</h4>
             <button
               className={alreadyClaimed ? successButtonClass + " w-full" : primaryButtonClass + " w-full"}
               onClick={handleClaim}
@@ -283,7 +283,7 @@ export const ERC7984Demo = () => {
         <h3 className={titleClass}>📤 Transfer Confidential Tokens</h3>
         <div className="space-y-5">
           <div>
-            <label htmlFor="transferTo" className="block text-sm font-semibold text-[#1d1d1f] mb-2">
+            <label htmlFor="transferTo" className="block text-sm font-semibold text-[#2D2D2D] mb-2">
               Recipient Address
             </label>
             <input
@@ -292,11 +292,11 @@ export const ERC7984Demo = () => {
               placeholder="0x..."
               value={transferTo}
               onChange={e => setTransferTo(e.target.value)}
-              className="glass-input w-full px-4 py-3 rounded-xl text-[#1d1d1f] placeholder:text-[#1d1d1f]/40"
+              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40"
             />
           </div>
           <div>
-            <label htmlFor="transferAmount" className="block text-sm font-semibold text-[#1d1d1f] mb-2">
+            <label htmlFor="transferAmount" className="block text-sm font-semibold text-[#2D2D2D] mb-2">
               Amount
             </label>
             <input
@@ -305,7 +305,7 @@ export const ERC7984Demo = () => {
               placeholder="1"
               value={transferAmount}
               onChange={e => setTransferAmount(e.target.value)}
-              className="glass-input w-full px-4 py-3 rounded-xl text-[#1d1d1f] placeholder:text-[#1d1d1f]/40"
+              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40"
             />
           </div>
           <button
@@ -326,8 +326,8 @@ export const ERC7984Demo = () => {
       {erc7984.message && (
         <div className={sectionClass}>
           <h3 className={titleClass}>💬 Messages</h3>
-          <div className="glass-card p-5 rounded-xl">
-            <p className="text-[#1d1d1f] font-medium">{erc7984.message}</p>
+          <div className="glass-card p-5">
+            <p className="text-[#2D2D2D] font-medium">{erc7984.message}</p>
           </div>
         </div>
       )}
@@ -378,9 +378,9 @@ function printProperty(name: string, value: unknown) {
     displayValue = JSON.stringify(value);
   }
   return (
-    <div className="flex flex-col gap-2 py-3 px-4 glass-card rounded-xl w-full">
-      <span className="text-[#1d1d1f]/70 font-medium text-xs">{name}</span>
-      <span className="font-mono text-sm font-bold text-[#1d1d1f] bg-[rgba(255,214,10,0.3)] px-3 py-1.5 rounded-lg backdrop-blur-sm text-center">
+    <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full">
+      <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
+      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#FFD208] px-3 py-1.5 text-center">
         {displayValue}
       </span>
     </div>
@@ -411,17 +411,17 @@ function printPropertyTruncated(name: string, value: unknown) {
     : displayValue;
 
   return (
-    <div className="flex flex-col gap-2 py-3 px-4 glass-card rounded-xl w-full group relative">
-      <span className="text-[#1d1d1f]/70 font-medium text-xs">{name}</span>
-      <span className="font-mono text-sm font-bold text-[#1d1d1f] bg-[rgba(255,214,10,0.3)] px-3 py-1.5 rounded-lg backdrop-blur-sm text-center cursor-help">
+    <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full group relative">
+      <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
+      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#FFD208] px-3 py-1.5 text-center cursor-help">
         {truncatedValue}
       </span>
 
       {/* Tooltip on hover */}
       {shouldTruncate && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#1d1d1f] text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-xs break-all">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#2D2D2D] text-white text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-xs break-all">
           <div className="font-mono">{displayValue}</div>
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#1d1d1f]"></div>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#2D2D2D]"></div>
         </div>
       )}
     </div>
@@ -430,10 +430,10 @@ function printPropertyTruncated(name: string, value: unknown) {
 
 function printBooleanProperty(name: string, value: boolean) {
   return (
-    <div className="flex flex-col gap-2 py-3 px-4 glass-card rounded-xl w-full">
-      <span className="text-[#1d1d1f]/70 font-medium text-xs">{name}</span>
+    <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full">
+      <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
       <span
-        className={`font-mono text-sm font-bold px-3 py-1.5 rounded-lg backdrop-blur-sm text-center ${
+        className={`font-mono text-sm font-bold px-3 py-1.5 text-center ${
           value
             ? "text-white bg-[rgba(48,209,88,0.85)]"
             : "text-white bg-[rgba(255,69,58,0.85)]"
