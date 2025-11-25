@@ -34,6 +34,33 @@ export const ERC7984Demo = () => {
 
   const initialMockChains = { 31337: "http://localhost:8545" };
 
+  // State to control fhevm initialization - wait for mount and provider
+  const [isMounted, setIsMounted] = useState(false);
+  const [fhevmEnabled, setFhevmEnabled] = useState(false);
+
+  // Set mounted on client side only
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Enable FHE ONLY after mounted and when provider and chainId are available
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const shouldEnable = Boolean(provider && chainId);
+
+    if (shouldEnable && !fhevmEnabled) {
+      // Small delay to ensure everything is stable
+      const timeoutId = setTimeout(() => {
+        setFhevmEnabled(true);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else if (!shouldEnable && fhevmEnabled) {
+      setFhevmEnabled(false);
+    }
+  }, [isMounted, provider, chainId, fhevmEnabled]);
+
   const {
     instance: fhevmInstance,
     status: fhevmStatus,
@@ -42,7 +69,7 @@ export const ERC7984Demo = () => {
     provider,
     chainId,
     initialMockChains,
-    enabled: true, // use enabled to dynamically create the instance on-demand
+    enabled: fhevmEnabled,
   });
 
   //////////////////////////////////////////////////////////////////////////////
