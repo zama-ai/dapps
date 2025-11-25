@@ -42,9 +42,9 @@
   --color-base-300: #E8E8E8;
   --color-base-content: #2D2D2D;
   --color-info: #FFD208;
-  --color-success: #30d158;
+  --color-success: #A38025;
   --color-warning: #A38025;
-  --color-error: #ff453a;
+  --color-error: #2D2D2D;
 
   --radius-field: 0;
   --radius-box: 0;
@@ -64,12 +64,12 @@
   --color-neutral-content: #2D2D2D;
   --color-base-100: #2D2D2D;
   --color-base-200: #2D2D2D;
-  --color-base-300: #000000;
+  --color-base-300: #2D2D2D;
   --color-base-content: #F4F4F4;
   --color-info: #FFD208;
-  --color-success: #30d158;
+  --color-success: #A38025;
   --color-warning: #A38025;
-  --color-error: #ff453a;
+  --color-error: #2D2D2D;
 
   --radius-field: 0;
   --radius-box: 0;
@@ -102,7 +102,7 @@
   body {
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #FFF7EC;
+    background: #975a16;
     position: relative;
     overflow-x: hidden;
   }

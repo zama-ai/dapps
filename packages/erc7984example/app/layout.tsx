@@ -18,7 +18,7 @@ const DappWrapper = ({ children }: { children: React.ReactNode }) => {
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider enableSystem>
           <DappWrapperWithProviders>{children}</DappWrapperWithProviders>
         </ThemeProvider>

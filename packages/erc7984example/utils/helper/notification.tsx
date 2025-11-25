@@ -23,11 +23,11 @@ type NotificationOptions = {
 };
 
 const ENUM_STATUSES = {
-  success: <CheckCircleIcon className="w-7 text-[#30d158]" />,
-  loading: <span className="w-6 loading loading-spinner text-[#FFD60A]"></span>,
-  error: <ExclamationCircleIcon className="w-7 text-[#ff453a]" />,
-  info: <InformationCircleIcon className="w-7 text-[#FFD60A]" />,
-  warning: <ExclamationTriangleIcon className="w-7 text-[#FF9F0A]" />,
+  success: <CheckCircleIcon className="w-7 text-[#A38025]" />,
+  loading: <span className="w-6 loading loading-spinner text-[#FFD208]"></span>,
+  error: <ExclamationCircleIcon className="w-7 text-[#2D2D2D]" />,
+  info: <InformationCircleIcon className="w-7 text-[#FFD208]" />,
+  warning: <ExclamationTriangleIcon className="w-7 text-[#A38025]" />,
 };
 
 const DEFAULT_DURATION = 3000;
@@ -46,18 +46,13 @@ const Notification = ({
   return toast.custom(
     (t: Toast) => (
       <div
-        className={`flex flex-row items-start justify-between max-w-sm min-w-[320px] rounded-2xl p-5 transform-gpu relative transition-all duration-500 ease-in-out space-x-3
-        glass-card-strong border border-white/40
-        shadow-[0_8px_32px_0_rgba(255,214,10,0.25),0_0_0_1px_rgba(255,255,255,0.3)_inset]
+        className={`flex flex-row items-start justify-between max-w-sm min-w-[320px] p-5 transform-gpu relative transition-all duration-500 ease-in-out space-x-3
+        bg-[#E8E8E8] border border-[#2D2D2D]
         ${
           position.substring(0, 3) == "top"
             ? `hover:translate-y-1 ${t.visible ? "top-0 opacity-100 scale-100" : "-top-96 opacity-0 scale-95"}`
             : `hover:-translate-y-1 ${t.visible ? "bottom-0 opacity-100 scale-100" : "-bottom-96 opacity-0 scale-95"}`
         }`}
-        style={{
-          backdropFilter: "blur(24px) saturate(200%)",
-          WebkitBackdropFilter: "blur(24px) saturate(200%)",
-        }}
       >
         {/* Icon with glow effect */}
         <div className="leading-[0] self-center relative">
@@ -70,16 +65,16 @@ const Notification = ({
         </div>
 
         {/* Content */}
-        <div className={`flex-1 overflow-x-hidden break-words whitespace-pre-line text-[#1d1d1f] font-medium ${icon ? "mt-1" : ""}`}>
+        <div className={`flex-1 overflow-x-hidden break-words whitespace-pre-line text-[#2D2D2D] font-medium ${icon ? "mt-1" : ""}`}>
           {content}
         </div>
 
-        {/* Close button with glass effect */}
+        {/* Close button */}
         <div
-          className={`cursor-pointer text-lg ${icon ? "mt-1" : ""} hover:bg-white/20 rounded-lg p-1 transition-colors duration-200`}
+          className={`cursor-pointer text-lg ${icon ? "mt-1" : ""} hover:bg-[#D9D9D9] p-1 transition-colors duration-200`}
           onClick={() => toast.dismiss(t.id)}
         >
-          <XMarkIcon className="w-5 h-5 text-[#1d1d1f]/70 hover:text-[#1d1d1f]" onClick={() => toast.remove(t.id)} />
+          <XMarkIcon className="w-5 h-5 text-[#2D2D2D]/70 hover:text-[#2D2D2D]" onClick={() => toast.remove(t.id)} />
         </div>
       </div>
     ),

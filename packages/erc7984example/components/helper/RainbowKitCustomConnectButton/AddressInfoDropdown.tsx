@@ -34,17 +34,17 @@ export const AddressInfoDropdown = ({ address, ensAvatar, displayName }: Address
   return (
     <>
       <details ref={dropdownRef} className="dropdown dropdown-end leading-3">
-        <summary className="glass-card px-3 py-2 rounded-xl shadow-md dropdown-toggle gap-2 flex items-center cursor-pointer list-none">
+        <summary className="glass-card px-3 py-2 dropdown-toggle gap-2 flex items-center cursor-pointer list-none">
           <BlockieAvatar address={checkSumAddress} size={30} ensImage={ensAvatar} />
-          <span className="ml-1 mr-1 font-semibold text-[#1d1d1f]">{displayName}</span>
-          <ChevronDownIcon className="h-5 w-5 text-[#1d1d1f]" />
+          <span className="ml-1 mr-1 font-semibold text-[#2D2D2D]">{displayName}</span>
+          <ChevronDownIcon className="h-5 w-5 text-[#2D2D2D]" />
         </summary>
-        <ul className="dropdown-content menu z-[20] p-3 mt-2 glass-card-strong rounded-2xl gap-2 min-w-[200px]">
+        <ul className="dropdown-content menu z-[20] p-3 mt-2 glass-card-strong gap-2 min-w-[200px]">
           <NetworkOptions hidden={!selectingNetwork} />
           {allowedNetworks.length > 1 ? (
             <li className={selectingNetwork ? "hidden" : ""}>
               <button
-                className="glass-card px-4 py-2 rounded-xl flex gap-3 items-center hover:bg-[rgba(255,214,10,0.2)] transition-colors text-[#1d1d1f] font-medium"
+                className="glass-card px-4 py-2 flex gap-3 items-center hover:bg-[#D9D9D9] transition-colors text-[#2D2D2D] font-medium"
                 type="button"
                 onClick={() => {
                   setSelectingNetwork(true);
@@ -56,7 +56,7 @@ export const AddressInfoDropdown = ({ address, ensAvatar, displayName }: Address
           ) : null}
           <li className={selectingNetwork ? "hidden" : ""}>
             <button
-              className="glass-card px-4 py-2 rounded-xl flex gap-3 items-center hover:bg-[rgba(255,69,58,0.2)] transition-colors text-[#ff453a] font-medium"
+              className="glass-card px-4 py-2 flex gap-3 items-center hover:bg-[#D9D9D9] transition-colors text-[#2D2D2D] font-medium"
               type="button"
               onClick={() => disconnect()}
             >

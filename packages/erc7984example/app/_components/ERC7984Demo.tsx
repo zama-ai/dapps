@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useFhevm } from "@fhevm-sdk";
+import { useFhevm } from "fhevm-sdk";
 import { useAccount } from "wagmi";
 import { ethers } from "ethers";
 import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCustomConnectButton";
@@ -178,12 +178,12 @@ export const ERC7984Demo = () => {
   // Secondary button
   const secondaryButtonClass =
     buttonClass +
-    " !bg-[#2D2D2D] text-white hover:!bg-[#A38025] cursor-pointer";
+    " !bg-[#2D2D2D] text-[#F4F4F4] hover:!bg-[#A38025] cursor-pointer";
 
   // Success/confirmed state
   const successButtonClass =
     buttonClass +
-    " !bg-[rgba(48,209,88,0.85)] text-white hover:!bg-[rgba(48,209,88,0.95)]";
+    " !bg-[#A38025] text-[#F4F4F4] hover:!bg-[#2D2D2D]";
 
   const titleClass = "font-semibold text-[#2D2D2D] text-2xl mb-4 pb-3 border-b border-[#2D2D2D]";
   const sectionClass = "glass-card-strong p-8 mb-6 text-[#2D2D2D] relative z-10";
@@ -211,7 +211,7 @@ export const ERC7984Demo = () => {
     <div className="max-w-6xl mx-auto p-6 space-y-6 relative z-10">
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-5xl font-bold mb-4 text-[#A38025] tracking-tight">ERC7984 Confidential Token Demo</h1>
+        <h1 className="text-5xl font-bold mb-4 text-[#2D2D2D] tracking-tight">ERC7984 Confidential Token Demo</h1>
         <p className="text-xl text-[#2D2D2D]/70">Interact with the Fully Homomorphic Encryption confidential token contract</p>
       </div>
 
@@ -380,7 +380,7 @@ function printProperty(name: string, value: unknown) {
   return (
     <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full">
       <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
-      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#FFD208] px-3 py-1.5 text-center">
+      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#E8E8E8] px-3 py-1.5 text-center">
         {displayValue}
       </span>
     </div>
@@ -413,13 +413,13 @@ function printPropertyTruncated(name: string, value: unknown) {
   return (
     <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full group relative">
       <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
-      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#FFD208] px-3 py-1.5 text-center cursor-help">
+      <span className="font-mono text-sm font-bold text-[#2D2D2D] bg-[#E8E8E8] px-3 py-1.5 text-center cursor-help">
         {truncatedValue}
       </span>
 
       {/* Tooltip on hover */}
       {shouldTruncate && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#2D2D2D] text-white text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-xs break-all">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#2D2D2D] text-[#F4F4F4] text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 max-w-xs break-all">
           <div className="font-mono">{displayValue}</div>
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#2D2D2D]"></div>
         </div>
@@ -435,8 +435,8 @@ function printBooleanProperty(name: string, value: boolean) {
       <span
         className={`font-mono text-sm font-bold px-3 py-1.5 text-center ${
           value
-            ? "text-white bg-[rgba(48,209,88,0.85)]"
-            : "text-white bg-[rgba(255,69,58,0.85)]"
+            ? "text-[#F4F4F4] bg-[#A38025]"
+            : "text-[#F4F4F4] bg-[#2D2D2D]"
         }`}
       >
         {value ? "✓ true" : "✗ false"}
