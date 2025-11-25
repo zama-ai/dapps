@@ -68,24 +68,27 @@ describe("BlindAuction", function () {
       const mintTx = await this.USDCc.mint(signer.address, amount);
       await mintTx.wait();
     };
+
+    this.resolveAuction = async () => {
+      const handle = await this.blindAuction.getWinningAddressHandle();
+      const decryptResult = await hre.fhevm.publicDecrypt([handle]);
+      const tx = await this.blindAuction.resolveAuction(
+        [handle],
+        decryptResult.abiEncodedClearValues,
+        decryptResult.decryptionProof,
+      );
+      await tx.wait();
+    };
   });
 
   it("should mint confidential USDC", async function () {
     const aliceSigner = this.signers.alice;
     const aliceAddress = aliceSigner.address;
 
-    // Check initial balance
     const initialEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
-    console.log("Initial encrypted balance:", initialEncryptedBalance);
-
-    // Mint some confidential USDC
     await this.mintUSDc(aliceSigner, 1_000_000);
-
-    // Check balance after minting
     const finalEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
-    console.log("Final encrypted balance:", finalEncryptedBalance);
 
-    // The balance should be different (not zero)
     expect(finalEncryptedBalance).to.not.equal(initialEncryptedBalance);
   });
 
@@ -93,16 +96,13 @@ describe("BlindAuction", function () {
     const aliceSigner = this.signers.alice;
     const aliceAddress = aliceSigner.address;
 
-    // Mint some confidential USDC
     await this.mintUSDc(aliceSigner, 1_000_000);
 
-    // Bid amount
     const bidAmount = 10_000;
 
     await this.approve(aliceSigner);
     await this.bid(aliceSigner, bidAmount);
 
-    // Check payment transfer
     const aliceEncryptedBalance = await this.USDCc.confidentialBalanceOf(aliceAddress);
     const aliceClearBalance = await hre.fhevm.userDecryptEuint(
       FhevmType.euint64,
@@ -112,7 +112,6 @@ describe("BlindAuction", function () {
     );
     expect(aliceClearBalance).to.equal(1_000_000 - bidAmount);
 
-    // Check bid value
     const aliceEncryptedBid = await this.blindAuction.getEncryptedBid(aliceAddress);
     const aliceClearBid = await hre.fhevm.userDecryptEuint(
       FhevmType.euint64,
@@ -128,45 +127,36 @@ describe("BlindAuction", function () {
     const bobSigner = this.signers.bob;
     const beneficiary = this.signers.owner;
 
-    // Mint some confidential USDC
     await this.mintUSDc(aliceSigner, 1_000_000);
     await this.mintUSDc(bobSigner, 1_000_000);
 
-    // Alice bid
     await this.approve(aliceSigner);
     await this.bid(aliceSigner, 10_000);
 
-    // Bob bid
     await this.approve(bobSigner);
     await this.bid(bobSigner, 15_000);
 
-    // Wait end auction
     await time.increase(3600);
 
-    await this.blindAuction.decryptWinningAddress();
-    await hre.fhevm.awaitDecryptionOracle();
+    let tx = await this.blindAuction.requestDecryptWinningAddress();
+    await tx.wait();
+    await this.resolveAuction();
 
-    // Verify the winner
     expect(await this.blindAuction.getWinnerAddress()).to.be.equal(bobSigner.address);
 
-    // Bob cannot withdraw any money
     await expect(this.blindAuction.withdraw(bobSigner.address)).to.be.reverted;
 
-    // Claimed NFT Item
     expect(await this.prizeItem.ownerOf(await this.blindAuction.tokenId())).to.be.equal(this.blindAuctionAddress);
     await this.blindAuction.connect(bobSigner).winnerClaimPrize();
     expect(await this.prizeItem.ownerOf(await this.blindAuction.tokenId())).to.be.equal(bobSigner.address);
 
-    // Refund user
     const aliceBalanceBefore = await this.getUSDCcBalance(aliceSigner);
     await this.blindAuction.withdraw(aliceSigner.address);
     const aliceBalanceAfter = await this.getUSDCcBalance(aliceSigner);
     expect(aliceBalanceAfter).to.be.equal(aliceBalanceBefore + 10_000n);
 
-    // Bob cannot withdraw any money
     await expect(this.blindAuction.withdraw(bobSigner.address)).to.be.reverted;
 
-    // Check beneficiary balance
     const beneficiaryBalance = await this.getUSDCcBalance(beneficiary);
     expect(beneficiaryBalance).to.be.equal(15_000);
   });

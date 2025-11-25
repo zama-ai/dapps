@@ -4,18 +4,17 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {FHE, externalEuint64, euint64, eaddress, ebool} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
+import {ERC7984} from "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol";
 
 /// @title Dutch Auction for Selling Confidential ERC20 Tokens
 /// @notice Implements a Dutch auction mechanism for selling confidential ERC20 tokens
 /// @dev Uses FHEVM for handling encrypted values and transactions
-
-contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Step {
+contract ConfidentialDutchAuction is ZamaEthereumConfig, ReentrancyGuard, Ownable2Step {
     /// @notice The ERC20 token being auctioned
     ERC7984 public immutable auctionToken;
     /// @notice The token used for payments
@@ -42,12 +41,14 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
 
     /// @notice Flag to determine if the auction can be stopped manually
     bool public stoppable;
-
     /// @notice Flag to check if the auction has been manually stopped
     bool public manuallyStopped = false;
 
     /// @notice Decrypted value of remaining tokens
     uint64 public tokensLeftReveal;
+
+    /// @notice Pending initialization value for decryption
+    ebool private _pendingInitValue;
 
     /// @notice Structure to store bid information
     /// @param tokenAmount Amount of tokens bid for
@@ -67,16 +68,13 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
     /// @notice Error thrown when a function is called too early
     /// @dev Includes the time when the function can be called
     error TooEarly(uint256 time);
-
     /// @notice Error thrown when a function is called too late
     /// @dev Includes the time after which the function cannot be called
     error TooLate(uint256 time);
-
     /// @notice Error thrown when trying to start an already started auction
     error AuctionAlreadyStarted();
     /// @notice Error thrown when trying to interact with an unstarted auction
     error AuctionNotStarted();
-
     /// @notice Error thrown when starting price is less than reserve price
     error StartingPriceBelowReservePrice();
     /// @notice Error thrown when reserve price is zero or negative
@@ -86,11 +84,11 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
     /// @param _startingPrice Initial price per token
     /// @param _discountRate Rate at which price decreases
     /// @param _token Address of token being auctioned
-    /// @param _paymentToken Address of token used for payment
-    /// @param _amount Total amount of tokens to auction
+    /// @param _paymentToken Address of payment token
+    /// @param _amount Amount of tokens being auctioned
     /// @param _reservePrice Minimum price per token
-    /// @param _biddingTime Duration of the auction in seconds
-    /// @param _isStoppable Whether the auction can be stopped manually
+    /// @param _biddingTime Duration of the auction
+    /// @param _isStoppable Whether the auction can be manually stopped
     /// @param _seller Address of the seller
     constructor(
         uint64 _startingPrice,
@@ -114,7 +112,7 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         if (_startingPrice <= _reservePrice) revert StartingPriceBelowReservePrice();
         if (_reservePrice <= 0) revert InvalidReservePrice();
 
-        amount = _amount; // initial amount should be known
+        amount = _amount;
         tokensLeft = FHE.asEuint64(_amount);
         tokensLeftReveal = _amount;
         auctionToken = _token;
@@ -129,42 +127,35 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         if (auctionStart) revert AuctionAlreadyStarted();
 
         euint64 encAmount = FHE.asEuint64(amount);
-
         FHE.allowTransient(encAmount, address(auctionToken));
-
-        // Transfer tokens from seller to the auction contract
         auctionToken.confidentialTransferFrom(msg.sender, address(this), encAmount);
 
         euint64 balanceAfter = auctionToken.confidentialBalanceOf(address(this));
-
-        ebool encAuctionStart = FHE.select(FHE.ge(balanceAfter, amount), FHE.asEbool(true), FHE.asEbool(false));
-
-        bytes32[] memory cts = new bytes32[](1);
-        cts[0] = FHE.toBytes32(encAuctionStart);
-        FHE.requestDecryption(cts, this.callbackBool.selector);
+        _pendingInitValue = FHE.ge(balanceAfter, amount);
+        FHE.allowThis(_pendingInitValue);
+        FHE.makePubliclyDecryptable(_pendingInitValue);
     }
 
-    /// @notice Callback function for boolean decryption
-    /// @dev Only callable by the Gateway contract
-    /// @param requestID Request Id created by the Oracle.
-    /// @param cleartexts Cleartexts of the decrypted data.
-    /// @param decryptionProof Proof of the decryption.
-    /// @return The decrypted value
-    function callbackBool(
-        uint256 requestID,
-        bytes memory cleartexts,
-        bytes memory decryptionProof
-    ) public returns (bool) {
-        FHE.checkSignatures(requestID, cleartexts, decryptionProof);
-        (bool _auctionStart) = abi.decode(cleartexts, (bool));
-        auctionStart = _auctionStart;
-
-        return auctionStart;
+    /// @notice Returns the handle for the pending initialization decryption
+    function getInitHandle() external view returns (bytes32) {
+        return FHE.toBytes32(_pendingInitValue);
     }
 
-    /// @notice Gets the current price per token
-    /// @dev Price decreases linearly over time until it reaches reserve price
-    /// @return Current price per token in payment token units
+    /// @notice Finalizes the initialization after decryption
+    /// @param handlesList List of handles that were decrypted
+    /// @param cleartexts ABI-encoded decrypted values
+    /// @param decryptionProof Proof of valid decryption
+    function finalizeInit(
+        bytes32[] calldata handlesList,
+        bytes calldata cleartexts,
+        bytes calldata decryptionProof
+    ) external {
+        FHE.checkSignatures(handlesList, cleartexts, decryptionProof);
+        auctionStart = abi.decode(cleartexts, (bool));
+    }
+
+    /// @notice Gets the current price per token based on time elapsed
+    /// @return Current price per token
     function getPrice() public view returns (uint64) {
         uint256 timeElapsed = block.timestamp - startAt;
         if (block.timestamp > expiresAt) {
@@ -176,42 +167,35 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         return currentPrice > reservePrice ? currentPrice : reservePrice;
     }
 
-    /// @notice Manually stop the auction
-    /// @dev Can only be called by the owner and if the auction is stoppable
+    /// @notice Manually stops the auction
+    /// @dev Can only be called by owner if auction is stoppable
     function stop() external onlyOwner {
         require(stoppable);
         manuallyStopped = true;
     }
 
-    /// @notice Submit a bid for tokens
-    /// @dev Handles bid logic including refunds from previous bids
+    /// @notice Places a bid in the auction
     /// @param encryptedValue Encrypted amount of tokens to bid for
-    /// @param inputProof Zero-knowledge proof for the encrypted input
+    /// @param inputProof Proof for the encrypted input
     function bid(externalEuint64 encryptedValue, bytes calldata inputProof) external onlyBeforeEnd {
         euint64 newTokenAmount = FHE.fromExternal(encryptedValue, inputProof);
         uint64 currentPricePerToken = getPrice();
 
-        // Calculate how many new tokens can be bought
         newTokenAmount = FHE.min(newTokenAmount, tokensLeft);
-
-        // Amount of money to pay
         euint64 amountToTransfer = FHE.mul(currentPricePerToken, newTokenAmount);
 
-        // Transfer money, and only if OK send the tokens
         euint64 transferredBalance = _handleTransfer(amountToTransfer);
         ebool transferOK = FHE.eq(transferredBalance, amountToTransfer);
 
-        // Transfer tokens
         euint64 tokensToTransfer = FHE.select(transferOK, newTokenAmount, FHE.asEuint64(0));
         _handleTokenTransfer(tokensToTransfer);
 
-        // Update bid
         _updateBidInfo(tokensToTransfer, transferredBalance);
 
         emit BidSubmitted(msg.sender, currentPricePerToken);
     }
 
-    /// @dev Helper function to handle token transfers
+    /// @dev Handles the transfer of payment tokens from bidder to contract
     function _handleTransfer(euint64 amountToTransfer) private returns (euint64) {
         euint64 balanceBefore = paymentToken.confidentialBalanceOf(address(this));
         FHE.allowTransient(amountToTransfer, address(paymentToken));
@@ -220,21 +204,20 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         return FHE.sub(balanceAfter, balanceBefore);
     }
 
-    /// @dev Helper function to handle refunds
+    /// @dev Handles refund of payment tokens to bidder
     function _handleRefund(euint64 amountToTransfer) private {
         FHE.allowTransient(amountToTransfer, address(paymentToken));
         paymentToken.confidentialTransfer(msg.sender, amountToTransfer);
     }
 
-    /// @dev Helper function to handle token transfer
+    /// @dev Handles transfer of auction tokens to bidder
     function _handleTokenTransfer(euint64 amountToTransfer) private {
         FHE.allowTransient(amountToTransfer, address(auctionToken));
         auctionToken.confidentialTransfer(msg.sender, amountToTransfer);
     }
 
-    /// @dev Helper function to update bid information
+    /// @dev Updates the bid information for a bidder
     function _updateBidInfo(euint64 newTokenAmount, euint64 newPaidAmount) private {
-        // Handle previous bid adjustments
         Bid storage userBid = bids[msg.sender];
 
         if (FHE.isInitialized(userBid.tokenAmount)) {
@@ -249,14 +232,13 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         FHE.allow(bids[msg.sender].tokenAmount, msg.sender);
         FHE.allow(bids[msg.sender].paidAmount, msg.sender);
 
-        // Update remaining tokens
         tokensLeft = FHE.sub(tokensLeft, newTokenAmount);
         FHE.allowThis(tokensLeft);
         FHE.allow(tokensLeft, owner());
     }
 
-    /// @notice Claim tokens and refund for a bidder after auction ends
-    /// @dev Transfers tokens to bidder and refunds excess payment based on final price
+    /// @notice Claims the refund for a user after auction ends
+    /// @dev Refunds the difference between paid amount and final price
     function claimUserRefund() external onlyAfterAuctionEnds {
         Bid storage userBid = bids[msg.sender];
 
@@ -265,24 +247,17 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         euint64 finalCost = FHE.mul(finalPricePerToken, userBid.tokenAmount);
         euint64 refundAmount = FHE.sub(userBid.paidAmount, finalCost);
 
-        // Transfer refund
         _handleRefund(refundAmount);
-
-        // Clear the bid
         delete bids[msg.sender];
     }
 
-    /// @notice Claim proceeds for the seller after auction ends
-    /// @dev Transfers all remaining tokens and payments to seller
+    /// @notice Claims the proceeds for the seller after auction ends
+    /// @dev Transfers remaining tokens and payment to seller
     function claimSeller() external onlyOwner onlyAfterAuctionEnds {
-        // Transfer remaining auction tokens back to seller
         FHE.allowTransient(tokensLeft, address(auctionToken));
         auctionToken.confidentialTransfer(seller, tokensLeft);
 
-        // Get current price
         uint64 endPricePerToken = getPrice();
-
-        // Calculate and transfer payment tokens to seller
         euint64 contractAuctionBalance = FHE.mul(endPricePerToken, FHE.sub(FHE.asEuint64(amount), tokensLeft));
         FHE.allowTransient(contractAuctionBalance, address(paymentToken));
         paymentToken.confidentialTransfer(seller, contractAuctionBalance);
@@ -292,58 +267,51 @@ contract ConfidentialDutchAuction is SepoliaConfig, ReentrancyGuard, Ownable2Ste
         FHE.allow(tokensLeft, owner());
     }
 
-    /// @notice Request decryption of remaining tokens
-    /// @dev Only owner can request decryption
+    /// @notice Requests decryption of tokens left in the auction
     function requestTokensLeftReveal() public onlyOwner {
-        bytes32[] memory cts = new bytes32[](1);
-        cts[0] = FHE.toBytes32(tokensLeft);
-        FHE.requestDecryption(cts, this.callbackUint64.selector);
+        FHE.makePubliclyDecryptable(tokensLeft);
     }
 
-    /// @notice Callback function for 64-bit unsigned integer decryption
-    /// @dev Only callable by the Gateway contract
-    /// @param requestID Request Id created by the Oracle.
-    /// @param cleartexts Cleartexts of the decrypted data.
-    /// @param decryptionProof Proof of the decryption.
-    /// @return The decrypted value
-    function callbackUint64(
-        uint256 requestID,
-        bytes memory cleartexts,
-        bytes memory decryptionProof
-    ) external returns (uint64) {
-    FHE.checkSignatures(requestID, cleartexts, decryptionProof);
-        (uint64 _tokensLeftReveal) = abi.decode(cleartexts, (uint64));
-        tokensLeftReveal = _tokensLeftReveal;
-        return tokensLeftReveal;
+    /// @notice Returns the handle for tokens left decryption
+    function getTokensLeftHandle() external view returns (bytes32) {
+        return FHE.toBytes32(tokensLeft);
     }
 
-    /// @notice Cancel the auction and return tokens to seller
-    /// @dev Only owner can cancel before auction ends
+    /// @notice Finalizes the tokens left reveal after decryption
+    /// @param handlesList List of handles that were decrypted
+    /// @param cleartexts ABI-encoded decrypted values
+    /// @param decryptionProof Proof of valid decryption
+    function finalizeTokensLeftReveal(
+        bytes32[] calldata handlesList,
+        bytes calldata cleartexts,
+        bytes calldata decryptionProof
+    ) external {
+        FHE.checkSignatures(handlesList, cleartexts, decryptionProof);
+        tokensLeftReveal = abi.decode(cleartexts, (uint64));
+    }
+
+    /// @notice Cancels the auction and returns tokens to seller
+    /// @dev Can only be called by owner before auction ends
     function cancelAuction() external onlyOwner onlyBeforeEnd {
         FHE.allowTransient(tokensLeft, address(auctionToken));
-
-        // Refund remaining tokens
         auctionToken.confidentialTransfer(seller, tokensLeft);
     }
 
-    /// @notice Modifier to ensure function is called before auction ends
-    /// @dev Reverts if called after the auction end time or if manually stopped
+    /// @dev Modifier to restrict function calls to before auction end
     modifier onlyBeforeEnd() {
         if (!auctionStart) revert AuctionNotStarted();
         if (block.timestamp >= expiresAt || manuallyStopped == true) revert TooLate(expiresAt);
         _;
     }
 
-    /// @notice Modifier to ensure function is called after auction ends
-    /// @dev Reverts if called before the auction end time and called after claims time expire and not manually stopped
+    /// @dev Modifier to restrict function calls to after auction end
     modifier onlyAfterAuctionEnds() {
         if (!auctionStart) revert AuctionNotStarted();
         if (block.timestamp < expiresAt && manuallyStopped == false) revert TooEarly(expiresAt);
         _;
     }
 
-    /// @notice Get the user's current bid information
-    /// @dev Returns the decrypted values of token amount and paid amount
+    /// @notice Gets the bid information for a user
     /// @return tokenAmount Amount of tokens bid for
     /// @return paidAmount Amount paid for the tokens
     function getUserBid() external view returns (euint64 tokenAmount, euint64 paidAmount) {

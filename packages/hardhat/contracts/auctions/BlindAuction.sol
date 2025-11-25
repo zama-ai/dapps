@@ -2,15 +2,15 @@
 pragma solidity ^0.8.24;
 
 import {FHE, externalEuint64, euint64, eaddress, ebool} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
+import {ERC7984} from "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol";
 
-contract BlindAuction is SepoliaConfig, ReentrancyGuard {
+contract BlindAuction is ZamaEthereumConfig, ReentrancyGuard {
     /// @notice The recipient of the highest bid once the auction ends
     address public beneficiary;
 
@@ -34,9 +34,6 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
 
     /// @notice Indicate if the NFT of the auction has been claimed
     bool public isNftClaimed;
-
-    /// @notice Request ID used for decryption
-    uint256 internal _decryptionRequestId;
 
     /// @notice Mapping from bidder to their bid value
     mapping(address account => euint64 bidAmount) private bids;
@@ -151,12 +148,12 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
         FHE.allowThis(winningAddress);
     }
 
-    /// @notice Initiate the decryption of the winning address
-    /// @dev Can only be called after the auction ends
-    function decryptWinningAddress() public onlyAfterEnd {
-        bytes32[] memory cts = new bytes32[](1);
-        cts[0] = FHE.toBytes32(winningAddress);
-        _decryptionRequestId = FHE.requestDecryption(cts, this.resolveAuctionCallback.selector);
+    function requestDecryptWinningAddress() public onlyAfterEnd {
+        FHE.makePubliclyDecryptable(winningAddress);
+    }
+
+    function getWinningAddressHandle() external view returns (bytes32) {
+        return FHE.toBytes32(winningAddress);
     }
 
     /// @notice Claim the NFT prize.
@@ -198,24 +195,12 @@ contract BlindAuction is SepoliaConfig, ReentrancyGuard {
         erc7984.confidentialTransfer(bidder, amount);
     }
 
-    // ========== Oracle Callback ==========
-
-    /// @notice Callback function to set the decrypted winning address
-    /// @dev Can only be called by the Gateway
-    /// @param requestID Request Id created by the Oracle.
-    /// @param cleartexts Cleartexts of the decrypted data.
-    /// @param decryptionProof Proof of the decryption.
-    function resolveAuctionCallback(
-        uint256 requestID,
-        bytes memory cleartexts,
-        bytes memory decryptionProof
-    ) public {
-        require(requestID == _decryptionRequestId, "Invalid requestId");
-        FHE.checkSignatures(requestID, cleartexts, decryptionProof);
-
-        (address resultWinnerAddress) = abi.decode(cleartexts, (address));
-
-
-        winnerAddress = resultWinnerAddress;
+    function resolveAuction(
+        bytes32[] calldata handlesList,
+        bytes calldata cleartexts,
+        bytes calldata decryptionProof
+    ) public onlyAfterEnd {
+        FHE.checkSignatures(handlesList, cleartexts, decryptionProof);
+        winnerAddress = abi.decode(cleartexts, (address));
     }
 }

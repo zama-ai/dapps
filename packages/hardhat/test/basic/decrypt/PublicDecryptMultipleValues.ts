@@ -24,6 +24,7 @@ async function deployFixture() {
 describe("PublicDecryptMultipleValues", function () {
   let contract: PublicDecryptMultipleValues;
   let signers: Signers;
+  let fhevm: HardhatFhevmRuntimeEnvironment;
 
   before(async function () {
     // Check whether the tests are running against an FHEVM mock environment
@@ -33,6 +34,7 @@ describe("PublicDecryptMultipleValues", function () {
 
     const ethSigners: HardhatEthersSigner[] = await ethers.getSigners();
     signers = { owner: ethSigners[0], alice: ethSigners[1] };
+    fhevm = hre.fhevm;
   });
 
   beforeEach(async function () {
@@ -41,25 +43,26 @@ describe("PublicDecryptMultipleValues", function () {
     contract = deployment.publicDecryptMultipleValues;
   });
 
-  // ✅ Test should succeed
+  // Test should succeed
   it("public decryption should succeed", async function () {
-    // For simplicity, we create 3 trivialy encrypted values onchain.
+    // For simplicity, we create 3 trivially encrypted values onchain.
     let tx = await contract.connect(signers.alice).initialize(true, 123456, 78901234567);
     await tx.wait();
 
     tx = await contract.requestDecryptMultipleValues();
     await tx.wait();
 
-    // We use the FHEVM Hardhat plugin to simulate the asynchronous onchain
-    // public decryption
-    const fhevm: HardhatFhevmRuntimeEnvironment = hre.fhevm;
+    // Spread to create a mutable copy (ethers returns read-only arrays)
+    const handles = [...(await contract.getHandles())];
+    const decryptResult = await fhevm.publicDecrypt(handles);
 
-    // Use the built-in `awaitDecryptionOracle` helper to wait for the FHEVM public decryption oracle
-    // to complete all pending Solidity public decryption requests.
-    await fhevm.awaitDecryptionOracle();
+    tx = await contract.callbackDecryptMultipleValues(
+      handles,
+      decryptResult.abiEncodedClearValues,
+      decryptResult.decryptionProof,
+    );
+    await tx.wait();
 
-    // At this point, the Solidity callback should have been invoked by the FHEVM backend.
-    // We can now retrieve the 3 publicly decrypted (clear) values.
     const clearBool = await contract.clearBool();
     const clearUint32 = await contract.clearUint32();
     const clearUint64 = await contract.clearUint64();
