@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
-import { FhevmInstance } from "@fhevm-sdk";
+import { FhevmInstance } from "fhevm-sdk";
 import {
   getEncryptionMethod,
   useFHEDecrypt,
   useFHEEncryption,
   useInMemoryStorage,
-} from "@fhevm-sdk";
+} from "fhevm-sdk";
 import { ethers } from "ethers";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
