@@ -1,4 +1,4 @@
 {
-  "buildCommand": "cd ../fhevm-sdk && bun run build && cd ../erc7984example && bun run build",
-  "installCommand": "cd ../.. && bun install"
+  "buildCommand": "cd ../fhevm-sdk && pnpm run build && cd ../erc7984example && pnpm run build",
+  "installCommand": "cd ../.. && pnpm install"
 }
