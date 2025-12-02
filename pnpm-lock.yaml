@@ -166,6 +166,12 @@ importers:
       '@fhevm/mock-utils':
         specifier: ^0.1.0
         version: 0.1.0(@zama-fhe/relayer-sdk@0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)
+      '@zama-fhe/relayer-sdk':
+        specifier: ^0.3.0-5
+        version: 0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers:
+        specifier: ^6.13.4
+        version: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -179,12 +185,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: 2.1.9
         version: 2.1.9(vitest@2.1.9(@edge-runtime/vm@3.2.0)(@types/node@18.19.130)(jsdom@27.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(lightningcss@1.29.2))
-      '@zama-fhe/relayer-sdk':
-        specifier: 0.3.0-5
-        version: 0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers:
-        specifier: ^6.13.7
-        version: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       fake-indexeddb:
         specifier: ~6.0.0
         version: 6.0.1
