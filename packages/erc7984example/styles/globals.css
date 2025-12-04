@@ -101,10 +101,15 @@
 
   body {
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #975a16;
+    font-family: "Telegraf", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #F4F4F4;
     position: relative;
     overflow-x: hidden;
+  }
+
+  [data-theme="dark"] body,
+  body:where([data-theme="dark"], [data-theme="dark"] *) {
+    background: #2D2D2D;
   }
 
   h1,
@@ -126,10 +131,12 @@
 
 .btn {
   box-shadow: none;
+  border-radius: 0;
 }
 
 .btn.btn-ghost {
   box-shadow: none;
+  border-radius: 0;
 }
 
 .link {
@@ -145,18 +152,21 @@
   background: #F4F4F4;
   border: 1px solid #2D2D2D;
   box-shadow: none;
+  border-radius: 0;
 }
 
 .glass-card-strong {
   background: #E8E8E8;
   border: 1px solid #2D2D2D;
   box-shadow: none;
+  border-radius: 0;
 }
 
 .glass-button {
   background: #FFD208;
   border: 1px solid #2D2D2D;
   box-shadow: none;
+  border-radius: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -173,6 +183,7 @@
 .glass-input {
   background: #F4F4F4;
   border: 1px solid #2D2D2D;
+  border-radius: 0;
   transition: all 0.2s ease;
 }
 
@@ -181,4 +192,21 @@
   border-color: #FFD208;
   outline: none;
   box-shadow: none;
+}
+
+/* Global border-radius reset for form elements */
+input,
+textarea,
+select,
+button,
+.input,
+.textarea,
+.select,
+.card,
+.modal,
+.alert,
+.badge,
+.tooltip,
+.dropdown-content {
+  border-radius: 0 !important;
 }
