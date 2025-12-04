@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {FHE, externalEuint64, euint64} from "@fhevm/solidity/lib/FHE.sol";
-import {IERC7984} from "@openzeppelin/confidential-contracts/interfaces/IERC7984.sol";
+import {IERC7984} from "openzeppelin-confidential-contracts/contracts/interfaces/IERC7984.sol";
 
 contract SwapERC7984ToERC7984 {
     function swapConfidentialForConfidential(

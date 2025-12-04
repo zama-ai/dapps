@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd ../fhevm-sdk && pnpm run build && cd ../erc7984example && pnpm run build",
+  "installCommand": "cd ../.. && pnpm install"
+}

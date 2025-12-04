@@ -5,8 +5,19 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
-  --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
+  --shadow-center: 0 0 0 0 transparent;
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  /* Updated color palette */
+  --glass-yellow-primary: #FFD208;
+  --glass-yellow-secondary: #A38025;
+  --glass-yellow-dark: #A38025;
+  --glass-bg-light: #F4F4F4;
+  --glass-bg-medium: #E8E8E8;
+  --glass-bg-dark: #D9D9D9;
+  --glass-border: #2D2D2D;
+  --glass-shadow: 0 0 0 0 transparent;
+  --glass-shadow-lg: 0 0 0 0 transparent;
 }
 
 @plugin "daisyui" {
@@ -18,52 +29,52 @@
 @plugin "daisyui/theme" {
   name: "light";
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-base-100: #e8e8e8;
-  --color-base-200: #e8e8e8;
-  --color-base-300: #e8e8e8;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-primary: #FFD208;
+  --color-primary-content: #2D2D2D;
+  --color-secondary: #A38025;
+  --color-secondary-content: #F4F4F4;
+  --color-accent: #FFD208;
+  --color-accent-content: #2D2D2D;
+  --color-neutral: #2D2D2D;
+  --color-neutral-content: #F4F4F4;
+  --color-base-100: #FFF7EC;
+  --color-base-200: #F4F4F4;
+  --color-base-300: #E8E8E8;
+  --color-base-content: #2D2D2D;
+  --color-info: #FFD208;
+  --color-success: #A38025;
+  --color-warning: #A38025;
+  --color-error: #2D2D2D;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-  --tt-tailw: 6px;
+  --radius-field: 0;
+  --radius-box: 0;
+  --tt-tailw: 0;
 }
 
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #b7791f;
-  --color-base-200: #975a16;
-  --color-base-300: #744210;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-primary: #FFD208;
+  --color-primary-content: #2D2D2D;
+  --color-secondary: #A38025;
+  --color-secondary-content: #F4F4F4;
+  --color-accent: #FFD208;
+  --color-accent-content: #2D2D2D;
+  --color-neutral: #F4F4F4;
+  --color-neutral-content: #2D2D2D;
+  --color-base-100: #2D2D2D;
+  --color-base-200: #2D2D2D;
+  --color-base-300: #2D2D2D;
+  --color-base-content: #F4F4F4;
+  --color-info: #FFD208;
+  --color-success: #A38025;
+  --color-warning: #A38025;
+  --color-error: #2D2D2D;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
+  --radius-field: 0;
+  --radius-box: 0;
 
-  --tt-tailw: 6px;
+  --tt-tailw: 0;
   --tt-bg: var(--color-primary);
 }
 
@@ -90,9 +101,15 @@
 
   body {
     min-height: 100vh;
-    font-family: "Telegraf", ui-sans-serif, system-ui, -apple-system, Segoe UI,
-      Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji",
-      "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: "Telegraf", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #F4F4F4;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  [data-theme="dark"] body,
+  body:where([data-theme="dark"], [data-theme="dark"] *) {
+    background: #2D2D2D;
   }
 
   h1,
@@ -100,21 +117,26 @@
   h3,
   h4 {
     margin-bottom: 0.5rem;
-    line-height: 1;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
+
 :root,
 [data-theme] {
-  background: var(--color-base-200);
+  background: transparent;
 }
 
 .btn {
-  @apply shadow-md;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .btn.btn-ghost {
-  @apply shadow-none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .link {
@@ -123,4 +145,68 @@
 
 .link:hover {
   opacity: 80%;
+}
+
+/* Updated card and button styles */
+.glass-card {
+  background: #F4F4F4;
+  border: 1px solid #2D2D2D;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.glass-card-strong {
+  background: #E8E8E8;
+  border: 1px solid #2D2D2D;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.glass-button {
+  background: #FFD208;
+  border: 1px solid #2D2D2D;
+  box-shadow: none;
+  border-radius: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-button:hover:not(:disabled) {
+  background: #A38025;
+  transform: none;
+  box-shadow: none;
+}
+
+.glass-button:active:not(:disabled) {
+  transform: none;
+}
+
+.glass-input {
+  background: #F4F4F4;
+  border: 1px solid #2D2D2D;
+  border-radius: 0;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: #F4F4F4;
+  border-color: #FFD208;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Global border-radius reset for form elements */
+input,
+textarea,
+select,
+button,
+.input,
+.textarea,
+.select,
+.card,
+.modal,
+.alert,
+.badge,
+.tooltip,
+.dropdown-content {
+  border-radius: 0 !important;
 }

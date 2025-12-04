@@ -83,7 +83,17 @@ describe("ConfidentialETHWrapper", function () {
       .connect(this.signers.alice)
       ["unwrap(bytes32,bytes)"](aliceAmountEncrypted.handles[0], aliceAmountEncrypted.inputProof);
     await tx.wait();
-    await hre.fhevm.awaitDecryptionOracle();
+
+    // Finalize first unwrap
+    let handle = await this.confidentialETHWrapper.getUnwrapHandle(this.signers.alice.address);
+    let decryptResult = await hre.fhevm.publicDecrypt([handle]);
+    tx = await this.confidentialETHWrapper.finalizeUnwrap(
+      this.signers.alice.address,
+      [handle],
+      decryptResult.abiEncodedClearValues,
+      decryptResult.decryptionProof,
+    );
+    await tx.wait();
 
     // Check encrypted balance
     expect(
@@ -96,7 +106,17 @@ describe("ConfidentialETHWrapper", function () {
 
     tx = await this.confidentialETHWrapper["unwrap(bytes32,bytes)"](encryptedAmount.handles[0], encryptedAmount.inputProof);
     await tx.wait();
-    await hre.fhevm.awaitDecryptionOracle();
+
+    // Finalize second unwrap
+    handle = await this.confidentialETHWrapper.getUnwrapHandle(this.signers.alice.address);
+    decryptResult = await hre.fhevm.publicDecrypt([handle]);
+    tx = await this.confidentialETHWrapper.finalizeUnwrap(
+      this.signers.alice.address,
+      [handle],
+      decryptResult.abiEncodedClearValues,
+      decryptResult.decryptionProof,
+    );
+    await tx.wait();
 
     expect(
       await reencryptBalance(this.signers.alice, this.confidentialETHWrapper, this.confidentialETHWrapperAddress),

@@ -4,12 +4,17 @@ pragma solidity ^0.8.24;
 import {FHE, externalEuint64, euint64} from "@fhevm/solidity/lib/FHE.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC7984} from "@openzeppelin/confidential-contracts/interfaces/IERC7984.sol";
+import {IERC7984} from "openzeppelin-confidential-contracts/contracts/interfaces/IERC7984.sol";
 
 contract SwapConfidentialToERC20 {
-    error SwapConfidentialToERC20InvalidGatewayRequest(uint256 requestId);
+    error SwapConfidentialToERC20InvalidRequest(address user);
 
-    mapping(uint256 requestId => address) private _receivers;
+    struct SwapRequest {
+        address receiver;
+        euint64 amount;
+    }
+    mapping(address => SwapRequest) private _pendingSwaps;
+
     IERC7984 private _fromToken;
     IERC20 private _toToken;
 
@@ -23,20 +28,29 @@ contract SwapConfidentialToERC20 {
         FHE.allowTransient(amount, address(_fromToken));
         euint64 amountTransferred = _fromToken.confidentialTransferFrom(msg.sender, address(this), amount);
 
-        bytes32[] memory cts = new bytes32[](1);
-        cts[0] = euint64.unwrap(amountTransferred);
-        uint256 requestID = FHE.requestDecryption(cts, this.finalizeSwap.selector);
+        FHE.allowThis(amountTransferred);
+        FHE.makePubliclyDecryptable(amountTransferred);
 
-        // register who is getting the tokens
-        _receivers[requestID] = msg.sender;
+        _pendingSwaps[msg.sender] = SwapRequest({receiver: msg.sender, amount: amountTransferred});
     }
 
-    function finalizeSwap(uint256 requestID, bytes calldata cleartexts, bytes calldata decryptionProof) public virtual {
-        FHE.checkSignatures(requestID, cleartexts, decryptionProof);
+    function getSwapHandle(address user) external view returns (bytes32) {
+        return FHE.toBytes32(_pendingSwaps[user].amount);
+    }
+
+    function finalizeSwap(
+        address user,
+        bytes32[] calldata handlesList,
+        bytes calldata cleartexts,
+        bytes calldata decryptionProof
+    ) public virtual {
+        FHE.checkSignatures(handlesList, cleartexts, decryptionProof);
         uint64 amount = abi.decode(cleartexts, (uint64));
-        address to = _receivers[requestID];
-        require(to != address(0), SwapConfidentialToERC20InvalidGatewayRequest(requestID));
-        delete _receivers[requestID];
+
+        SwapRequest storage request = _pendingSwaps[user];
+        require(request.receiver != address(0), SwapConfidentialToERC20InvalidRequest(user));
+        address to = request.receiver;
+        delete _pendingSwaps[user];
 
         if (amount != 0) {
             SafeERC20.safeTransfer(_toToken, to, amount);

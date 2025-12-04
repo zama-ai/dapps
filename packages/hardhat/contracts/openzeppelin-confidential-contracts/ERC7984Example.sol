@@ -3,15 +3,15 @@ pragma solidity ^0.8.24;
 
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {FHE, euint64} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
-import {ERC7984} from "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol";
+import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import {ERC7984} from "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol";
 
 /// @title ERC7984Example
 /// @notice Example confidential fungible token leveraging FHE-based primitives.
 /// @dev Inherits `ERC7984` for encrypted balances and `Ownable2Step` for
 /// ownership management. Mints an initial encrypted supply to the deployer. Allows for minting
 // later by the owner. Grants the owner viewing permission on confidential total supply after each state update.
-contract ERC7984Example is SepoliaConfig, ERC7984, Ownable2Step {
+contract ERC7984Example is ZamaEthereumConfig, ERC7984, Ownable2Step {
     /// @notice Deploys the token and mints an initial supply to the deployer.
     /// @param amount Initial plaintext supply to be minted to `msg.sender`.
     constructor(
