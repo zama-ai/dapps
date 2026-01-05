@@ -6,8 +6,192 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 
 const deployedContracts = {
   31337: {
+    Airdrop: {
+      address: "0x380ee13b0039852314fFF513821729B052D06a71",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "AlreadyClaimed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidToken",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "alreadyClaimed",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_token",
+              type: "address",
+            },
+          ],
+          name: "claim",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "hasClaimed",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 4,
+    },
     ERC7984Example: {
-      address: "0xC1A360D04A2eb19831cd12B51a7923aF8f70616D",
+      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
       abi: [
         {
           inputs: [
@@ -124,17 +308,7 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "HandlesAlreadySavedForRequestID",
-          type: "error",
-        },
-        {
-          inputs: [],
           name: "InvalidKMSSignatures",
-          type: "error",
-        },
-        {
-          inputs: [],
-          name: "NoHandleFoundForRequestID",
           type: "error",
         },
         {
@@ -158,6 +332,30 @@ const deployedContracts = {
           ],
           name: "OwnableUnauthorizedAccount",
           type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "euint64",
+              name: "encryptedAmount",
+              type: "bytes32",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "requester",
+              type: "address",
+            },
+          ],
+          name: "AmountDiscloseRequested",
+          type: "event",
         },
         {
           anonymous: false,
@@ -201,19 +399,6 @@ const deployedContracts = {
             },
           ],
           name: "ConfidentialTransfer",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "requestID",
-              type: "uint256",
-            },
-          ],
-          name: "DecryptionFulfilled",
           type: "event",
         },
         {
@@ -280,6 +465,25 @@ const deployedContracts = {
           type: "event",
         },
         {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              indexed: false,
+              internalType: "bytes",
+              name: "abiEncodedCleartexts",
+              type: "bytes",
+            },
+          ],
+          name: "PublicDecryptionVerified",
+          type: "event",
+        },
+        {
           inputs: [],
           name: "acceptOwnership",
           outputs: [],
@@ -300,6 +504,19 @@ const deployedContracts = {
               internalType: "euint64",
               name: "",
               type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
             },
           ],
           stateMutability: "view",
@@ -603,23 +820,10 @@ const deployedContracts = {
               name: "encryptedAmount",
               type: "bytes32",
             },
-          ],
-          name: "discloseEncryptedAmount",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
             {
-              internalType: "uint256",
-              name: "requestId",
-              type: "uint256",
-            },
-            {
-              internalType: "bytes",
-              name: "cleartexts",
-              type: "bytes",
+              internalType: "uint64",
+              name: "cleartextAmount",
+              type: "uint64",
             },
             {
               internalType: "bytes",
@@ -627,7 +831,7 @@ const deployedContracts = {
               type: "bytes",
             },
           ],
-          name: "finalizeDiscloseEncryptedAmount",
+          name: "discloseEncryptedAmount",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -715,20 +919,20 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "protocolId",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "pure",
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
-          inputs: [],
-          name: "renounceOwnership",
+          inputs: [
+            {
+              internalType: "euint64",
+              name: "encryptedAmount",
+              type: "bytes32",
+            },
+          ],
+          name: "requestDiscloseEncryptedAmount",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -749,6 +953,25 @@ const deployedContracts = {
           name: "setOperator",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes4",
+              name: "interfaceId",
+              type: "bytes4",
+            },
+          ],
+          name: "supportsInterface",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -780,156 +1003,230 @@ const deployedContracts = {
       ],
       inheritedFunctions: {
         confidentialBalanceOf:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTotalSupply:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransfer:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferAndCall:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferFrom:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferFromAndCall:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         contractURI:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         decimals:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         discloseEncryptedAmount:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
-        finalizeDiscloseEncryptedAmount:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         isOperator:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
-        name: "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        name: "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        requestDiscloseEncryptedAmount:
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         setOperator:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        supportsInterface:
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         symbol:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         acceptOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         owner: "@openzeppelin/contracts/access/Ownable2Step.sol",
         pendingOwner: "@openzeppelin/contracts/access/Ownable2Step.sol",
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 6,
-    },
-    FHECounter: {
-      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
-      abi: [
-        {
-          inputs: [
-            {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
-            },
-          ],
-          name: "decrement",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getCount",
-          outputs: [
-            {
-              internalType: "euint32",
-              name: "",
-              type: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
-            },
-          ],
-          name: "increment",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "protocolId",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "pure",
-          type: "function",
-        },
-      ],
-      inheritedFunctions: {},
       deployedOnBlock: 3,
-    },
-    Airdrop: {
-      address: "0xBB1FcB76bCc92B7Db65A4431CA90F84A6A11fB00",
-      abi: [
-        {
-          type: "function",
-          name: "claim",
-          inputs: [{ name: "_token", type: "address", internalType: "address" }],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "hasClaimed",
-          inputs: [
-            { name: "user", type: "address", internalType: "address" },
-            { name: "token", type: "address", internalType: "address" },
-          ],
-          outputs: [{ name: "", type: "bool", internalType: "bool" }],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "alreadyClaimed",
-          inputs: [
-            { name: "", type: "address", internalType: "address" },
-            { name: "", type: "address", internalType: "address" },
-          ],
-          outputs: [{ name: "", type: "bool", internalType: "bool" }],
-          stateMutability: "view",
-        },
-        {
-          type: "error",
-          name: "AlreadyClaimed",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidToken",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
     },
   },
   11155111: {
+    Airdrop: {
+      address: "0x2D3810D5325cbE4B4dCf3038912E78f2AAd2A595",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "AlreadyClaimed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidToken",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "alreadyClaimed",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_token",
+              type: "address",
+            },
+          ],
+          name: "claim",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+          ],
+          name: "hasClaimed",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 9846809,
+    },
     ERC7984Example: {
-      address: "0x68f32fA079C1f04cE6881dC8605C07425Bf4E1D3",
+      address: "0xD0AcD6B6C23Cbef73c435C6AdD890e92A896EEEa",
       abi: [
         {
           inputs: [
@@ -1046,17 +1343,7 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "HandlesAlreadySavedForRequestID",
-          type: "error",
-        },
-        {
-          inputs: [],
           name: "InvalidKMSSignatures",
-          type: "error",
-        },
-        {
-          inputs: [],
-          name: "NoHandleFoundForRequestID",
           type: "error",
         },
         {
@@ -1080,6 +1367,30 @@ const deployedContracts = {
           ],
           name: "OwnableUnauthorizedAccount",
           type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "euint64",
+              name: "encryptedAmount",
+              type: "bytes32",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "requester",
+              type: "address",
+            },
+          ],
+          name: "AmountDiscloseRequested",
+          type: "event",
         },
         {
           anonymous: false,
@@ -1123,19 +1434,6 @@ const deployedContracts = {
             },
           ],
           name: "ConfidentialTransfer",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "requestID",
-              type: "uint256",
-            },
-          ],
-          name: "DecryptionFulfilled",
           type: "event",
         },
         {
@@ -1202,6 +1500,25 @@ const deployedContracts = {
           type: "event",
         },
         {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              indexed: false,
+              internalType: "bytes",
+              name: "abiEncodedCleartexts",
+              type: "bytes",
+            },
+          ],
+          name: "PublicDecryptionVerified",
+          type: "event",
+        },
+        {
           inputs: [],
           name: "acceptOwnership",
           outputs: [],
@@ -1222,6 +1539,19 @@ const deployedContracts = {
               internalType: "euint64",
               name: "",
               type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
             },
           ],
           stateMutability: "view",
@@ -1525,23 +1855,10 @@ const deployedContracts = {
               name: "encryptedAmount",
               type: "bytes32",
             },
-          ],
-          name: "discloseEncryptedAmount",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
             {
-              internalType: "uint256",
-              name: "requestId",
-              type: "uint256",
-            },
-            {
-              internalType: "bytes",
-              name: "cleartexts",
-              type: "bytes",
+              internalType: "uint64",
+              name: "cleartextAmount",
+              type: "uint64",
             },
             {
               internalType: "bytes",
@@ -1549,7 +1866,7 @@ const deployedContracts = {
               type: "bytes",
             },
           ],
-          name: "finalizeDiscloseEncryptedAmount",
+          name: "discloseEncryptedAmount",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -1637,20 +1954,20 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "protocolId",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "pure",
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
-          inputs: [],
-          name: "renounceOwnership",
+          inputs: [
+            {
+              internalType: "euint64",
+              name: "encryptedAmount",
+              type: "bytes32",
+            },
+          ],
+          name: "requestDiscloseEncryptedAmount",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -1671,6 +1988,25 @@ const deployedContracts = {
           name: "setOperator",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes4",
+              name: "interfaceId",
+              type: "bytes4",
+            },
+          ],
+          name: "supportsInterface",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -1702,151 +2038,41 @@ const deployedContracts = {
       ],
       inheritedFunctions: {
         confidentialBalanceOf:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTotalSupply:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransfer:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferAndCall:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferFrom:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         confidentialTransferFromAndCall:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         contractURI:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         decimals:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         discloseEncryptedAmount:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
-        finalizeDiscloseEncryptedAmount:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         isOperator:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
-        name: "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        name: "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        requestDiscloseEncryptedAmount:
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         setOperator:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
+        supportsInterface:
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         symbol:
-          "@openzeppelin/confidential-contracts/token/ERC7984/ERC7984.sol",
+          "openzeppelin-confidential-contracts/contracts/token/ERC7984/ERC7984.sol",
         acceptOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         owner: "@openzeppelin/contracts/access/Ownable2Step.sol",
         pendingOwner: "@openzeppelin/contracts/access/Ownable2Step.sol",
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 9516761,
-    },
-    FHECounter: {
-      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
-      abi: [
-        {
-          inputs: [
-            {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
-            },
-          ],
-          name: "decrement",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getCount",
-          outputs: [
-            {
-              internalType: "euint32",
-              name: "",
-              type: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "externalEuint32",
-              name: "inputEuint32",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes",
-              name: "inputProof",
-              type: "bytes",
-            },
-          ],
-          name: "increment",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "protocolId",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "pure",
-          type: "function",
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 9516244,
-    },
-    Airdrop: {
-      address: "0x7055623D538B2103cf17Dd8731ee0231D9ccB45c",
-      abi: [
-        {
-          type: "function",
-          name: "claim",
-          inputs: [{ name: "_token", type: "address", internalType: "address" }],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "hasClaimed",
-          inputs: [
-            { name: "user", type: "address", internalType: "address" },
-            { name: "token", type: "address", internalType: "address" },
-          ],
-          outputs: [{ name: "", type: "bool", internalType: "bool" }],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "alreadyClaimed",
-          inputs: [
-            { name: "", type: "address", internalType: "address" },
-            { name: "", type: "address", internalType: "address" },
-          ],
-          outputs: [{ name: "", type: "bool", internalType: "bool" }],
-          stateMutability: "view",
-        },
-        {
-          type: "error",
-          name: "AlreadyClaimed",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidToken",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
+      deployedOnBlock: 9846671,
     },
   },
 } as const;

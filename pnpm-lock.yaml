@@ -164,8 +164,8 @@ importers:
   packages/fhevm-sdk:
     dependencies:
       '@fhevm/mock-utils':
-        specifier: ^0.1.0
-        version: 0.1.0(@zama-fhe/relayer-sdk@0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)
+        specifier: ^0.3.0-1
+        version: 0.3.0-1(@zama-fhe/relayer-sdk@0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)
       '@zama-fhe/relayer-sdk':
         specifier: ^0.3.0-5
         version: 0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -220,7 +220,7 @@ importers:
         version: 0.0.4
       openzeppelin-confidential-contracts:
         specifier: git+https://github.com/OpenZeppelin/openzeppelin-confidential-contracts.git#master
-        version: https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/29bd17c2ec150076cbcadafb6779269a08cf6ba6
+        version: https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/89e9be7cf87aa4eda72ad9548044cb53aca20b9f
     devDependencies:
       '@fhevm/hardhat-plugin':
         specifier: ^0.3.0-1
@@ -283,7 +283,7 @@ importers:
         specifier: ^6.15.0
         version: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       hardhat:
-        specifier: ^2.26.0
+        specifier: ^2.27.0
         version: 2.27.0(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@20.19.25)(typescript@5.8.3))(typescript@5.8.3)(utf-8-validate@5.0.10)
       hardhat-deploy:
         specifier: ^0.11.45
@@ -841,16 +841,6 @@ packages:
 
   '@fhevm/host-contracts@0.9.0':
     resolution: {integrity: sha512-N/DRfpXVCzHbg+9NE5sLHzTH3X7Wt3xRSN/7Jyoo+mKgjI7u40heJz8z/dUqvcq0h8wXjXcZcQHgP4pjMNjLKw==}
-
-  '@fhevm/mock-utils@0.1.0':
-    resolution: {integrity: sha512-MZk+hXNrO4t0kIgoO9nLln9lKCefCe6gCAKeBhwAMmndIdYGIGkNJHVTbqAAMWS7wPTsA5pkR47BWvX0N6XaZQ==}
-    peerDependencies:
-      '@zama-fhe/relayer-sdk': ^0.2.0
-      ethers: ^6.1.0
-      typescript: '>=5.0.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@fhevm/mock-utils@0.3.0-1':
     resolution: {integrity: sha512-1mfzU66Y1r3qc8QUlqnOtENPKchmNx2l1WxFWlcI6CzdskUoywvLRz+w0wnmze8GUpWpFgoclpK2okw1LlzgBQ==}
@@ -5351,6 +5341,7 @@ packages:
   next@16.0.0:
     resolution: {integrity: sha512-nYohiNdxGu4OmBzggxy9rczmjIGI+TpR5vbKTsE1HqYwNm1B+YSiugSrFguX6omMOKnDHAmBPY4+8TNJk0Idyg==}
     engines: {node: '>=20.9.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -5608,9 +5599,9 @@ packages:
     resolution: {integrity: sha512-1FlR+gjXK7X+AsAHso35MnyN5KqGwJRi/31ft6x0M194ht7S+rWAvd7PHss9xSKMzE0asv1pyIHaJYq+BbacAQ==}
     engines: {node: '>=12'}
 
-  openzeppelin-confidential-contracts@https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/29bd17c2ec150076cbcadafb6779269a08cf6ba6:
-    resolution: {tarball: https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/29bd17c2ec150076cbcadafb6779269a08cf6ba6}
-    version: 0.2.0
+  openzeppelin-confidential-contracts@https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/89e9be7cf87aa4eda72ad9548044cb53aca20b9f:
+    resolution: {tarball: https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/89e9be7cf87aa4eda72ad9548044cb53aca20b9f}
+    version: 0.3.0
     engines: {node: '>=20.19.0'}
 
   optionator@0.8.3:
@@ -8222,13 +8213,6 @@ snapshots:
     optionalDependencies:
       solidity-comments-darwin-arm64: 0.1.1
       solidity-comments-linux-x64-gnu: 0.1.1
-
-  '@fhevm/mock-utils@0.1.0(@zama-fhe/relayer-sdk@0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)':
-    dependencies:
-      '@zama-fhe/relayer-sdk': 0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.8.3
 
   '@fhevm/mock-utils@0.3.0-1(@zama-fhe/relayer-sdk@0.3.0-5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)':
     dependencies:
@@ -14470,7 +14454,7 @@ snapshots:
     dependencies:
       mimic-fn: 4.0.0
 
-  openzeppelin-confidential-contracts@https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/29bd17c2ec150076cbcadafb6779269a08cf6ba6: {}
+  openzeppelin-confidential-contracts@https://codeload.github.com/OpenZeppelin/openzeppelin-confidential-contracts/tar.gz/89e9be7cf87aa4eda72ad9548044cb53aca20b9f: {}
 
   optionator@0.8.3:
     dependencies:
