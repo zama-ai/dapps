@@ -74,9 +74,6 @@
       "unrs-resolver",
       "utf-8-validate",
       "yarn"
-    ],
-    "patchedDependencies": {
-      "@fhevm/hardhat-plugin@0.3.0-4": "patches/@fhevm__hardhat-plugin@0.3.0-4.patch"
-    }
+    ]
   }
 }

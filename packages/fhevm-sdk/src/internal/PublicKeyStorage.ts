@@ -49,19 +49,16 @@ async function _getDB(): Promise<IDBPDatabase<PublicParamsDB> | undefined> {
   return __dbPromise;
 }
 
-// Types that match @zama-fhe/relayer-sdk v0.4 FhevmPkeConfigType
-type FhevmPublicKeyType = {
-  data: Uint8Array;
-  id: string;
+type FhevmInstanceConfigPublicKey = {
+  data: Uint8Array | null;
+  id: string | null;
 };
 
-type FhevmPkeCrsType = {
-  publicParams: Uint8Array;
-  publicParamsId: string;
-};
-
-type FhevmPkeCrsByCapacityType = {
-  2048: FhevmPkeCrsType;
+type FhevmInstanceConfigPublicParams = {
+  "2048": {
+    publicParamsId: string;
+    publicParams: Uint8Array;
+  };
 };
 
 function assertFhevmStoredPublicKey(
@@ -113,8 +110,8 @@ function assertFhevmStoredPublicParams(
 }
 
 export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
-  publicKey?: FhevmPublicKeyType;
-  publicParams?: FhevmPkeCrsByCapacityType;
+  publicKey?: FhevmInstanceConfigPublicKey;
+  publicParams?: FhevmInstanceConfigPublicParams;
 }> {
   const db = await _getDB();
   if (!db) {
@@ -144,8 +141,8 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
   }
 
   const result: {
-    publicKey?: FhevmPublicKeyType;
-    publicParams?: FhevmPkeCrsByCapacityType;
+    publicKey?: FhevmInstanceConfigPublicKey;
+    publicParams?: FhevmInstanceConfigPublicParams;
   } = {};
 
   if (storedPublicKey) {
@@ -157,7 +154,7 @@ export async function publicKeyStorageGet(aclAddress: `0x${string}`): Promise<{
 
   if (storedPublicParams) {
     result.publicParams = {
-      2048: storedPublicParams,
+      "2048": storedPublicParams,
     };
   }
 
