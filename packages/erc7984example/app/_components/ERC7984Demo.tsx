@@ -9,6 +9,7 @@ import { useERC7984Wagmi } from "~~/hooks/erc7984/useERC7984Wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 import { notification } from "~~/utils/helper/notification";
+import { FHEBenchmark } from "./FHEBenchmark";
 
 /*
  * Main ERC7984 React component for interacting with confidential tokens
@@ -382,6 +383,9 @@ export const ERC7984Demo = () => {
           </div>
         </div>
       </div>
+
+      {/* FHE Performance Benchmark */}
+      <FHEBenchmark instance={fhevmInstance} fhevmStatus={fhevmStatus} />
     </div>
   );
 };
