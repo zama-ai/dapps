@@ -41,7 +41,7 @@
     "ethers": "^6.13.4"
   },
   "peerDependencies": {
-    "@fhevm/mock-utils": "^0.1.0",
+    "@fhevm/mock-utils": "^0.3.0-1",
     "react": ">=16.8.0"
   },
   "peerDependenciesMeta": {

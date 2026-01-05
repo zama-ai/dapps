@@ -13,3 +13,4 @@ packages/*/coverage
 tmp*
 .vscode
 .vercel
+CLAUDE.md
