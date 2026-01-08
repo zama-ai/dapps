@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ["fhevm-sdk"],
   // Exclude Node.js packages that are incompatible with Turbopack bundling
   serverExternalPackages: ["pino", "thread-stream", "pino-pretty"],
+  // Empty turbopack config - Turbopack handles Node.js fallbacks automatically
+  turbopack: {},
   // Enable cross-origin isolation for SharedArrayBuffer (required for FHEVM multi-threading)
   async headers() {
     return [
