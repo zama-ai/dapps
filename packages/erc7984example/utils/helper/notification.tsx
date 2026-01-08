@@ -56,16 +56,14 @@ const Notification = ({
       >
         {/* Icon with glow effect */}
         <div className="leading-[0] self-center relative">
-          <div className="absolute inset-0 blur-md opacity-50">
-            {icon ? icon : ENUM_STATUSES[status]}
-          </div>
-          <div className="relative">
-            {icon ? icon : ENUM_STATUSES[status]}
-          </div>
+          <div className="absolute inset-0 blur-md opacity-50">{icon ? icon : ENUM_STATUSES[status]}</div>
+          <div className="relative">{icon ? icon : ENUM_STATUSES[status]}</div>
         </div>
 
         {/* Content */}
-        <div className={`flex-1 overflow-x-hidden break-words whitespace-pre-line text-[#2D2D2D] font-medium ${icon ? "mt-1" : ""}`}>
+        <div
+          className={`flex-1 overflow-x-hidden break-words whitespace-pre-line text-[#2D2D2D] font-medium ${icon ? "mt-1" : ""}`}
+        >
           {content}
         </div>
 

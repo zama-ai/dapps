@@ -23,19 +23,11 @@ export const Header = () => {
           <div className="relative">
             {/* Logo */}
             <div className="relative bg-[#E8E8E8] border border-[#2D2D2D] p-2">
-              <Image
-                src="/favicon.png"
-                alt="Zama Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8"
-              />
+              <Image src="/favicon.png" alt="Zama Logo" width={32} height={32} className="w-8 h-8" />
             </div>
           </div>
           {/* Optional: Zama text */}
-          <span className="text-lg font-bold text-[#A38025] hidden sm:block">
-            Zama
-          </span>
+          <span className="text-lg font-bold text-[#A38025] hidden sm:block">Zama</span>
         </Link>
       </div>
 

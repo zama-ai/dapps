@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { FhevmInstance } from "fhevm-sdk";
+import { useAccount } from "wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
 import { useWagmiEthers } from "~~/hooks/wagmi/useWagmiEthers";
-import { useAccount } from "wagmi";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 
 type BenchmarkResult = {
@@ -29,9 +29,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
   const [threadInfo, setThreadInfo] = useState<string>("Click 'Check Threading' to analyze");
   const [statusMessage, setStatusMessage] = useState<string>("");
 
-  const DELAY_BETWEEN_REQUESTS = 10000; // 10 seconds
-
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   // Get ethers signer and contract info
   const { ethersSigner } = useWagmiEthers(initialMockChains);
@@ -39,7 +37,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
   const { data: erc7984 } = useDeployedContractInfo({ contractName: "ERC7984Example", chainId: allowedChainId });
 
   const addResult = (operation: string, duration: number) => {
-    setResults((prev) => [
+    setResults(prev => [
       ...prev,
       {
         operation,
@@ -140,10 +138,9 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
   };
 
   const isReady = instance && ethersSigner && erc7984?.address;
-  const validResults = results.filter((r) => r.duration > 0 && !r.operation.includes("Warm-up"));
-  const avgDuration = validResults.length > 0
-    ? validResults.reduce((a, b) => a + b.duration, 0) / validResults.length
-    : 0;
+  const validResults = results.filter(r => r.duration > 0 && !r.operation.includes("Warm-up"));
+  const avgDuration =
+    validResults.length > 0 ? validResults.reduce((a, b) => a + b.duration, 0) / validResults.length : 0;
 
   return (
     <div className="p-4 border rounded-lg bg-base-200 space-y-4 w-full max-w-2xl">
@@ -164,10 +161,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
           FHEVM Status: <span className="font-mono">{fhevmStatus}</span>
         </div>
         <div>
-          Ready:{" "}
-          <span className={isReady ? "text-success" : "text-error"}>
-            {isReady ? "Yes" : "No"}
-          </span>
+          Ready: <span className={isReady ? "text-success" : "text-error"}>{isReady ? "Yes" : "No"}</span>
           {!isReady && " - Connect wallet and wait for FHEVM instance"}
         </div>
       </div>
@@ -175,17 +169,13 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
       {/* Rate Limit Warning */}
       <div className="p-3 bg-warning/20 border border-warning rounded text-sm">
         <span className="font-semibold">Rate Limit Warning:</span> The FHE encryption service has strict rate limits.
-        More than 5 requests in 10 seconds will result in a 1-hour ban.
-        This benchmark includes 10-second delays between operations to stay safe.
+        More than 5 requests in 10 seconds will result in a 1-hour ban. This benchmark includes 10-second delays between
+        operations to stay safe.
       </div>
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        <button
-          className="btn btn-primary"
-          onClick={runEncryptionBenchmark}
-          disabled={!isReady || isRunning}
-        >
+        <button className="btn btn-primary" onClick={runEncryptionBenchmark} disabled={!isReady || isRunning}>
           {isRunning ? "Running..." : "Run Encryption Benchmark"}
         </button>
         <button className="btn btn-ghost" onClick={clearResults} disabled={results.length === 0}>
@@ -195,9 +185,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
 
       {/* Status Message */}
       {statusMessage && (
-        <div className="p-3 bg-info/20 border border-info rounded text-sm font-mono">
-          {statusMessage}
-        </div>
+        <div className="p-3 bg-info/20 border border-info rounded text-sm font-mono">{statusMessage}</div>
       )}
 
       {/* Results Table */}
