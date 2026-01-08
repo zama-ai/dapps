@@ -7,7 +7,7 @@ index 14b006d13672f120c57f85a38b9a1bc02736e80c..d56372f5bce3619689cef1eaf154cca9
      },
      ZAMA_FHE_RELAYER_SDK_PACKAGE: {
 -        version: "0.3.0-8",
-+        version: "0.4.0-alpha.4",
++        version: "0.4.0-2",
          name: "@zama-fhe/relayer-sdk",
          sepolia: {
              relayerUrl: "https://relayer.testnet.zama.org",

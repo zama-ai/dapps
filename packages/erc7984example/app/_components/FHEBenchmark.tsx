@@ -27,6 +27,11 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [threadInfo, setThreadInfo] = useState<string>("Click 'Check Threading' to analyze");
+  const [statusMessage, setStatusMessage] = useState<string>("");
+
+  const DELAY_BETWEEN_REQUESTS = 10000; // 10 seconds
+
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   // Get ethers signer and contract info
   const { ethersSigner } = useWagmiEthers(initialMockChains);
@@ -67,6 +72,14 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
     }
   };
 
+  const waitWithCountdown = async (seconds: number, message: string) => {
+    for (let i = seconds; i > 0; i--) {
+      setStatusMessage(`${message} (${i}s remaining)`);
+      await delay(1000);
+    }
+    setStatusMessage("");
+  };
+
   const runEncryptionBenchmark = async () => {
     if (!instance || !ethersSigner || !erc7984?.address) {
       alert("Instance, signer, or contract not ready");
@@ -76,9 +89,11 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
     setIsRunning(true);
     setResults([]); // Clear previous results
     const userAddress = await ethersSigner.getAddress();
+    const totalRuns = 3; // Reduced to 3 runs to minimize rate limit risk
 
     try {
       // Warm-up run
+      setStatusMessage("Running warm-up encryption...");
       console.log("[Benchmark] Warm-up encryption...");
       const warmupStart = performance.now();
       const warmupInput = instance.createEncryptedInput(erc7984.address, userAddress);
@@ -87,29 +102,34 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
       const warmupEnd = performance.now();
       addResult("Warm-up (euint64)", warmupEnd - warmupStart);
 
-      // Benchmark: Single value encryption (euint64)
-      console.log("[Benchmark] Single euint64 encryption...");
-      const start1 = performance.now();
-      const input1 = instance.createEncryptedInput(erc7984.address, userAddress);
-      (input1 as any).add64(BigInt(12345));
-      await (input1 as any).encrypt();
-      const end1 = performance.now();
-      addResult("Encrypt euint64 (single)", end1 - start1);
+      // Wait before next request
+      await waitWithCountdown(10, "Rate limit cooldown");
 
-      // Run 4 more single encryptions for average
-      for (let i = 0; i < 4; i++) {
+      // Run benchmark encryptions with delays
+      for (let i = 0; i < totalRuns; i++) {
+        setStatusMessage(`Running encryption #${i + 1}...`);
+        console.log(`[Benchmark] Encryption #${i + 1}...`);
         const startN = performance.now();
         const inputN = instance.createEncryptedInput(erc7984.address, userAddress);
-        (inputN as any).add64(BigInt(i * 1000));
+        (inputN as any).add64(BigInt(i * 1000 + 12345));
         await (inputN as any).encrypt();
         const endN = performance.now();
-        addResult(`Encrypt euint64 #${i + 2}`, endN - startN);
+        addResult(`Encrypt euint64 #${i + 1}`, endN - startN);
+
+        // Wait between requests (except after the last one)
+        if (i < totalRuns - 1) {
+          await waitWithCountdown(10, "Rate limit cooldown");
+        }
       }
 
+      setStatusMessage("Benchmark complete!");
       console.log("[Benchmark] Encryption complete!");
+      await delay(2000);
+      setStatusMessage("");
     } catch (e) {
       console.error("[Benchmark] Encryption error:", e);
       addResult("Encryption ERROR", -1);
+      setStatusMessage("Error occurred during benchmark");
     } finally {
       setIsRunning(false);
     }
@@ -152,6 +172,13 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
         </div>
       </div>
 
+      {/* Rate Limit Warning */}
+      <div className="p-3 bg-warning/20 border border-warning rounded text-sm">
+        <span className="font-semibold">Rate Limit Warning:</span> The FHE encryption service has strict rate limits.
+        More than 5 requests in 10 seconds will result in a 1-hour ban.
+        This benchmark includes 10-second delays between operations to stay safe.
+      </div>
+
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
         <button
@@ -165,6 +192,13 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
           Clear Results
         </button>
       </div>
+
+      {/* Status Message */}
+      {statusMessage && (
+        <div className="p-3 bg-info/20 border border-info rounded text-sm font-mono">
+          {statusMessage}
+        </div>
+      )}
 
       {/* Results Table */}
       {results.length > 0 && (
