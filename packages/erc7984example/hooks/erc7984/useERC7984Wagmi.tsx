@@ -3,17 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
-import { FhevmInstance } from "fhevm-sdk";
-import {
-  getEncryptionMethod,
-  useFHEDecrypt,
-  useFHEEncryption,
-  useInMemoryStorage,
-} from "fhevm-sdk";
 import { ethers } from "ethers";
+import { FhevmInstance } from "fhevm-sdk";
+import { getEncryptionMethod, useFHEDecrypt, useFHEEncryption, useInMemoryStorage } from "fhevm-sdk";
+import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
-import { useReadContract, useAccount } from "wagmi";
 
 /**
  * useERC7984Wagmi - ERC7984 Confidential Token hook for Wagmi
@@ -52,18 +47,19 @@ export const useERC7984Wagmi = (parameters: {
   const hasProvider = Boolean(ethersReadonlyProvider);
   const hasSigner = Boolean(ethersSigner);
 
-  const getContract = (mode: "read" | "write") => {
-    if (!hasContract) return undefined;
-    const providerOrSigner = mode === "read" ? ethersReadonlyProvider : ethersSigner;
-    if (!providerOrSigner) return undefined;
-    return new ethers.Contract(erc7984!.address, (erc7984 as ERC7984Info).abi, providerOrSigner);
-  };
+  const getContract = useCallback(
+    (mode: "read" | "write") => {
+      if (!hasContract) return undefined;
+      const providerOrSigner = mode === "read" ? ethersReadonlyProvider : ethersSigner;
+      if (!providerOrSigner) return undefined;
+      return new ethers.Contract(erc7984!.address, (erc7984 as ERC7984Info).abi, providerOrSigner);
+    },
+    [hasContract, ethersReadonlyProvider, ethersSigner, erc7984],
+  );
 
   // Read balance handle via wagmi
   const readResult = useReadContract({
-    address: (hasContract ? (erc7984!.address as unknown as `0x${string}`) : undefined) as
-      | `0x${string}`
-      | undefined,
+    address: (hasContract ? (erc7984!.address as unknown as `0x${string}`) : undefined) as `0x${string}` | undefined,
     abi: (hasContract ? ((erc7984 as ERC7984Info).abi as any) : undefined) as any,
     functionName: "confidentialBalanceOf" as const,
     args: [address as `0x${string}`],
@@ -85,7 +81,7 @@ export const useERC7984Wagmi = (parameters: {
   const requests = useMemo(() => {
     if (!hasContract || !balanceHandle || balanceHandle === ethers.ZeroHash) return undefined;
     return [{ handle: balanceHandle, contractAddress: erc7984!.address } as const];
-  }, [hasContract, erc7984?.address, balanceHandle]);
+  }, [hasContract, erc7984, balanceHandle]);
 
   const {
     canDecrypt,
@@ -117,23 +113,32 @@ export const useERC7984Wagmi = (parameters: {
   const decryptBalanceHandle = decrypt;
 
   // Mutations (transfer)
-  const { encryptWith } = useFHEEncryption({ instance, ethersSigner: ethersSigner as any, contractAddress: erc7984?.address });
+  const { encryptWith } = useFHEEncryption({
+    instance,
+    ethersSigner: ethersSigner as any,
+    contractAddress: erc7984?.address,
+  });
   const canTransfer = useMemo(
     () => Boolean(hasContract && instance && hasSigner && !isProcessing),
     [hasContract, instance, hasSigner, isProcessing],
   );
 
-  const getEncryptionMethodForTransfer = () => {
+  const getEncryptionMethodForTransfer = useCallback(() => {
     const functionAbi = erc7984?.abi.find(item => item.type === "function" && item.name === "confidentialTransfer");
-    if (!functionAbi) return { method: undefined as string | undefined, error: "Function ABI not found for confidentialTransfer" } as const;
+    if (!functionAbi)
+      return {
+        method: undefined as string | undefined,
+        error: "Function ABI not found for confidentialTransfer",
+      } as const;
     if (!functionAbi.inputs)
       return { method: undefined as string | undefined, error: "No inputs found for confidentialTransfer" } as const;
     // Find the externalEuint64 input parameter (use the one with proof)
     const inputs = Array.isArray(functionAbi.inputs) ? functionAbi.inputs : [];
     const amountInput = inputs.find(input => input.internalType?.includes("externalEuint64"));
-    if (!amountInput) return { method: undefined as string | undefined, error: "externalEuint64 input not found" } as const;
+    if (!amountInput)
+      return { method: undefined as string | undefined, error: "externalEuint64 input not found" } as const;
     return { method: getEncryptionMethod(amountInput.internalType || ""), error: undefined } as const;
-  };
+  }, [erc7984]);
 
   const transferTokens = useCallback(
     async (to: string, amount: number) => {
@@ -166,7 +171,7 @@ export const useERC7984Wagmi = (parameters: {
         setIsProcessing(false);
       }
     },
-    [isProcessing, canTransfer, encryptWith, getContract, refreshBalanceHandle],
+    [isProcessing, canTransfer, encryptWith, getContract, refreshBalanceHandle, getEncryptionMethodForTransfer],
   );
 
   return {

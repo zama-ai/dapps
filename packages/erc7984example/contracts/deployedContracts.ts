@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     Airdrop: {
-      address: "0x380ee13b0039852314fFF513821729B052D06a71",
+      address: "0xaa79c20a43C74bD77c392Ca0e71E032FeF2C908A",
       abi: [
         {
           inputs: [],
@@ -188,10 +188,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 4,
+      deployedOnBlock: 9,
     },
     ERC7984Example: {
-      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
+      address: "0xab9E69656210f333c3164A86372d013C646bf0eC",
       abi: [
         {
           inputs: [
@@ -331,6 +331,22 @@ const deployedContracts = {
             },
           ],
           name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "handle",
+              type: "bytes32",
+            },
+            {
+              internalType: "address",
+              name: "sender",
+              type: "address",
+            },
+          ],
+          name: "SenderNotAllowedToUseHandle",
           type: "error",
         },
         {
@@ -1037,12 +1053,12 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 3,
+      deployedOnBlock: 8,
     },
   },
   11155111: {
     Airdrop: {
-      address: "0x2D3810D5325cbE4B4dCf3038912E78f2AAd2A595",
+      address: "0x2f4233a77888379Cd1eFa450CdE921692Ba1e23A",
       abi: [
         {
           inputs: [],
@@ -1223,10 +1239,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 9846809,
+      deployedOnBlock: 10003094,
     },
     ERC7984Example: {
-      address: "0xD0AcD6B6C23Cbef73c435C6AdD890e92A896EEEa",
+      address: "0x8D253197C72382C7E4eB31DCA4812D708ED3cA44",
       abi: [
         {
           inputs: [
@@ -1366,6 +1382,22 @@ const deployedContracts = {
             },
           ],
           name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32",
+              name: "handle",
+              type: "bytes32",
+            },
+            {
+              internalType: "address",
+              name: "sender",
+              type: "address",
+            },
+          ],
+          name: "SenderNotAllowedToUseHandle",
           type: "error",
         },
         {
@@ -2072,7 +2104,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 9846671,
+      deployedOnBlock: 10003093,
     },
   },
 } as const;

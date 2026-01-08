@@ -16,7 +16,6 @@ if (!rawAlchemyKey) {
   if (process.env.NODE_ENV === "production") {
     throw new Error("Environment variable NEXT_PUBLIC_ALCHEMY_API_KEY is required in production.");
   } else {
-    // eslint-disable-next-line no-console
     console.warn("NEXT_PUBLIC_ALCHEMY_API_KEY is not set. Falling back to public RPCs.");
   }
 }
@@ -24,7 +23,7 @@ if (!rawAlchemyKey) {
 const isProduction = process.env.NODE_ENV === "production";
 const baseTargets = [chains.sepolia] as const;
 // Sepolia first, then hardhat (so Sepolia is default and hardhat is optional)
-const targetNetworks = (isProduction ? baseTargets : ([...baseTargets, chains.hardhat] as const));
+const targetNetworks = isProduction ? baseTargets : ([...baseTargets, chains.hardhat] as const);
 
 const scaffoldConfig = {
   // The networks on which your DApp is live

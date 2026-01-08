@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { FHEBenchmark } from "./FHEBenchmark";
+import { ethers } from "ethers";
 import { useFhevm } from "fhevm-sdk";
 import { useAccount } from "wagmi";
-import { ethers } from "ethers";
 import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCustomConnectButton";
 import { useERC7984Wagmi } from "~~/hooks/erc7984/useERC7984Wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
@@ -101,11 +102,7 @@ export const ERC7984Demo = () => {
 
       setClaimStatus("checking");
       try {
-        const contract = new ethers.Contract(
-          airdropContract.address,
-          airdropContract.abi,
-          erc7984.ethersSigner
-        );
+        const contract = new ethers.Contract(airdropContract.address, airdropContract.abi, erc7984.ethersSigner);
 
         const claimed = await contract.hasClaimed(address, erc7984.contractAddress);
         setAlreadyClaimed(claimed);
@@ -128,11 +125,7 @@ export const ERC7984Demo = () => {
     setClaimStatus("claiming");
 
     try {
-      const contract = new ethers.Contract(
-        airdropContract.address,
-        airdropContract.abi,
-        erc7984.ethersSigner
-      );
+      const contract = new ethers.Contract(airdropContract.address, airdropContract.abi, erc7984.ethersSigner);
 
       notification.info("Claiming tokens...");
 
@@ -198,19 +191,13 @@ export const ERC7984Demo = () => {
     "disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed";
 
   // Primary (accent) button
-  const primaryButtonClass =
-    buttonClass +
-    " text-[#2D2D2D] cursor-pointer";
+  const primaryButtonClass = buttonClass + " text-[#2D2D2D] cursor-pointer";
 
   // Secondary button
-  const secondaryButtonClass =
-    buttonClass +
-    " !bg-[#2D2D2D] text-[#F4F4F4] hover:!bg-[#A38025] cursor-pointer";
+  const secondaryButtonClass = buttonClass + " !bg-[#2D2D2D] text-[#F4F4F4] hover:!bg-[#A38025] cursor-pointer";
 
   // Success/confirmed state
-  const successButtonClass =
-    buttonClass +
-    " !bg-[#A38025] text-[#F4F4F4] hover:!bg-[#2D2D2D]";
+  const successButtonClass = buttonClass + " !bg-[#A38025] text-[#F4F4F4] hover:!bg-[#2D2D2D]";
 
   const titleClass = "font-semibold text-[#2D2D2D] text-2xl mb-4 pb-3 border-b border-[#2D2D2D]";
   const sectionClass = "glass-card-strong p-8 mb-6 text-[#2D2D2D] relative z-10";
@@ -220,12 +207,12 @@ export const ERC7984Demo = () => {
       <div className="max-w-6xl mx-auto p-6 min-h-[60vh] flex items-center justify-center relative z-10">
         <div className="glass-card-strong p-12 text-center max-w-md">
           <div className="mb-6">
-            <span className="inline-flex items-center justify-center w-20 h-20 bg-[#FFD208] text-5xl">
-              ⚠️
-            </span>
+            <span className="inline-flex items-center justify-center w-20 h-20 bg-[#FFD208] text-5xl">⚠️</span>
           </div>
           <h2 className="text-3xl font-bold text-[#2D2D2D] mb-3">Wallet not connected</h2>
-          <p className="text-[#2D2D2D]/80 mb-8 text-lg">Connect your wallet to use the ERC7984 confidential token demo.</p>
+          <p className="text-[#2D2D2D]/80 mb-8 text-lg">
+            Connect your wallet to use the ERC7984 confidential token demo.
+          </p>
           <div className="flex items-center justify-center">
             <RainbowKitCustomConnectButton />
           </div>
@@ -239,7 +226,9 @@ export const ERC7984Demo = () => {
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-5xl font-bold mb-4 text-[#2D2D2D] tracking-tight">ERC7984 Confidential Token Demo</h1>
-        <p className="text-xl text-[#2D2D2D]/70">Interact with the Fully Homomorphic Encryption confidential token contract</p>
+        <p className="text-xl text-[#2D2D2D]/70">
+          Interact with the Fully Homomorphic Encryption confidential token contract
+        </p>
       </div>
 
       {/* Balance Handle Display */}
@@ -272,17 +261,15 @@ export const ERC7984Demo = () => {
               onClick={handleClaim}
               disabled={!address || claimStatus === "claiming" || claimStatus === "checking" || alreadyClaimed}
             >
-              {!address ? (
-                "Connect Wallet"
-              ) : claimStatus === "checking" ? (
-                "⏳ Checking..."
-              ) : claimStatus === "claiming" ? (
-                "⏳ Claiming Tokens..."
-              ) : alreadyClaimed ? (
-                "✅ Already Claimed"
-              ) : (
-                "💧 Get Free Tokens"
-              )}
+              {!address
+                ? "Connect Wallet"
+                : claimStatus === "checking"
+                  ? "⏳ Checking..."
+                  : claimStatus === "claiming"
+                    ? "⏳ Claiming Tokens..."
+                    : alreadyClaimed
+                      ? "✅ Already Claimed"
+                      : "💧 Get Free Tokens"}
             </button>
           </div>
         </div>
@@ -382,6 +369,9 @@ export const ERC7984Demo = () => {
           </div>
         </div>
       </div>
+
+      {/* FHE Performance Benchmark */}
+      <FHEBenchmark instance={fhevmInstance} fhevmStatus={fhevmStatus} />
     </div>
   );
 };
@@ -433,9 +423,7 @@ function printPropertyTruncated(name: string, value: unknown) {
 
   // Truncate long strings
   const shouldTruncate = displayValue.length > 12;
-  const truncatedValue = shouldTruncate
-    ? `${displayValue.slice(0, 6)}...${displayValue.slice(-4)}`
-    : displayValue;
+  const truncatedValue = shouldTruncate ? `${displayValue.slice(0, 6)}...${displayValue.slice(-4)}` : displayValue;
 
   return (
     <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full group relative">
@@ -461,9 +449,7 @@ function printBooleanProperty(name: string, value: boolean) {
       <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
       <span
         className={`font-mono text-sm font-bold px-3 py-1.5 text-center ${
-          value
-            ? "text-[#F4F4F4] bg-[#A38025]"
-            : "text-[#F4F4F4] bg-[#2D2D2D]"
+          value ? "text-[#F4F4F4] bg-[#A38025]" : "text-[#F4F4F4] bg-[#2D2D2D]"
         }`}
       >
         {value ? "✓ true" : "✗ false"}
@@ -471,4 +457,3 @@ function printBooleanProperty(name: string, value: boolean) {
     </div>
   );
 }
-

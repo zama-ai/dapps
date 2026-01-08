@@ -24,7 +24,7 @@
     "hardhat"
   ],
   "dependencies": {
-    "@fhevm/solidity": "^0.9.1",
+    "@fhevm/solidity": "^0.10.0",
     "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "@zama-fhe/oracle-solidity": "^0.1.0",
@@ -32,8 +32,8 @@
     "openzeppelin-confidential-contracts": "git+https://github.com/OpenZeppelin/openzeppelin-confidential-contracts.git#master"
   },
   "devDependencies": {
-    "@fhevm/hardhat-plugin": "^0.3.0-1",
-    "@fhevm/mock-utils": "^0.3.0-1",
+    "@fhevm/hardhat-plugin": "^0.3.0-4",
+    "@fhevm/mock-utils": "^0.3.0-4",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.1.0",
@@ -45,7 +45,7 @@
     "@types/node": "^20.19.8",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
-    "@zama-fhe/relayer-sdk": "^0.3.0-5",
+    "@zama-fhe/relayer-sdk": "0.3.0-8",
     "chai": "^4.5.0",
     "chai-as-promised": "^8.0.1",
     "cross-env": "^7.0.3",
