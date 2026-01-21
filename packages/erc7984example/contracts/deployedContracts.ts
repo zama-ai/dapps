@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     Airdrop: {
-      address: "0xaa79c20a43C74bD77c392Ca0e71E032FeF2C908A",
+      address: "0x380ee13b0039852314fFF513821729B052D06a71",
       abi: [
         {
           inputs: [],
@@ -188,10 +188,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 9,
+      deployedOnBlock: 4,
     },
     ERC7984Example: {
-      address: "0xab9E69656210f333c3164A86372d013C646bf0eC",
+      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
       abi: [
         {
           inputs: [
@@ -1053,7 +1053,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 8,
+      deployedOnBlock: 3,
     },
   },
   11155111: {

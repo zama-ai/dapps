@@ -63,8 +63,9 @@ export const useERC7984Wagmi = (parameters: {
     abi: (hasContract ? ((erc7984 as ERC7984Info).abi as any) : undefined) as any,
     functionName: "confidentialBalanceOf" as const,
     args: [address as `0x${string}`],
+    chainId: chainId,
     query: {
-      enabled: Boolean(hasContract && hasProvider && address),
+      enabled: Boolean(hasContract && hasProvider && address && chainId),
       refetchOnWindowFocus: false,
     },
   });
@@ -89,6 +90,7 @@ export const useERC7984Wagmi = (parameters: {
     isDecrypting,
     message: decMsg,
     results,
+    error: decryptError,
   } = useFHEDecrypt({
     instance,
     ethersSigner: ethersSigner as any,
@@ -100,6 +102,14 @@ export const useERC7984Wagmi = (parameters: {
   useEffect(() => {
     if (decMsg) setMessage(decMsg);
   }, [decMsg]);
+
+  // Log decryption errors for debugging
+  useEffect(() => {
+    if (decryptError) {
+      console.error("[useERC7984Wagmi] Decryption error:", decryptError);
+      setMessage(`Decryption error: ${decryptError}`);
+    }
+  }, [decryptError]);
 
   const clearBalance = useMemo(() => {
     if (!balanceHandle) return undefined;
@@ -189,6 +199,7 @@ export const useERC7984Wagmi = (parameters: {
     isDecrypting,
     isRefreshing,
     isProcessing,
+    decryptError,
     // Wagmi-specific values
     chainId,
     accounts,

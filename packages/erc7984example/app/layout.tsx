@@ -13,11 +13,9 @@ export const metadata = getMetadata({
 const DappWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning className={``}>
-      <head>
-        <link href="https://api.fontshare.com/v2/css?f[]=telegraf@400,500,700&display=swap" rel="stylesheet" />
-      </head>
+      <head></head>
       <body suppressHydrationWarning>
-        <Script src="https://cdn.zama.org/relayer-sdk-js/0.4.0-2/relayer-sdk-js.umd.cjs" strategy="beforeInteractive" />
+        <Script src="https://cdn.zama.org/relayer-sdk-js/0.4.0-4/relayer-sdk-js.umd.cjs" strategy="beforeInteractive" />
         <ThemeProvider enableSystem>
           <DappWrapperWithProviders>{children}</DappWrapperWithProviders>
         </ThemeProvider>
