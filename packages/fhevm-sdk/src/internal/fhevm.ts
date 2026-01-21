@@ -298,6 +298,7 @@ export const createFhevmInstance = async (parameters: {
     network: providerOrUrl,
     publicKey: pub.publicKey,
     publicParams: pub.publicParams,
+    relayerRouteVersion: 2
   };
 
   // notify that state === "creating"

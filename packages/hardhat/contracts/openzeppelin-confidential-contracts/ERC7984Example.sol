@@ -26,7 +26,7 @@ contract ERC7984Example is ZamaEthereumConfig, ERC7984, Ownable2Step {
     /// @notice Mints new tokens by taking a plaintext amount
     /// @param to Address to mint tokens to
     /// @param amount Plaintext amount to mint
-    function mint(address to, uint64 amount) external onlyOwner {
+    function mint(address to, uint64 amount) external {
         _mint(to, FHE.asEuint64(amount));
     }
 

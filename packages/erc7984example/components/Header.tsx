@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { RainbowKitCustomConnectButton } from "~~/components/helper";
+import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { useOutsideClick } from "~~/hooks/helper";
 
 /**
@@ -33,7 +33,7 @@ export const Header = () => {
 
       {/* Connect Button */}
       <div className="navbar-end">
-        <RainbowKitCustomConnectButton />
+        <PrivyConnectButton />
       </div>
     </div>
   );

@@ -276,14 +276,22 @@ export class FhevmDecryptionSignature {
     );
 
     if (cached) {
+      console.log("[FhevmDecryptionSignature] Using cached signature");
+      console.log("[FhevmDecryptionSignature] Cached privateKey length:", cached.privateKey?.length);
+      console.log("[FhevmDecryptionSignature] Cached privateKey prefix:", cached.privateKey?.substring(0, 20));
       return cached;
     }
 
+    console.log("[FhevmDecryptionSignature] Generating new keypair...");
     const { publicKey, privateKey } = keyPair ?? (instance as any).generateKeypair();
+    console.log("[FhevmDecryptionSignature] Generated privateKey length:", privateKey?.length);
+    console.log("[FhevmDecryptionSignature] Generated privateKey prefix:", privateKey?.substring(0, 20));
+    console.log("[FhevmDecryptionSignature] Generated publicKey length:", publicKey?.length);
 
     const sig = await FhevmDecryptionSignature.new(instance, contractAddresses, publicKey, privateKey, signer);
 
     if (!sig) {
+      console.error("[FhevmDecryptionSignature] Failed to create signature");
       return null;
     }
 

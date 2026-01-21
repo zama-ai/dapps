@@ -5,9 +5,9 @@ import { FHEBenchmark } from "./FHEBenchmark";
 import { ethers } from "ethers";
 import { useFhevm } from "fhevm-sdk";
 import { useAccount } from "wagmi";
-import { RainbowKitCustomConnectButton } from "~~/components/helper/RainbowKitCustomConnectButton";
+import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { useERC7984Wagmi } from "~~/hooks/erc7984/useERC7984Wagmi";
-import { useDeployedContractInfo } from "~~/hooks/helper";
+import { useDeployedContractInfo, useIsSmartWallet } from "~~/hooks/helper";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 import { notification } from "~~/utils/helper/notification";
 
@@ -18,6 +18,7 @@ import { notification } from "~~/utils/helper/notification";
  */
 export const ERC7984Demo = () => {
   const { isConnected, chain, address } = useAccount();
+  const { isSmartWallet } = useIsSmartWallet();
 
   const chainId = chain?.id;
 
@@ -214,7 +215,7 @@ export const ERC7984Demo = () => {
             Connect your wallet to use the ERC7984 confidential token demo.
           </p>
           <div className="flex items-center justify-center">
-            <RainbowKitCustomConnectButton />
+            <PrivyConnectButton />
           </div>
         </div>
       </div>
@@ -230,6 +231,27 @@ export const ERC7984Demo = () => {
           Interact with the Fully Homomorphic Encryption confidential token contract
         </p>
       </div>
+
+      {/* Smart Wallet Warning */}
+      {isSmartWallet && (
+        <div className="glass-card-strong p-6 mb-6 border-2 border-[#FFD208] bg-[#FFD208]/10">
+          <div className="flex items-start gap-4">
+            <span className="text-3xl">⚠️</span>
+            <div>
+              <h3 className="font-bold text-[#2D2D2D] text-lg mb-2">Smart Wallet Detected</h3>
+              <p className="text-[#2D2D2D]/80 mb-3">
+                You&apos;re using a smart contract wallet (like Coinbase Smart Wallet or Safe). FHE balance decryption
+                is <strong>not currently supported</strong> with smart wallets due to signature format
+                incompatibilities.
+              </p>
+              <p className="text-[#2D2D2D]/70 text-sm">
+                <strong>Workaround:</strong> Connect with a regular wallet (EOA) like MetaMask. Transfers will still
+                work normally.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Balance Handle Display */}
       <div className={sectionClass}>
@@ -279,16 +301,18 @@ export const ERC7984Demo = () => {
       <div className="grid grid-cols-1 gap-4 text-black">
         <button
           className={erc7984.isDecrypted ? successButtonClass : primaryButtonClass}
-          disabled={!erc7984.canDecrypt}
+          disabled={!erc7984.canDecrypt || isSmartWallet}
           onClick={erc7984.decryptBalanceHandle}
         >
-          {erc7984.canDecrypt
-            ? "🔓 Decrypt Balance"
-            : erc7984.isDecrypted
-              ? `✅ Decrypted: ${erc7984.clear}`
-              : erc7984.isDecrypting
-                ? "⏳ Decrypting..."
-                : "❌ Nothing to decrypt"}
+          {isSmartWallet
+            ? "🚫 Decrypt unavailable (Smart Wallet)"
+            : erc7984.canDecrypt
+              ? "🔓 Decrypt Balance"
+              : erc7984.isDecrypted
+                ? `✅ Decrypted: ${erc7984.clear}`
+                : erc7984.isDecrypting
+                  ? "⏳ Decrypting..."
+                  : "❌ Nothing to decrypt"}
         </button>
       </div>
 
