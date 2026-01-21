@@ -110,6 +110,7 @@ jobs:
     needs: [lint-and-typecheck]
     env:
       NEXT_PUBLIC_ALCHEMY_API_KEY: ${{ secrets.NEXT_PUBLIC_ALCHEMY_API_KEY }}
+      NEXT_PUBLIC_PRIVY_APP_ID: ${{ secrets.NEXT_PUBLIC_PRIVY_APP_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

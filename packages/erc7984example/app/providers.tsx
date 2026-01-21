@@ -2,10 +2,11 @@
 
 import { type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { WagmiProvider as PrivyWagmiProvider, createConfig } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http } from "viem";
 import { sepolia } from "viem/chains";
+import { createConfig as createWagmiConfig, http } from "wagmi";
+import { WagmiProvider as StandardWagmiProvider } from "wagmi";
 import scaffoldConfig from "~~/scaffold.config";
 
 type Props = {
@@ -37,7 +38,7 @@ const rpcUrl = alchemyApiKey
   ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
   : "https://ethereum-sepolia-rpc.publicnode.com";
 
-// Create Wagmi config using Privy's createConfig
+// Create Wagmi config using Privy's createConfig (for when Privy is configured)
 export const wagmiConfig = createConfig({
   chains: [activeChain] as const,
   transports: {
@@ -45,13 +46,21 @@ export const wagmiConfig = createConfig({
   } as Record<typeof activeChain.id, ReturnType<typeof http>>,
 });
 
+// Create standard Wagmi config (for fallback when Privy is not configured)
+const standardWagmiConfig = createWagmiConfig({
+  chains: [activeChain],
+  transports: {
+    [activeChain.id]: http(rpcUrl),
+  },
+});
+
 export function Providers({ children }: Props) {
   if (!PRIVY_APP_ID) {
-    // Fallback for when Privy is not configured
+    // Fallback for when Privy is not configured - use standard wagmi provider
     return (
-      <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
-      </QueryClientProvider>
+      <StandardWagmiProvider config={standardWagmiConfig}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </StandardWagmiProvider>
     );
   }
 
@@ -74,7 +83,7 @@ export function Providers({ children }: Props) {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
+        <PrivyWagmiProvider config={wagmiConfig}>{children}</PrivyWagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );

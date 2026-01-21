@@ -10,12 +10,8 @@ export type BaseConfig = {
 export type ScaffoldConfig = BaseConfig;
 
 const rawAlchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-if (!rawAlchemyKey) {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Environment variable NEXT_PUBLIC_ALCHEMY_API_KEY is required in production.");
-  } else {
-    console.warn("NEXT_PUBLIC_ALCHEMY_API_KEY is not set. Falling back to public RPCs.");
-  }
+if (!rawAlchemyKey && typeof window !== "undefined") {
+  console.warn("NEXT_PUBLIC_ALCHEMY_API_KEY is not set. Falling back to public RPCs.");
 }
 
 const isProduction = process.env.NODE_ENV === "production";

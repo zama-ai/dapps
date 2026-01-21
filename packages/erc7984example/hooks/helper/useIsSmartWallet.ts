@@ -10,12 +10,23 @@ import { useAccount, usePublicClient } from "wagmi";
  * that expect standard 65-byte ECDSA signatures (like Zama's FHE relayer).
  */
 export const useIsSmartWallet = () => {
-  const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
   const [isSmartWallet, setIsSmartWallet] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
+  // Only access wagmi hooks after mount to avoid SSR issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // These hooks are safe to call but we only use their values after mount
+  const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
 
   useEffect(() => {
+    // Don't run during SSR or before mount
+    if (!isMounted) return;
+
     async function checkSmartWallet() {
       if (!address || !isConnected || !publicClient) {
         setIsSmartWallet(false);
@@ -38,7 +49,7 @@ export const useIsSmartWallet = () => {
     }
 
     checkSmartWallet();
-  }, [address, isConnected, publicClient]);
+  }, [isMounted, address, isConnected, publicClient]);
 
   return { isSmartWallet, isChecking };
 };

@@ -245,7 +245,8 @@ export const ERC7984Demo = () => {
                 incompatibilities.
               </p>
               <p className="text-[#2D2D2D]/70 text-sm">
-                <strong>Workaround:</strong> Connect with a regular wallet (EOA) like MetaMask. Transfers will still work normally.
+                <strong>Workaround:</strong> Connect with a regular wallet (EOA) like MetaMask. Transfers will still
+                work normally.
               </p>
             </div>
           </div>
