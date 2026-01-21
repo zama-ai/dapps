@@ -26,5 +26,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Airdrop contract: `, deployedAirdrop.address);
 };
 export default func;
-func.id = "deploy_erc7984"; // id required to prevent reexecution
+func.id = "deploy_erc7984_v2"; // id required to prevent reexecution
 func.tags = ["ERC7984Example", "Airdrop"];

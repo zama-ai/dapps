@@ -9,13 +9,13 @@
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   /* Updated color palette */
-  --glass-yellow-primary: #FFD208;
-  --glass-yellow-secondary: #A38025;
-  --glass-yellow-dark: #A38025;
-  --glass-bg-light: #F4F4F4;
-  --glass-bg-medium: #E8E8E8;
-  --glass-bg-dark: #D9D9D9;
-  --glass-border: #2D2D2D;
+  --glass-yellow-primary: #ffd208;
+  --glass-yellow-secondary: #a38025;
+  --glass-yellow-dark: #a38025;
+  --glass-bg-light: #f4f4f4;
+  --glass-bg-medium: #e8e8e8;
+  --glass-bg-dark: #d9d9d9;
+  --glass-border: #2d2d2d;
   --glass-shadow: 0 0 0 0 transparent;
   --glass-shadow-lg: 0 0 0 0 transparent;
 }
@@ -29,22 +29,22 @@
 @plugin "daisyui/theme" {
   name: "light";
 
-  --color-primary: #FFD208;
-  --color-primary-content: #2D2D2D;
-  --color-secondary: #A38025;
-  --color-secondary-content: #F4F4F4;
-  --color-accent: #FFD208;
-  --color-accent-content: #2D2D2D;
-  --color-neutral: #2D2D2D;
-  --color-neutral-content: #F4F4F4;
-  --color-base-100: #FFF7EC;
-  --color-base-200: #F4F4F4;
-  --color-base-300: #E8E8E8;
-  --color-base-content: #2D2D2D;
-  --color-info: #FFD208;
-  --color-success: #A38025;
-  --color-warning: #A38025;
-  --color-error: #2D2D2D;
+  --color-primary: #ffd208;
+  --color-primary-content: #2d2d2d;
+  --color-secondary: #a38025;
+  --color-secondary-content: #f4f4f4;
+  --color-accent: #ffd208;
+  --color-accent-content: #2d2d2d;
+  --color-neutral: #2d2d2d;
+  --color-neutral-content: #f4f4f4;
+  --color-base-100: #fff7ec;
+  --color-base-200: #f4f4f4;
+  --color-base-300: #e8e8e8;
+  --color-base-content: #2d2d2d;
+  --color-info: #ffd208;
+  --color-success: #a38025;
+  --color-warning: #a38025;
+  --color-error: #2d2d2d;
 
   --radius-field: 0;
   --radius-box: 0;
@@ -54,22 +54,22 @@
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #FFD208;
-  --color-primary-content: #2D2D2D;
-  --color-secondary: #A38025;
-  --color-secondary-content: #F4F4F4;
-  --color-accent: #FFD208;
-  --color-accent-content: #2D2D2D;
-  --color-neutral: #F4F4F4;
-  --color-neutral-content: #2D2D2D;
-  --color-base-100: #2D2D2D;
-  --color-base-200: #2D2D2D;
-  --color-base-300: #2D2D2D;
-  --color-base-content: #F4F4F4;
-  --color-info: #FFD208;
-  --color-success: #A38025;
-  --color-warning: #A38025;
-  --color-error: #2D2D2D;
+  --color-primary: #ffd208;
+  --color-primary-content: #2d2d2d;
+  --color-secondary: #a38025;
+  --color-secondary-content: #f4f4f4;
+  --color-accent: #ffd208;
+  --color-accent-content: #2d2d2d;
+  --color-neutral: #f4f4f4;
+  --color-neutral-content: #2d2d2d;
+  --color-base-100: #2d2d2d;
+  --color-base-200: #2d2d2d;
+  --color-base-300: #2d2d2d;
+  --color-base-content: #f4f4f4;
+  --color-info: #ffd208;
+  --color-success: #a38025;
+  --color-warning: #a38025;
+  --color-error: #2d2d2d;
 
   --radius-field: 0;
   --radius-box: 0;
@@ -101,15 +101,23 @@
 
   body {
     min-height: 100vh;
-    font-family: "Telegraf", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #F4F4F4;
+    font-family:
+      "Telegraf",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    background: #f4f4f4;
     position: relative;
     overflow-x: hidden;
   }
 
   [data-theme="dark"] body,
   body:where([data-theme="dark"], [data-theme="dark"] *) {
-    background: #2D2D2D;
+    background: #2d2d2d;
   }
 
   h1,
@@ -122,7 +130,6 @@
     letter-spacing: -0.02em;
   }
 }
-
 
 :root,
 [data-theme] {
@@ -149,29 +156,29 @@
 
 /* Updated card and button styles */
 .glass-card {
-  background: #F4F4F4;
-  border: 1px solid #2D2D2D;
+  background: #f4f4f4;
+  border: 1px solid #2d2d2d;
   box-shadow: none;
   border-radius: 0;
 }
 
 .glass-card-strong {
-  background: #E8E8E8;
-  border: 1px solid #2D2D2D;
+  background: #e8e8e8;
+  border: 1px solid #2d2d2d;
   box-shadow: none;
   border-radius: 0;
 }
 
 .glass-button {
-  background: #FFD208;
-  border: 1px solid #2D2D2D;
+  background: #ffd208;
+  border: 1px solid #2d2d2d;
   box-shadow: none;
   border-radius: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-button:hover:not(:disabled) {
-  background: #A38025;
+  background: #a38025;
   transform: none;
   box-shadow: none;
 }
@@ -181,15 +188,15 @@
 }
 
 .glass-input {
-  background: #F4F4F4;
-  border: 1px solid #2D2D2D;
+  background: #f4f4f4;
+  border: 1px solid #2d2d2d;
   border-radius: 0;
   transition: all 0.2s ease;
 }
 
 .glass-input:focus {
-  background: #F4F4F4;
-  border-color: #FFD208;
+  background: #f4f4f4;
+  border-color: #ffd208;
   outline: none;
   box-shadow: none;
 }

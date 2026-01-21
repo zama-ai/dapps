@@ -1058,7 +1058,7 @@ const deployedContracts = {
   },
   11155111: {
     Airdrop: {
-      address: "0x2f4233a77888379Cd1eFa450CdE921692Ba1e23A",
+      address: "0x61A6F364A2623CC7117ae84D9aB4e0963Bf62ce3",
       abi: [
         {
           inputs: [],
@@ -1125,6 +1125,19 @@ const deployedContracts = {
           ],
           name: "OwnershipTransferred",
           type: "event",
+        },
+        {
+          inputs: [],
+          name: "AIRDROP_AMOUNT",
+          outputs: [
+            {
+              internalType: "uint64",
+              name: "",
+              type: "uint64",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         {
           inputs: [
@@ -1239,10 +1252,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 10003094,
+      deployedOnBlock: 10092104,
     },
     ERC7984Example: {
-      address: "0x8D253197C72382C7E4eB31DCA4812D708ED3cA44",
+      address: "0x94167129172A35ab093B44b8b96213DDbc3cD387",
       abi: [
         {
           inputs: [
@@ -2104,7 +2117,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 10003093,
+      deployedOnBlock: 10092096,
     },
   },
 } as const;

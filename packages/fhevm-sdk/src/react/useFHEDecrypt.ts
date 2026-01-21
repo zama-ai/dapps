@@ -62,6 +62,23 @@ export const useFHEDecrypt = (params: {
         const uniqueAddresses = Array.from(new Set(thisRequests.map(r => r.contractAddress)));
         console.log("[useFHEDecrypt] Unique addresses:", uniqueAddresses);
 
+        // Debug: test generateKeypair directly
+        console.log("[useFHEDecrypt] Testing generateKeypair directly...");
+        try {
+          const testKeypair = (instance as any).generateKeypair();
+          console.log("[useFHEDecrypt] Direct generateKeypair result:", {
+            hasPublicKey: !!testKeypair?.publicKey,
+            hasPrivateKey: !!testKeypair?.privateKey,
+            publicKeyLength: testKeypair?.publicKey?.length,
+            privateKeyLength: testKeypair?.privateKey?.length,
+            publicKeyType: typeof testKeypair?.publicKey,
+            privateKeyType: typeof testKeypair?.privateKey,
+            privateKeyPrefix: testKeypair?.privateKey?.substring?.(0, 50),
+          });
+        } catch (kpErr) {
+          console.error("[useFHEDecrypt] generateKeypair failed:", kpErr);
+        }
+
         const sig: FhevmDecryptionSignature | null = await FhevmDecryptionSignature.loadOrSign(
           instance,
           uniqueAddresses as `0x${string}`[],
@@ -84,7 +101,20 @@ export const useFHEDecrypt = (params: {
         setMessage("Call FHEVM userDecrypt...");
 
         const mutableReqs = thisRequests.map(r => ({ handle: r.handle, contractAddress: r.contractAddress }));
-        console.log("[useFHEDecrypt] Calling userDecrypt with:", mutableReqs);
+
+        // Detailed logging of all parameters
+        console.log("[useFHEDecrypt] ====== DECRYPT PARAMETERS ======");
+        console.log("[useFHEDecrypt] requests:", JSON.stringify(mutableReqs));
+        console.log("[useFHEDecrypt] sig object keys:", Object.keys(sig));
+        console.log("[useFHEDecrypt] sig.privateKey:", sig.privateKey);
+        console.log("[useFHEDecrypt] sig.publicKey:", sig.publicKey);
+        console.log("[useFHEDecrypt] sig.signature:", sig.signature?.substring(0, 50) + "...");
+        console.log("[useFHEDecrypt] sig.contractAddresses:", sig.contractAddresses);
+        console.log("[useFHEDecrypt] sig.userAddress:", sig.userAddress);
+        console.log("[useFHEDecrypt] sig.startTimestamp:", sig.startTimestamp);
+        console.log("[useFHEDecrypt] sig.durationDays:", sig.durationDays);
+        console.log("[useFHEDecrypt] ================================");
+
         let res: Record<string, string | bigint | boolean> = {};
         try {
           res = await instance.userDecrypt(
@@ -99,6 +129,7 @@ export const useFHEDecrypt = (params: {
           );
         } catch (e) {
           console.error("[useFHEDecrypt] userDecrypt FAILED:", e);
+          console.error("[useFHEDecrypt] Full error object:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
           const err = e as unknown as { name?: string; message?: string };
           const code = err && typeof err === "object" && "name" in (err as any) ? (err as any).name : "DECRYPT_ERROR";
           const msg = err && typeof err === "object" && "message" in (err as any) ? (err as any).message : "Decryption failed";

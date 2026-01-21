@@ -1,5 +1,4 @@
 import Script from "next/script";
-import "@rainbow-me/rainbowkit/styles.css";
 import { DappWrapperWithProviders } from "~~/components/DappWrapperWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";

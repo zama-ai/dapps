@@ -6,24 +6,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["pino", "thread-stream", "pino-pretty"],
   // Empty turbopack config - Turbopack handles Node.js fallbacks automatically
   turbopack: {},
-  // Enable cross-origin isolation for SharedArrayBuffer (required for FHEVM multi-threading)
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-        ],
-      },
-    ];
-  },
   // Configure webpack fallbacks for client-side (these packages shouldn't be bundled for browser)
   webpack: (config, { isServer }) => {
     if (!isServer) {
