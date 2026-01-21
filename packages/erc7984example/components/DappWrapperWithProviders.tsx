@@ -1,9 +1,9 @@
 "use client";
 
-import { InMemoryStorageProvider } from "fhevm-sdk";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "~~/app/providers";
+import { FhevmSetup } from "~~/components/FhevmSetup";
 import { Header } from "~~/components/Header";
 
 export const DappWrapperWithProviders = ({ children }: { children: React.ReactNode }) => {
@@ -13,7 +13,7 @@ export const DappWrapperWithProviders = ({ children }: { children: React.ReactNo
       <div className={`flex flex-col min-h-screen`}>
         <Header />
         <main className="relative flex flex-col flex-1 z-10">
-          <InMemoryStorageProvider>{children}</InMemoryStorageProvider>
+          <FhevmSetup>{children}</FhevmSetup>
         </main>
       </div>
       <Toaster />
