@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
-import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { ethers } from "ethers";
-import { FhevmInstance, useFhevmContext } from "fhevm-sdk";
-import { getEncryptionMethod, useFHEDecrypt, useFHEEncryption, useInMemoryStorage } from "fhevm-sdk";
+import { useFhevmContext, useDecrypt, useEncrypt, useEthersSigner } from "fhevm-sdk";
 import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
@@ -15,25 +13,19 @@ import type { AllowedChainIds } from "~~/utils/helper/networks";
  *
  * What it does:
  * - Reads the current encrypted balance
- * - Decrypts the handle on-demand with useFHEDecrypt
- * - Encrypts inputs and writes transfers/mints
+ * - Decrypts the handle on-demand with useDecrypt (new simplified API)
+ * - Encrypts inputs and writes transfers with useEncrypt
  *
- * Instance is now optional - if not provided, it will be retrieved from FhevmProvider context.
+ * No parameters needed - everything is retrieved from FhevmProvider context.
  */
-export const useERC7984Wagmi = (parameters?: {
-  instance?: FhevmInstance | undefined;
-  initialMockChains?: Readonly<Record<number, string>>;
-}) => {
-  // Get instance from context if not provided via props
-  const context = useFhevmContext();
-  const instance = parameters?.instance ?? context.instance;
-  const initialMockChains = parameters?.initialMockChains;
+export const useERC7984Wagmi = () => {
+  // Get everything from context
+  const { instance, chainId: fhevmChainId, isConnected: fhevmConnected } = useFhevmContext();
+  const { address, isConnected, chain } = useAccount();
+  const { signer: ethersSigner, provider: ethersProvider } = useEthersSigner();
 
-  const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
-  const { address } = useAccount();
-
-  // Wagmi + ethers interop
-  const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);
+  // Use wagmi chain ID if available, fall back to fhevm context
+  const chainId = chain?.id ?? fhevmChainId;
 
   // Resolve deployed contract info once we know the chain
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
@@ -50,17 +42,17 @@ export const useERC7984Wagmi = (parameters?: {
   // Helpers
   // -------------
   const hasContract = Boolean(erc7984?.address && erc7984?.abi);
-  const hasProvider = Boolean(ethersReadonlyProvider);
+  const hasProvider = Boolean(ethersProvider);
   const hasSigner = Boolean(ethersSigner);
 
   const getContract = useCallback(
     (mode: "read" | "write") => {
       if (!hasContract) return undefined;
-      const providerOrSigner = mode === "read" ? ethersReadonlyProvider : ethersSigner;
+      const providerOrSigner = mode === "read" ? ethersProvider : ethersSigner;
       if (!providerOrSigner) return undefined;
       return new ethers.Contract(erc7984!.address, (erc7984 as ERC7984Info).abi, providerOrSigner);
     },
-    [hasContract, ethersReadonlyProvider, ethersSigner, erc7984],
+    [hasContract, ethersProvider, ethersSigner, erc7984],
   );
 
   // Read balance handle via wagmi
@@ -84,11 +76,11 @@ export const useERC7984Wagmi = (parameters?: {
     if (res.error) setMessage("ERC7984.confidentialBalanceOf() failed: " + (res.error as Error).message);
   }, [readResult]);
 
-  // Decrypt balance
-  const requests = useMemo(() => {
-    if (!hasContract || !balanceHandle || balanceHandle === ethers.ZeroHash) return undefined;
-    return [{ handle: balanceHandle, contractAddress: erc7984!.address } as const];
-  }, [hasContract, erc7984, balanceHandle]);
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Decrypt balance using new simplified useDecrypt hook
+  // ─────────────────────────────────────────────────────────────────────────────
+  const contractAddress = erc7984?.address as `0x${string}` | undefined;
+  const decryptHandle = balanceHandle && balanceHandle !== ethers.ZeroHash ? balanceHandle : undefined;
 
   const {
     canDecrypt,
@@ -97,12 +89,9 @@ export const useERC7984Wagmi = (parameters?: {
     message: decMsg,
     results,
     error: decryptError,
-  } = useFHEDecrypt({
-    instance,
-    ethersSigner: ethersSigner as any,
-    fhevmDecryptionSignatureStorage,
-    chainId,
-    requests,
+  } = useDecrypt({
+    handle: decryptHandle,
+    contractAddress: hasContract ? contractAddress : undefined,
   });
 
   useEffect(() => {
@@ -128,47 +117,26 @@ export const useERC7984Wagmi = (parameters?: {
   const isDecrypted = Boolean(balanceHandle && clearBalance?.handle === balanceHandle);
   const decryptBalanceHandle = decrypt;
 
-  // Mutations (transfer)
-  const { encryptWith } = useFHEEncryption({
-    instance,
-    ethersSigner: ethersSigner as any,
-    contractAddress: erc7984?.address,
-  });
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Encrypt using new simplified useEncrypt hook
+  // ─────────────────────────────────────────────────────────────────────────────
+  const { encrypt, isReady: encryptReady } = useEncrypt();
+
   const canTransfer = useMemo(
-    () => Boolean(hasContract && instance && hasSigner && !isProcessing),
-    [hasContract, instance, hasSigner, isProcessing],
+    () => Boolean(hasContract && instance && hasSigner && encryptReady && !isProcessing),
+    [hasContract, instance, hasSigner, encryptReady, isProcessing],
   );
 
-  const getEncryptionMethodForTransfer = useCallback(() => {
-    const functionAbi = erc7984?.abi.find(item => item.type === "function" && item.name === "confidentialTransfer");
-    if (!functionAbi)
-      return {
-        method: undefined as string | undefined,
-        error: "Function ABI not found for confidentialTransfer",
-      } as const;
-    if (!functionAbi.inputs)
-      return { method: undefined as string | undefined, error: "No inputs found for confidentialTransfer" } as const;
-    // Find the externalEuint64 input parameter (use the one with proof)
-    const inputs = Array.isArray(functionAbi.inputs) ? functionAbi.inputs : [];
-    const amountInput = inputs.find(input => input.internalType?.includes("externalEuint64"));
-    if (!amountInput)
-      return { method: undefined as string | undefined, error: "externalEuint64 input not found" } as const;
-    return { method: getEncryptionMethod(amountInput.internalType || ""), error: undefined } as const;
-  }, [erc7984]);
-
+  // Simplified transferTokens using new encrypt() with default uint64 type
   const transferTokens = useCallback(
     async (to: string, amount: number) => {
-      if (isProcessing || !canTransfer || amount <= 0) return;
+      if (isProcessing || !canTransfer || amount <= 0 || !contractAddress) return;
       setIsProcessing(true);
       setMessage(`Starting transfer of ${amount} tokens to ${to}...`);
       try {
-        const { method, error } = getEncryptionMethodForTransfer();
-        if (!method) return setMessage(error ?? "Encryption method not found");
-
-        setMessage(`Encrypting amount with ${method}...`);
-        const enc = await encryptWith(builder => {
-          (builder as any)[method](amount);
-        });
+        // Simple encryption - type defaults to uint64
+        setMessage("Encrypting amount...");
+        const enc = await encrypt(BigInt(amount), contractAddress);
         if (!enc) return setMessage("Encryption failed");
 
         const writeContract = getContract("write");
@@ -187,7 +155,7 @@ export const useERC7984Wagmi = (parameters?: {
         setIsProcessing(false);
       }
     },
-    [isProcessing, canTransfer, encryptWith, getContract, refreshBalanceHandle, getEncryptionMethodForTransfer],
+    [isProcessing, canTransfer, contractAddress, encrypt, getContract, refreshBalanceHandle],
   );
 
   return {
@@ -208,7 +176,6 @@ export const useERC7984Wagmi = (parameters?: {
     decryptError,
     // Wagmi-specific values
     chainId,
-    accounts,
     isConnected,
     ethersSigner,
     address,
