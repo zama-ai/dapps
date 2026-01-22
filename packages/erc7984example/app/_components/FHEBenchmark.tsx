@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FhevmInstance } from "fhevm-sdk";
+import { useFhevmStatus, useFhevmContext, useEthersSigner } from "fhevm-sdk";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
-import { useWagmiEthers } from "~~/hooks/wagmi/useWagmiEthers";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 
 type BenchmarkResult = {
@@ -13,16 +12,19 @@ type BenchmarkResult = {
   timestamp: string;
 };
 
-type FHEBenchmarkProps = {
-  instance: FhevmInstance | undefined;
-  fhevmStatus: string;
-};
-
-export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
+/**
+ * FHE Performance Benchmark Component
+ *
+ * No props needed - everything is retrieved from FhevmProvider context.
+ */
+export const FHEBenchmark = () => {
   const { chain } = useAccount();
   const chainId = chain?.id;
 
-  const initialMockChains = { 31337: "http://localhost:8545" };
+  // Get instance and status from context
+  const { instance } = useFhevmContext();
+  const { status: fhevmStatus } = useFhevmStatus();
+  const { signer: ethersSigner } = useEthersSigner();
 
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -31,8 +33,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Get ethers signer and contract info
-  const { ethersSigner } = useWagmiEthers(initialMockChains);
+  // Get contract info
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
   const { data: erc7984 } = useDeployedContractInfo({ contractName: "ERC7984Example", chainId: allowedChainId });
 

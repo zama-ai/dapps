@@ -349,8 +349,8 @@ export const ERC7984Demo = () => {
         </div>
       </div>
 
-      {/* FHE Performance Benchmark */}
-      <FHEBenchmark instance={fhevmInstance} fhevmStatus={fhevmStatus} />
+      {/* FHE Performance Benchmark - uses context, no props needed */}
+      <FHEBenchmark />
     </div>
   );
 };
