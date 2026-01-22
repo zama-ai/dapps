@@ -40,22 +40,26 @@ export interface EncryptInput {
 }
 
 /**
+ * Parameters for encryption mutation.
+ */
+export interface EncryptMutationParams {
+  /** Type of value to encrypt (defaults to 'uint64' if not specified) */
+  type?: EncryptableType;
+  /** Value to encrypt */
+  value: boolean | number | bigint | string;
+  /** Target contract address */
+  contractAddress: `0x${string}`;
+}
+
+/**
  * Mutation state for encryption operations.
  */
 export interface EncryptMutationState {
-  /** Trigger encryption with mutation tracking */
-  mutate: (params: {
-    type: EncryptableType;
-    value: boolean | number | bigint | string;
-    contractAddress: `0x${string}`;
-  }) => void;
+  /** Trigger encryption with mutation tracking (type defaults to uint64) */
+  mutate: (params: EncryptMutationParams) => void;
 
-  /** Trigger encryption and return promise */
-  mutateAsync: (params: {
-    type: EncryptableType;
-    value: boolean | number | bigint | string;
-    contractAddress: `0x${string}`;
-  }) => Promise<EncryptedInput>;
+  /** Trigger encryption and return promise (type defaults to uint64) */
+  mutateAsync: (params: EncryptMutationParams) => Promise<EncryptedInput>;
 
   /** Whether mutation is in progress */
   isPending: boolean;
@@ -92,21 +96,30 @@ export interface UseEncryptReturn {
   /**
    * Encrypt a single value.
    *
-   * @param type - The type of value to encrypt
-   * @param value - The value to encrypt
-   * @param contractAddress - Target contract address
+   * Supports two calling patterns:
+   * - `encrypt(value, contractAddress)` - defaults to uint64
+   * - `encrypt(type, value, contractAddress)` - explicit type
+   *
+   * @param typeOrValue - Either the type ('uint64', 'uint128', etc.) or the value to encrypt
+   * @param valueOrContract - Either the value (if type provided) or the contract address
+   * @param contractAddress - Contract address (only if type was provided)
    * @returns Encrypted handles and proof
    *
    * @example
    * ```ts
-   * const encrypted = await encrypt('uint64', 100n, '0x...')
+   * // Simple - type defaults to uint64
+   * const encrypted = await encrypt(100n, '0x...')
+   *
+   * // With explicit type
+   * const encrypted = await encrypt('uint128', 100n, '0x...')
    * ```
    */
-  encrypt: (
-    type: EncryptableType,
-    value: boolean | number | bigint | string,
-    contractAddress: `0x${string}`
-  ) => Promise<EncryptedInput | undefined>;
+  encrypt: {
+    // Simple: encrypt(value, contractAddress) - defaults to uint64
+    (value: number | bigint, contractAddress: `0x${string}`): Promise<EncryptedInput | undefined>;
+    // With type: encrypt(type, value, contractAddress)
+    (type: EncryptableType, value: boolean | number | bigint | string, contractAddress: `0x${string}`): Promise<EncryptedInput | undefined>;
+  };
 
   /**
    * Encrypt multiple values in a batch.
@@ -256,12 +269,34 @@ export function useEncrypt(): UseEncryptReturn {
     [instance, address]
   );
 
+  // Encrypt function with overloads:
+  // - encrypt(value, contractAddress) - defaults to uint64
+  // - encrypt(type, value, contractAddress) - explicit type
   const encrypt = useCallback(
     async (
-      type: EncryptableType,
-      value: boolean | number | bigint | string,
-      contractAddress: `0x${string}`
+      typeOrValue: EncryptableType | boolean | number | bigint | string,
+      valueOrContract: boolean | number | bigint | string | `0x${string}`,
+      maybeContract?: `0x${string}`
     ): Promise<EncryptedInput | undefined> => {
+      // Determine which overload was used
+      let type: EncryptableType;
+      let value: boolean | number | bigint | string;
+      let contractAddress: `0x${string}`;
+
+      // Check if first arg is an EncryptableType (string matching our types)
+      const encryptableTypes: EncryptableType[] = ["bool", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "address"];
+      if (typeof typeOrValue === "string" && encryptableTypes.includes(typeOrValue as EncryptableType)) {
+        // Pattern: encrypt(type, value, contractAddress)
+        type = typeOrValue as EncryptableType;
+        value = valueOrContract;
+        contractAddress = maybeContract!;
+      } else {
+        // Pattern: encrypt(value, contractAddress) - default to uint64
+        type = "uint64";
+        value = typeOrValue;
+        contractAddress = valueOrContract as `0x${string}`;
+      }
+
       return encryptWith(contractAddress, (builder) => {
         const method = getBuilderMethod(type);
         (builder[method] as Function)(value);
@@ -288,16 +323,14 @@ export function useEncrypt(): UseEncryptReturn {
   // TanStack Query mutation for encryption
   const encryptMutation = useMutation({
     mutationKey: chainId ? fhevmKeys.encrypt() : ["fhevm", "encrypt", "disabled"],
-    mutationFn: async (params: {
-      type: EncryptableType;
-      value: boolean | number | bigint | string;
-      contractAddress: `0x${string}`;
-    }): Promise<EncryptedInput> => {
+    mutationFn: async (params: EncryptMutationParams): Promise<EncryptedInput> => {
       if (!instance || !address) {
         throw new Error("FHEVM not ready");
       }
 
-      const result = await encrypt(params.type, params.value, params.contractAddress);
+      // Use provided type or default to uint64
+      const type = params.type ?? "uint64";
+      const result = await encrypt(type, params.value, params.contractAddress);
       if (!result) {
         throw new Error("Encryption failed");
       }
