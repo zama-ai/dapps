@@ -176,6 +176,9 @@ importers:
         specifier: ^8.0.3
         version: 8.0.3
     devDependencies:
+      '@tanstack/react-query':
+        specifier: ~5.59.20
+        version: 5.59.20(react@19.0.0)
       '@types/node':
         specifier: ~18.19.50
         version: 18.19.130
@@ -12024,6 +12027,11 @@ snapshots:
 
   '@tanstack/query-core@5.59.20': {}
 
+  '@tanstack/react-query@5.59.20(react@19.0.0)':
+    dependencies:
+      '@tanstack/query-core': 5.59.20
+      react: 19.0.0
+
   '@tanstack/react-query@5.59.20(react@19.0.3)':
     dependencies:
       '@tanstack/query-core': 5.59.20
@@ -17952,7 +17960,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.3)(zod@3.22.4)
+      abitype: 1.1.0(typescript@5.8.3)(zod@4.3.5)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.8.3
@@ -19725,7 +19733,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.8.3)(zod@3.22.4)
+      abitype: 1.1.0(typescript@5.8.3)(zod@4.3.5)
       isows: 1.0.7(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ox: 0.9.6(typescript@5.8.3)
       ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)

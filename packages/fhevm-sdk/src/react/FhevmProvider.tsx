@@ -5,10 +5,13 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
 import type { FhevmConfig } from "../config";
 import type { FhevmInstance } from "../fhevmTypes";
 import { FhevmContext, type FhevmContextValue, type FhevmStatus } from "./context";
 import { createFhevmInstance, FhevmAbortError } from "../internal/fhevm";
+import { InMemoryStorageProvider } from "./useInMemoryStorage";
+import { fhevmQueryClient } from "./queryClient";
 
 /**
  * Props for FhevmProvider component.
@@ -264,7 +267,11 @@ export function FhevmProvider({
 
   return (
     <FhevmContext.Provider value={contextValue}>
-      {children}
+      <QueryClientProvider client={fhevmQueryClient}>
+        <InMemoryStorageProvider>
+          {children}
+        </InMemoryStorageProvider>
+      </QueryClientProvider>
     </FhevmContext.Provider>
   );
 }
