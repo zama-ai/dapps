@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFhevmContext } from "./context";
 import { FhevmDecryptionSignature } from "../FhevmDecryptionSignature";
+import { fhevmKeys } from "./queryKeys";
 import type { ethers } from "ethers";
 
 /**
@@ -48,13 +50,27 @@ export interface UseDecryptReturn {
 
   /** Clear the error state */
   clearError: () => void;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TanStack Query additions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /** Whether decryption completed successfully */
+  isSuccess: boolean;
+
+  /** Whether decryption failed */
+  isError: boolean;
+
+  /** Whether the hook is in idle state (not started) */
+  isIdle: boolean;
 }
 
 /**
- * Hook for decrypting FHE encrypted values.
+ * Hook for decrypting FHE encrypted values using TanStack Query mutations.
  *
  * Handles decryption signature management automatically using
- * the storage from FhevmConfig.
+ * the storage from FhevmConfig. Results are cached in the query client
+ * for fast lookups.
  *
  * @param requests - Array of handles to decrypt, or undefined
  * @param signer - Ethers signer for signing decryption requests
@@ -64,7 +80,7 @@ export interface UseDecryptReturn {
  * function BalanceDisplay({ handle, contractAddress }) {
  *   const { data: signer } = useEthersSigner()
  *
- *   const { results, decrypt, isDecrypting, canDecrypt } = useDecrypt(
+ *   const { results, decrypt, isDecrypting, canDecrypt, isSuccess } = useDecrypt(
  *     handle ? [{ handle, contractAddress }] : undefined,
  *     signer
  *   )
@@ -75,7 +91,7 @@ export interface UseDecryptReturn {
  *     <div>
  *       <p>Balance: {balance?.toString() ?? 'Encrypted'}</p>
  *       <button onClick={decrypt} disabled={!canDecrypt}>
- *         {isDecrypting ? 'Decrypting...' : 'Decrypt'}
+ *         {isDecrypting ? 'Decrypting...' : isSuccess ? 'Decrypted!' : 'Decrypt'}
  *       </button>
  *     </div>
  *   )
@@ -87,20 +103,7 @@ export function useDecrypt(
   signer: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn {
   const { instance, config, chainId, status } = useFhevmContext();
-
-  const [isDecrypting, setIsDecrypting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [results, setResults] = useState<Record<string, string | bigint | boolean>>({});
-  const [error, setError] = useState<string | null>(null);
-
-  // Track current decrypt operation to handle stale requests
-  const decryptRef = useRef<{
-    isRunning: boolean;
-    requestsKey: string;
-  }>({
-    isRunning: false,
-    requestsKey: "",
-  });
+  const queryClient = useQueryClient();
 
   // Create a stable key for the current requests
   const requestsKey = useMemo(() => {
@@ -111,6 +114,78 @@ export function useDecrypt(
     return JSON.stringify(sorted);
   }, [requests]);
 
+  // TanStack Query mutation for decryption
+  const mutation = useMutation({
+    mutationKey: chainId
+      ? fhevmKeys.decryptBatch(chainId, requests?.map((r) => r.handle) ?? [])
+      : ["fhevm", "decrypt", "disabled"],
+
+    mutationFn: async (
+      decryptRequests: readonly DecryptRequest[]
+    ): Promise<Record<string, string | bigint | boolean>> => {
+      if (!instance) {
+        throw new Error("FHEVM instance not ready");
+      }
+      if (!signer) {
+        throw new Error("Signer not available");
+      }
+      if (!chainId) {
+        throw new Error("Chain ID not available");
+      }
+      if (decryptRequests.length === 0) {
+        throw new Error("No requests to decrypt");
+      }
+
+      // Get unique contract addresses
+      const uniqueAddresses = Array.from(
+        new Set(decryptRequests.map((r) => r.contractAddress))
+      );
+
+      // Load or create decryption signature
+      const sig = await FhevmDecryptionSignature.loadOrSign(
+        instance,
+        uniqueAddresses as `0x${string}`[],
+        signer,
+        config.storage
+      );
+
+      if (!sig) {
+        throw new Error("SIGNATURE_ERROR: Unable to create decryption signature");
+      }
+
+      // Prepare requests for userDecrypt
+      const mutableReqs = decryptRequests.map((r) => ({
+        handle: r.handle,
+        contractAddress: r.contractAddress,
+      }));
+
+      // Call userDecrypt
+      const decryptResults = await instance.userDecrypt(
+        mutableReqs,
+        sig.privateKey,
+        sig.publicKey,
+        sig.signature,
+        sig.contractAddresses,
+        sig.userAddress,
+        sig.startTimestamp,
+        sig.durationDays
+      );
+
+      // Cache individual results for fast lookups
+      for (const request of decryptRequests) {
+        const value = (decryptResults as Record<string, string | bigint | boolean>)[request.handle];
+        if (value !== undefined) {
+          queryClient.setQueryData(
+            fhevmKeys.decryptHandle(chainId, request.handle, request.contractAddress),
+            value
+          );
+        }
+      }
+
+      return decryptResults;
+    },
+  });
+
   // Can decrypt if we have everything needed
   const canDecrypt = useMemo(() => {
     return (
@@ -119,118 +194,47 @@ export function useDecrypt(
       signer !== undefined &&
       requests !== undefined &&
       requests.length > 0 &&
-      !isDecrypting
+      !mutation.isPending
     );
-  }, [status, instance, signer, requests, isDecrypting]);
+  }, [status, instance, signer, requests, mutation.isPending]);
 
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
+  // Decrypt callback that triggers the mutation
   const decrypt = useCallback(() => {
-    if (decryptRef.current.isRunning) return;
-    if (!instance || !signer || !requests || requests.length === 0) return;
+    if (!canDecrypt || !requests || requests.length === 0) return;
+    mutation.mutate(requests);
+  }, [canDecrypt, requests, mutation]);
 
-    // Capture current state
-    const currentChainId = chainId;
-    const currentSigner = signer;
-    const currentRequests = requests;
-    const currentKey = requestsKey;
+  // Clear error by resetting mutation state
+  const clearError = useCallback(() => {
+    mutation.reset();
+  }, [mutation]);
 
-    decryptRef.current = {
-      isRunning: true,
-      requestsKey: currentKey,
-    };
+  // Generate message based on mutation state
+  const message = useMemo(() => {
+    if (mutation.isPending) return "Decrypting values...";
+    if (mutation.isSuccess) return "Decryption complete";
+    if (mutation.isError) return "Decryption failed";
+    return "";
+  }, [mutation.isPending, mutation.isSuccess, mutation.isError]);
 
-    setIsDecrypting(true);
-    setMessage("Starting decryption...");
-    setError(null);
-
-    const run = async () => {
-      const isStale = () =>
-        currentChainId !== chainId ||
-        currentSigner !== signer ||
-        currentKey !== decryptRef.current.requestsKey;
-
-      try {
-        // Get unique contract addresses
-        const uniqueAddresses = Array.from(
-          new Set(currentRequests.map((r) => r.contractAddress))
-        );
-
-        // Load or create decryption signature
-        const sig = await FhevmDecryptionSignature.loadOrSign(
-          instance,
-          uniqueAddresses as `0x${string}`[],
-          currentSigner,
-          config.storage
-        );
-
-        if (!sig) {
-          setMessage("Failed to create decryption signature");
-          setError("SIGNATURE_ERROR: Unable to create decryption signature");
-          return;
-        }
-
-        if (isStale()) {
-          setMessage("Request cancelled (state changed)");
-          return;
-        }
-
-        setMessage("Decrypting values...");
-
-        // Prepare requests for userDecrypt
-        const mutableReqs = currentRequests.map((r) => ({
-          handle: r.handle,
-          contractAddress: r.contractAddress,
-        }));
-
-        // Call userDecrypt
-        const decryptResults = await instance.userDecrypt(
-          mutableReqs,
-          sig.privateKey,
-          sig.publicKey,
-          sig.signature,
-          sig.contractAddresses,
-          sig.userAddress,
-          sig.startTimestamp,
-          sig.durationDays
-        );
-
-        if (isStale()) {
-          setMessage("Request cancelled (state changed)");
-          return;
-        }
-
-        setResults(decryptResults);
-        setMessage("Decryption complete");
-      } catch (e) {
-        console.error("[useDecrypt] Decryption failed:", e);
-        const err = e as Error;
-        setError(`DECRYPT_ERROR: ${err.message || "Unknown error"}`);
-        setMessage("Decryption failed");
-      } finally {
-        decryptRef.current.isRunning = false;
-        setIsDecrypting(false);
-      }
-    };
-
-    run();
-  }, [instance, signer, requests, requestsKey, chainId, config.storage]);
-
-  // Reset results when requests change
-  useEffect(() => {
-    setResults({});
-    setError(null);
-  }, [requestsKey]);
+  // Format error message
+  const error = useMemo(() => {
+    if (!mutation.error) return null;
+    const err = mutation.error as Error;
+    return `DECRYPT_ERROR: ${err.message || "Unknown error"}`;
+  }, [mutation.error]);
 
   return {
     canDecrypt,
-    results,
+    results: mutation.data ?? {},
     decrypt,
-    isDecrypting,
+    isDecrypting: mutation.isPending,
     message,
     error,
     clearError,
+    // TanStack Query additions
+    isSuccess: mutation.isSuccess,
+    isError: mutation.isError,
+    isIdle: mutation.isIdle,
   };
 }

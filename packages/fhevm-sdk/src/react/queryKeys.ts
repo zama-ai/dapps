@@ -72,6 +72,14 @@ export const fhevmKeys = {
 } as const;
 
 /** Type helper for query key arrays */
-export type FhevmQueryKey = ReturnType<
-  (typeof fhevmKeys)[keyof typeof fhevmKeys]
->;
+export type FhevmQueryKey =
+  | typeof fhevmKeys.all
+  | ReturnType<typeof fhevmKeys.decrypt>
+  | ReturnType<typeof fhevmKeys.decryptHandle>
+  | ReturnType<typeof fhevmKeys.decryptBatch>
+  | ReturnType<typeof fhevmKeys.signature>
+  | ReturnType<typeof fhevmKeys.signatureFor>
+  | ReturnType<typeof fhevmKeys.encrypt>
+  | ReturnType<typeof fhevmKeys.encryptFor>
+  | ReturnType<typeof fhevmKeys.instance>
+  | ReturnType<typeof fhevmKeys.instanceFor>;
