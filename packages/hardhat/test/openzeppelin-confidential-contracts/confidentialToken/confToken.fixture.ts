@@ -5,9 +5,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 export async function deployERC7984ExampleFixture(owner: HardhatEthersSigner) {
   // Deploy ERC7984Example with initial supply
-  const ERC7984ExampleFactory = (await ethers.getContractFactory(
-    "ERC7984Example",
-  )) as ERC7984Example__factory;
+  const ERC7984ExampleFactory = (await ethers.getContractFactory("ERC7984Example")) as ERC7984Example__factory;
   const ERC7984Example = (await ERC7984ExampleFactory.deploy(
     1000, // Initial amount
     "Confidential Token",

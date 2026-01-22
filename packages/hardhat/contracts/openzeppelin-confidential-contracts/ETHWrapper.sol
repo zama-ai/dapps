@@ -7,8 +7,5 @@ import {ERC7984} from "openzeppelin-confidential-contracts/contracts/token/ERC79
 import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
 contract ETHWrapper is ZamaEthereumConfig, ERC7984ETHWrapper {
-    constructor()
-        ERC7984ETHWrapper()
-        ERC7984("Confidential Wrapped Ether", "WETHc", "")
-    {}
+    constructor() ERC7984ETHWrapper() ERC7984("Confidential Wrapped Ether", "WETHc", "") {}
 }

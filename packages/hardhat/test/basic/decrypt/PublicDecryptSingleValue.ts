@@ -8,9 +8,7 @@ import * as hre from "hardhat";
 
 async function deployFixture() {
   // Contracts are deployed using the first signer/account by default
-  const factory = (await ethers.getContractFactory(
-    "PublicDecryptSingleValue",
-  )) as PublicDecryptSingleValue__factory;
+  const factory = (await ethers.getContractFactory("PublicDecryptSingleValue")) as PublicDecryptSingleValue__factory;
   const publicDecryptSingleValue = (await factory.deploy()) as PublicDecryptSingleValue;
   const publicDecryptSingleValue_address = await publicDecryptSingleValue.getAddress();
 
