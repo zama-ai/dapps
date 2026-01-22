@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFhevmContext } from "./context";
 import { FhevmDecryptionSignature } from "../FhevmDecryptionSignature";
 import { fhevmKeys } from "./queryKeys";
-import type { ethers } from "ethers";
+import { ethers } from "ethers";
 
 /**
  * Request for decrypting an encrypted handle.
@@ -15,6 +15,16 @@ export interface DecryptRequest {
   handle: string;
   /** Contract address that holds the encrypted value */
   contractAddress: `0x${string}`;
+}
+
+/**
+ * Parameters for single-handle decryption (simplified API).
+ */
+export interface DecryptParams {
+  /** The encrypted handle to decrypt */
+  handle: string | undefined;
+  /** Contract address that holds the encrypted value */
+  contractAddress: `0x${string}` | undefined;
 }
 
 /**
@@ -72,18 +82,32 @@ export interface UseDecryptReturn {
  * the storage from FhevmConfig. Results are cached in the query client
  * for fast lookups.
  *
- * @param requests - Array of handles to decrypt, or undefined
- * @param signer - Ethers signer for signing decryption requests
+ * Supports two usage patterns:
+ *
+ * **Simple single-handle (recommended):**
+ * ```tsx
+ * const { decrypt, isDecrypting, results } = useDecrypt({
+ *   handle: balanceHandle,
+ *   contractAddress: '0x...'
+ * })
+ * ```
+ *
+ * **Batch decryption:**
+ * ```tsx
+ * const { decrypt, results } = useDecrypt(
+ *   [{ handle: handle1, contractAddress }, { handle: handle2, contractAddress }],
+ *   signer // optional - auto-detected from window.ethereum if not provided
+ * )
+ * ```
  *
  * @example
  * ```tsx
+ * // Simple usage - signer is auto-detected
  * function BalanceDisplay({ handle, contractAddress }) {
- *   const { data: signer } = useEthersSigner()
- *
- *   const { results, decrypt, isDecrypting, canDecrypt, isSuccess } = useDecrypt(
- *     handle ? [{ handle, contractAddress }] : undefined,
- *     signer
- *   )
+ *   const { results, decrypt, isDecrypting, canDecrypt } = useDecrypt({
+ *     handle,
+ *     contractAddress
+ *   })
  *
  *   const balance = handle ? results[handle] : undefined
  *
@@ -91,7 +115,7 @@ export interface UseDecryptReturn {
  *     <div>
  *       <p>Balance: {balance?.toString() ?? 'Encrypted'}</p>
  *       <button onClick={decrypt} disabled={!canDecrypt}>
- *         {isDecrypting ? 'Decrypting...' : isSuccess ? 'Decrypted!' : 'Decrypt'}
+ *         {isDecrypting ? 'Decrypting...' : 'Decrypt'}
  *       </button>
  *     </div>
  *   )
@@ -99,9 +123,57 @@ export interface UseDecryptReturn {
  * ```
  */
 export function useDecrypt(
-  requests: readonly DecryptRequest[] | undefined,
-  signer: ethers.JsonRpcSigner | undefined
+  requestsOrParams: readonly DecryptRequest[] | DecryptParams | undefined,
+  signerOverride?: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn {
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Auto-detect signer from window.ethereum if not provided
+  // ─────────────────────────────────────────────────────────────────────────────
+  const { address } = useFhevmContext();
+  const [autoSigner, setAutoSigner] = useState<ethers.JsonRpcSigner | undefined>(undefined);
+
+  useEffect(() => {
+    async function getSigner() {
+      if (signerOverride) {
+        setAutoSigner(undefined); // Use override, don't need auto signer
+        return;
+      }
+
+      if (typeof window === "undefined" || !(window as any).ethereum || !address) {
+        setAutoSigner(undefined);
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const signer = await provider.getSigner(address);
+        setAutoSigner(signer);
+      } catch (err) {
+        console.error("[useDecrypt] Failed to get signer from window.ethereum:", err);
+        setAutoSigner(undefined);
+      }
+    }
+    getSigner();
+  }, [signerOverride, address]);
+
+  const signer = signerOverride ?? autoSigner;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Normalize requests: support both single-handle and batch patterns
+  // ─────────────────────────────────────────────────────────────────────────────
+  const requests = useMemo((): readonly DecryptRequest[] | undefined => {
+    if (!requestsOrParams) return undefined;
+
+    // Check if it's a single-handle DecryptParams object
+    if ("handle" in requestsOrParams && "contractAddress" in requestsOrParams && !Array.isArray(requestsOrParams)) {
+      const params = requestsOrParams as DecryptParams;
+      if (!params.handle || !params.contractAddress) return undefined;
+      return [{ handle: params.handle, contractAddress: params.contractAddress }];
+    }
+
+    // It's an array of DecryptRequest
+    return requestsOrParams as readonly DecryptRequest[];
+  }, [requestsOrParams]);
   const { instance, config, chainId, status } = useFhevmContext();
   const queryClient = useQueryClient();
 
