@@ -7,6 +7,7 @@ export { useEncrypt, type UseEncryptReturn, type EncryptedInput, type Encryptabl
 export { useDecrypt, type UseDecryptReturn, type DecryptRequest, type DecryptParams } from "./useDecrypt";
 export { useFhevmStatus, type UseFhevmStatusReturn } from "./useFhevmStatus";
 export { useFhevmClient, type UseFhevmClientReturn } from "./useFhevmClient";
+export { useEthersSigner, type UseEthersSignerReturn } from "./useEthersSigner";
 
 // Cache lookup hooks (TanStack Query powered)
 export { useDecryptedValue, useDecryptedValues, type UseDecryptedValueReturn } from "./useDecryptedValue";
