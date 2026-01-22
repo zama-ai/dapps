@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useFhevmContext } from "./context";
+import { fhevmKeys } from "./queryKeys";
 import type { RelayerEncryptedInput } from "@zama-fhe/relayer-sdk/web";
 
 /**
@@ -35,6 +37,46 @@ export interface EncryptInput {
   type: EncryptableType;
   /** Value to encrypt */
   value: boolean | number | bigint | string;
+}
+
+/**
+ * Mutation state for encryption operations.
+ */
+export interface EncryptMutationState {
+  /** Trigger encryption with mutation tracking */
+  mutate: (params: {
+    type: EncryptableType;
+    value: boolean | number | bigint | string;
+    contractAddress: `0x${string}`;
+  }) => void;
+
+  /** Trigger encryption and return promise */
+  mutateAsync: (params: {
+    type: EncryptableType;
+    value: boolean | number | bigint | string;
+    contractAddress: `0x${string}`;
+  }) => Promise<EncryptedInput>;
+
+  /** Whether mutation is in progress */
+  isPending: boolean;
+
+  /** Whether mutation succeeded */
+  isSuccess: boolean;
+
+  /** Whether mutation failed */
+  isError: boolean;
+
+  /** Whether mutation is idle (not started) */
+  isIdle: boolean;
+
+  /** Error if mutation failed */
+  error: Error | null;
+
+  /** Result data if mutation succeeded */
+  data: EncryptedInput | undefined;
+
+  /** Reset mutation state */
+  reset: () => void;
 }
 
 /**
@@ -106,6 +148,38 @@ export interface UseEncryptReturn {
     contractAddress: `0x${string}`,
     buildFn: (builder: RelayerEncryptedInput) => void
   ) => Promise<EncryptedInput | undefined>;
+
+  /**
+   * TanStack Query mutation for encryption with automatic state tracking.
+   *
+   * Use this for reactive state management instead of the async functions.
+   *
+   * @example
+   * ```tsx
+   * function TransferForm() {
+   *   const { mutation, isReady } = useEncrypt()
+   *
+   *   const handleSubmit = () => {
+   *     mutation.mutate({
+   *       type: 'uint64',
+   *       value: 100n,
+   *       contractAddress: '0x...'
+   *     })
+   *   }
+   *
+   *   return (
+   *     <div>
+   *       <button onClick={handleSubmit} disabled={!isReady || mutation.isPending}>
+   *         {mutation.isPending ? 'Encrypting...' : 'Encrypt'}
+   *       </button>
+   *       {mutation.isError && <p>Error: {mutation.error?.message}</p>}
+   *       {mutation.isSuccess && <p>Encrypted!</p>}
+   *     </div>
+   *   )
+   * }
+   * ```
+   */
+  mutation: EncryptMutationState;
 }
 
 /**
@@ -155,7 +229,7 @@ function getBuilderMethod(type: EncryptableType): keyof RelayerEncryptedInput {
  * ```
  */
 export function useEncrypt(): UseEncryptReturn {
-  const { instance, status, address } = useFhevmContext();
+  const { instance, status, address, chainId } = useFhevmContext();
 
   const isReady = useMemo(
     () => status === "ready" && instance !== undefined && address !== undefined,
@@ -211,11 +285,49 @@ export function useEncrypt(): UseEncryptReturn {
     [encryptWith]
   );
 
+  // TanStack Query mutation for encryption
+  const encryptMutation = useMutation({
+    mutationKey: chainId ? fhevmKeys.encrypt() : ["fhevm", "encrypt", "disabled"],
+    mutationFn: async (params: {
+      type: EncryptableType;
+      value: boolean | number | bigint | string;
+      contractAddress: `0x${string}`;
+    }): Promise<EncryptedInput> => {
+      if (!instance || !address) {
+        throw new Error("FHEVM not ready");
+      }
+
+      const result = await encrypt(params.type, params.value, params.contractAddress);
+      if (!result) {
+        throw new Error("Encryption failed");
+      }
+
+      return result;
+    },
+  });
+
+  // Build mutation state object
+  const mutation: EncryptMutationState = useMemo(
+    () => ({
+      mutate: encryptMutation.mutate,
+      mutateAsync: encryptMutation.mutateAsync,
+      isPending: encryptMutation.isPending,
+      isSuccess: encryptMutation.isSuccess,
+      isError: encryptMutation.isError,
+      isIdle: encryptMutation.isIdle,
+      error: encryptMutation.error,
+      data: encryptMutation.data,
+      reset: encryptMutation.reset,
+    }),
+    [encryptMutation]
+  );
+
   return {
     isReady,
     encrypt,
     encryptBatch,
     encryptWith,
+    mutation,
   };
 }
 
