@@ -1,46 +1,36 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
+import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import { Toaster } from "react-hot-toast";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider as PrivyWagmiProvider, createConfig } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { sepolia, hardhat } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
-import { WagmiProvider as StandardWagmiProvider } from "wagmi";
+import { WagmiProvider as StandardWagmiProvider, useAccount } from "wagmi";
+import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal } from "fhevm-sdk";
+import { Header } from "~~/components/Header";
 import scaffoldConfig from "~~/scaffold.config";
 
-type Props = {
-  children: ReactNode;
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuration
+// ─────────────────────────────────────────────────────────────────────────────
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-// Get Privy App ID from environment
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
-
-if (!PRIVY_APP_ID && typeof window !== "undefined") {
-  console.warn("NEXT_PUBLIC_PRIVY_APP_ID is not set. Wallet connection will not work.");
-}
-
+const isProduction = process.env.NODE_ENV === "production";
 const { alchemyApiKey } = scaffoldConfig;
 
-// Build RPC URL for Sepolia
+// RPC URLs
 const sepoliaRpcUrl = alchemyApiKey
   ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
   : "https://ethereum-sepolia-rpc.publicnode.com";
 
-// Include Hardhat in development mode for local testing
-const isProduction = process.env.NODE_ENV === "production";
+// Supported chains (Sepolia always, Hardhat in dev)
+const supportedChains = isProduction ? [sepolia] : [sepolia, hardhat];
 
-// Wagmi config for Privy (requires at least one chain in tuple form)
-// In production, only Sepolia; in dev, both Sepolia and Hardhat
-export const wagmiConfig = isProduction
+// Wagmi config for Privy
+const privyWagmiConfig = isProduction
   ? createConfig({
       chains: [sepolia] as const,
       transports: { [sepolia.id]: http(sepoliaRpcUrl) },
@@ -53,7 +43,7 @@ export const wagmiConfig = isProduction
       },
     });
 
-// Standard Wagmi config (for fallback when Privy is not configured)
+// Standard Wagmi config (fallback when Privy not configured)
 const standardWagmiConfig = isProduction
   ? createWagmiConfig({
       chains: [sepolia],
@@ -67,30 +57,100 @@ const standardWagmiConfig = isProduction
       },
     });
 
-// Chains array for Privy supportedChains
-const supportedChains = isProduction ? [sepolia] : [sepolia, hardhat];
+// FHEVM config
+const fhevmConfig = createFhevmConfig({
+  chains: [fhevmSepolia, hardhatLocal],
+});
 
-export function Providers({ children }: Props) {
+// React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { refetchOnWindowFocus: false },
+  },
+});
+
+// Export wagmi config for use in other files if needed
+export const wagmiConfig = privyWagmiConfig;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FHEVM Provider Wrapper (needs to be inside Wagmi to use useAccount)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FhevmWrapper({ children }: { children: ReactNode }) {
+  const { isConnected, chainId, address } = useAccount();
+
+  const provider = useMemo(() => {
+    if (typeof window === "undefined") return undefined;
+    return (window as any).ethereum;
+  }, []);
+
+  return (
+    <FhevmProvider config={fhevmConfig} wagmi={{ isConnected, chainId, address }} provider={provider}>
+      {children}
+    </FhevmProvider>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// App Layout (Header + Main + Toaster)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AppLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <ProgressBar height="3px" color="#FFD208" />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="relative flex flex-col flex-1 z-10">
+          <FhevmWrapper>{children}</FhevmWrapper>
+        </main>
+      </div>
+      <Toaster />
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Providers Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * AppProviders - Single entry point for all app providers
+ *
+ * Provider hierarchy:
+ * 1. Privy (auth) or Standard Wagmi (fallback)
+ * 2. React Query
+ * 3. Wagmi (wallet)
+ * 4. FHEVM (encryption)
+ * 5. App Layout (header, toaster)
+ */
+export function AppProviders({ children }: { children: ReactNode }) {
+  // Warn if Privy not configured (dev only)
+  if (!PRIVY_APP_ID && typeof window !== "undefined") {
+    console.warn("NEXT_PUBLIC_PRIVY_APP_ID not set. Using standard wagmi provider.");
+  }
+
+  // Fallback to standard Wagmi when Privy not configured
   if (!PRIVY_APP_ID) {
-    // Fallback for when Privy is not configured - use standard wagmi provider
     return (
       <StandardWagmiProvider config={standardWagmiConfig}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppLayout>{children}</AppLayout>
+        </QueryClientProvider>
       </StandardWagmiProvider>
     );
   }
 
+  // Full Privy + Wagmi setup
   return (
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
         embeddedWallets: {
-          ethereum: {
-            createOnLogin: "users-without-wallets",
-          },
+          ethereum: { createOnLogin: "users-without-wallets" },
         },
         loginMethods: ["wallet", "email"],
-        supportedChains: supportedChains,
+        supportedChains,
         defaultChain: sepolia,
         appearance: {
           showWalletLoginFirst: true,
@@ -99,7 +159,9 @@ export function Providers({ children }: Props) {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <PrivyWagmiProvider config={wagmiConfig}>{children}</PrivyWagmiProvider>
+        <PrivyWagmiProvider config={privyWagmiConfig}>
+          <AppLayout>{children}</AppLayout>
+        </PrivyWagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );
