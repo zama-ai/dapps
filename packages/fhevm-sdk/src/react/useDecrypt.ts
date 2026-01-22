@@ -126,10 +126,12 @@ export function useDecrypt(
   requestsOrParams: readonly DecryptRequest[] | DecryptParams | undefined,
   signerOverride?: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn {
+  const { instance, config, chainId, status, address } = useFhevmContext();
+  const queryClient = useQueryClient();
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Auto-detect signer from window.ethereum if not provided
   // ─────────────────────────────────────────────────────────────────────────────
-  const { address } = useFhevmContext();
   const [autoSigner, setAutoSigner] = useState<ethers.JsonRpcSigner | undefined>(undefined);
 
   useEffect(() => {
@@ -154,7 +156,7 @@ export function useDecrypt(
       }
     }
     getSigner();
-  }, [signerOverride, address]);
+  }, [signerOverride, address, chainId]); // Re-create signer when chain changes
 
   const signer = signerOverride ?? autoSigner;
 
@@ -174,8 +176,6 @@ export function useDecrypt(
     // It's an array of DecryptRequest
     return requestsOrParams as readonly DecryptRequest[];
   }, [requestsOrParams]);
-  const { instance, config, chainId, status } = useFhevmContext();
-  const queryClient = useQueryClient();
 
   // Create a stable key for the current requests
   const requestsKey = useMemo(() => {

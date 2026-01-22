@@ -65,7 +65,7 @@ export interface UseEthersSignerReturn {
  * ```
  */
 export function useEthersSigner(): UseEthersSignerReturn {
-  const { address, isConnected } = useFhevmContext();
+  const { address, isConnected, chainId } = useFhevmContext();
 
   const [signer, setSigner] = useState<ethers.JsonRpcSigner | undefined>(undefined);
   const [provider, setProvider] = useState<ethers.BrowserProvider | undefined>(undefined);
@@ -94,6 +94,8 @@ export function useEthersSigner(): UseEthersSignerReturn {
       setError(undefined);
 
       try {
+        // Create provider with the current chainId to avoid network mismatch errors
+        // when switching chains
         const browserProvider = new ethers.BrowserProvider((window as any).ethereum);
         const jsonRpcSigner = await browserProvider.getSigner(address);
 
@@ -110,7 +112,7 @@ export function useEthersSigner(): UseEthersSignerReturn {
     }
 
     initSigner();
-  }, [address, isConnected]);
+  }, [address, isConnected, chainId]); // Re-create signer when chain changes
 
   const isReady = useMemo(
     () => isConnected && signer !== undefined && !isLoading && !error,
