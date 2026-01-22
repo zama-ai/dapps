@@ -517,58 +517,58 @@ packages/erc7984example/
 
 ---
 
-## Status: NOT STARTED
+## Status: COMPLETED
 
 ## Checklist
 
-- [ ] Phase 1: Update ERC7984Demo to use FhevmProvider context
-  - [ ] Remove FHEVM setup boilerplate
-  - [ ] Use useFhevmStatus()
-  - [ ] Test manually
-  - [ ] Commit
+- [x] Phase 1: Update ERC7984Demo to use FhevmProvider context (commit: 6e58d82)
+  - [x] Remove FHEVM setup boilerplate
+  - [x] Use useFhevmStatus()
+  - [x] Test manually
+  - [x] Commit
 
-- [ ] Phase 2: Simplify useDecrypt signature
-  - [ ] Add single-handle overload
-  - [ ] Auto-get signer from context
-  - [ ] Update tests
-  - [ ] Commit
+- [x] Phase 2: Simplify useDecrypt signature (commit: 71b629e)
+  - [x] Add single-handle overload
+  - [x] Auto-get signer from window.ethereum
+  - [x] Update tests
+  - [x] Commit
 
-- [ ] Phase 3: Simplify useEncrypt signature
-  - [ ] Add simple encrypt(value, contract) function
-  - [ ] Default type to uint64
-  - [ ] Update tests
-  - [ ] Commit
+- [x] Phase 3: Simplify useEncrypt signature (commit: 4cc9e7c)
+  - [x] Add simple encrypt(value, contract) function
+  - [x] Default type to uint64
+  - [x] Update tests
+  - [x] Commit
 
-- [ ] Phase 4: Create useEthersSigner hook
-  - [ ] Create hook
-  - [ ] Add tests
-  - [ ] Export from index
-  - [ ] Commit
+- [x] Phase 4: Create useEthersSigner hook (commit: 0f88a86)
+  - [x] Create hook
+  - [x] Add tests
+  - [x] Export from index
+  - [x] Commit
 
-- [ ] Phase 5: Refactor useERC7984Wagmi
-  - [ ] Remove instance parameter
-  - [ ] Use new hooks
-  - [ ] Test manually
-  - [ ] Commit
+- [x] Phase 5: Refactor useERC7984Wagmi (commit: f625bbd)
+  - [x] Remove instance parameter
+  - [x] Use new hooks
+  - [x] Test manually
+  - [x] Commit
 
-- [ ] Phase 6: Simplify transferTokens
-  - [ ] Use simple encrypt
-  - [ ] Remove ABI parsing
-  - [ ] Test manually
-  - [ ] Commit
+- [x] Phase 6: Simplify transferTokens (commit: f625bbd - combined with Phase 5)
+  - [x] Use simple encrypt
+  - [x] Remove ABI parsing
+  - [x] Test manually
+  - [x] Commit
 
-- [ ] Phase 7: Refactor FHEBenchmark to use context
-  - [ ] Remove instance and fhevmStatus props
-  - [ ] Use useFhevmStatus() for status
-  - [ ] Use useEncrypt() for encryption
-  - [ ] Remove initialMockChains duplication
-  - [ ] Test manually
-  - [ ] Commit
+- [x] Phase 7: Refactor FHEBenchmark to use context (commit: 51e5994)
+  - [x] Remove instance and fhevmStatus props
+  - [x] Use useFhevmStatus() for status
+  - [x] Replace useWagmiEthers with useEthersSigner
+  - [x] Remove initialMockChains duplication
+  - [x] Test manually
+  - [x] Commit
 
-- [ ] Phase 8: Deprecate useWagmiEthers
-  - [ ] Check for remaining usages
-  - [ ] Delete or add deprecation notice
-  - [ ] Commit
+- [x] Phase 8: Deprecate useWagmiEthers (commit: 8f0b106)
+  - [x] Check for remaining usages
+  - [x] Delete file (no longer used)
+  - [x] Commit
 
 ---
 
