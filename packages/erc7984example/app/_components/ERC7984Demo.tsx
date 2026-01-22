@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FHEBenchmark } from "./FHEBenchmark";
 import { ethers } from "ethers";
-import { useFhevm } from "fhevm-sdk";
+import { useFhevmStatus, useFhevmContext } from "fhevm-sdk";
 import { useAccount } from "wagmi";
 import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { useERC7984Wagmi } from "~~/hooks/erc7984/useERC7984Wagmi";
@@ -15,6 +15,8 @@ import { notification } from "~~/utils/helper/notification";
  * Main ERC7984 React component for interacting with confidential tokens
  *  - "Decrypt" button: allows you to decrypt the current balance handle
  *  - "Transfer" button: allows you to transfer tokens using FHE operations
+ *
+ * FHEVM instance is now provided via FhevmProvider context (no setup needed here)
  */
 export const ERC7984Demo = () => {
   const { isConnected, chain, address } = useAccount();
@@ -23,68 +25,21 @@ export const ERC7984Demo = () => {
   const chainId = chain?.id;
 
   //////////////////////////////////////////////////////////////////////////////
-  // FHEVM instance
+  // FHEVM status from context (no boilerplate needed!)
   //////////////////////////////////////////////////////////////////////////////
 
-  // Create EIP-1193 provider from wagmi for FHEVM
-  const provider = useMemo(() => {
-    if (typeof window === "undefined") return undefined;
-
-    // Get the wallet provider from window.ethereum
-    return (window as any).ethereum;
-  }, []);
-
-  const initialMockChains = { 31337: "http://localhost:8545" };
-
-  // State to control fhevm initialization - wait for mount and provider
-  const [isMounted, setIsMounted] = useState(false);
-  const [fhevmEnabled, setFhevmEnabled] = useState(false);
-
-  // Set mounted on client side only
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Enable FHE ONLY after mounted and when provider and chainId are available
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const shouldEnable = Boolean(provider && chainId);
-
-    if (shouldEnable && !fhevmEnabled) {
-      // Small delay to ensure everything is stable
-      const timeoutId = setTimeout(() => {
-        setFhevmEnabled(true);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    } else if (!shouldEnable && fhevmEnabled) {
-      setFhevmEnabled(false);
-    }
-  }, [isMounted, provider, chainId, fhevmEnabled]);
-
-  const {
-    instance: fhevmInstance,
-    status: fhevmStatus,
-    error: fhevmError,
-  } = useFhevm({
-    provider,
-    chainId,
-    initialMockChains,
-    enabled: fhevmEnabled,
-  });
+  const { status: fhevmStatus, error: fhevmError, isReady: fhevmIsReady } = useFhevmStatus();
+  const { instance: fhevmInstance } = useFhevmContext();
 
   //////////////////////////////////////////////////////////////////////////////
   // useERC7984 is a custom hook containing all the ERC7984 logic, including
   // - calling the ERC7984 contract
   // - encrypting FHE inputs
   // - decrypting FHE handles
+  // Instance is retrieved from FhevmProvider context automatically
   //////////////////////////////////////////////////////////////////////////////
 
-  const erc7984 = useERC7984Wagmi({
-    instance: fhevmInstance,
-    initialMockChains,
-  });
+  const erc7984 = useERC7984Wagmi();
 
   //////////////////////////////////////////////////////////////////////////////
   // Airdrop/Faucet state and logic

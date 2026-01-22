@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
 import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { ethers } from "ethers";
-import { FhevmInstance } from "fhevm-sdk";
+import { FhevmInstance, useFhevmContext } from "fhevm-sdk";
 import { getEncryptionMethod, useFHEDecrypt, useFHEEncryption, useInMemoryStorage } from "fhevm-sdk";
 import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
@@ -17,12 +17,18 @@ import type { AllowedChainIds } from "~~/utils/helper/networks";
  * - Reads the current encrypted balance
  * - Decrypts the handle on-demand with useFHEDecrypt
  * - Encrypts inputs and writes transfers/mints
+ *
+ * Instance is now optional - if not provided, it will be retrieved from FhevmProvider context.
  */
-export const useERC7984Wagmi = (parameters: {
-  instance: FhevmInstance | undefined;
+export const useERC7984Wagmi = (parameters?: {
+  instance?: FhevmInstance | undefined;
   initialMockChains?: Readonly<Record<number, string>>;
 }) => {
-  const { instance, initialMockChains } = parameters;
+  // Get instance from context if not provided via props
+  const context = useFhevmContext();
+  const instance = parameters?.instance ?? context.instance;
+  const initialMockChains = parameters?.initialMockChains;
+
   const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
   const { address } = useAccount();
 
