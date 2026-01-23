@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFhevmStatus, useFhevmContext, useEthersSigner } from "fhevm-sdk";
+import { useFhevmStatus, useEncrypt } from "fhevm-sdk";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
@@ -21,10 +21,9 @@ export const FHEBenchmark = () => {
   const { chain } = useAccount();
   const chainId = chain?.id;
 
-  // Get instance and status from context
-  const { instance } = useFhevmContext();
+  // Get encryption hook and status from context
+  const { encryptWith, isReady: encryptReady } = useEncrypt();
   const { status: fhevmStatus } = useFhevmStatus();
-  const { signer: ethersSigner } = useEthersSigner();
 
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -80,14 +79,13 @@ export const FHEBenchmark = () => {
   };
 
   const runEncryptionBenchmark = async () => {
-    if (!instance || !ethersSigner || !erc7984?.address) {
-      alert("Instance, signer, or contract not ready");
+    if (!encryptReady || !erc7984?.address) {
+      alert("Encryption not ready or contract not found");
       return;
     }
 
     setIsRunning(true);
     setResults([]); // Clear previous results
-    const userAddress = await ethersSigner.getAddress();
     const totalRuns = 3; // Reduced to 3 runs to minimize rate limit risk
 
     try {
@@ -95,9 +93,9 @@ export const FHEBenchmark = () => {
       setStatusMessage("Running warm-up encryption...");
       console.log("[Benchmark] Warm-up encryption...");
       const warmupStart = performance.now();
-      const warmupInput = instance.createEncryptedInput(erc7984.address, userAddress);
-      (warmupInput as any).add64(BigInt(100));
-      await (warmupInput as any).encrypt();
+      await encryptWith(erc7984.address as `0x${string}`, builder => {
+        builder.add64(BigInt(100));
+      });
       const warmupEnd = performance.now();
       addResult("Warm-up (euint64)", warmupEnd - warmupStart);
 
@@ -109,9 +107,9 @@ export const FHEBenchmark = () => {
         setStatusMessage(`Running encryption #${i + 1}...`);
         console.log(`[Benchmark] Encryption #${i + 1}...`);
         const startN = performance.now();
-        const inputN = instance.createEncryptedInput(erc7984.address, userAddress);
-        (inputN as any).add64(BigInt(i * 1000 + 12345));
-        await (inputN as any).encrypt();
+        await encryptWith(erc7984.address as `0x${string}`, builder => {
+          builder.add64(BigInt(i * 1000 + 12345));
+        });
         const endN = performance.now();
         addResult(`Encrypt euint64 #${i + 1}`, endN - startN);
 
@@ -138,7 +136,7 @@ export const FHEBenchmark = () => {
     setResults([]);
   };
 
-  const isReady = instance && ethersSigner && erc7984?.address;
+  const isReady = encryptReady && erc7984?.address;
   const validResults = results.filter(r => r.duration > 0 && !r.operation.includes("Warm-up"));
   const avgDuration =
     validResults.length > 0 ? validResults.reduce((a, b) => a + b.duration, 0) / validResults.length : 0;
