@@ -38,7 +38,7 @@ function Providers({ children }) {
 
 // In any component - zero setup:
 const { encrypt, isReady } = useEncrypt()
-const { data, decrypt } = useDecrypt({ handle, contractAddress })
+const { data, decrypt } = useUserDecrypt({ handle, contractAddress })
 ```
 
 ---
@@ -133,7 +133,7 @@ type FhevmContextValue = {
 |---------|-----|---------|
 | `useFhevm()` | `useFhevmContext()` | Internal context access |
 | `useFHEEncryption()` | `useEncrypt()` | Encrypt values |
-| `useFHEDecrypt()` | `useDecrypt()` | Decrypt handles |
+| `useFHEDecrypt()` | `useUserDecrypt()` | Decrypt handles |
 | `useInMemoryStorage()` | Remove | Use config.storage |
 | - | `useFhevmStatus()` | Get status/error |
 | - | `useFhevmClient()` | Get raw instance |
@@ -158,7 +158,7 @@ function useEncrypt(): {
 }
 
 // Decryption hook
-function useDecrypt(params: {
+function useUserDecrypt(params: {
   handle: string | undefined
   contractAddress: Address | undefined
 }): {
@@ -169,7 +169,7 @@ function useDecrypt(params: {
 }
 ```
 
-**Commit message:** `feat(sdk): add wagmi-style hooks (useEncrypt, useDecrypt, useFhevmStatus)`
+**Commit message:** `feat(sdk): add wagmi-style hooks (useEncrypt, useUserDecrypt, useFhevmStatus)`
 
 ---
 
@@ -261,7 +261,7 @@ src/
 │   ├── FhevmProvider.tsx      # Main provider
 │   ├── context.ts             # React context
 │   ├── useEncrypt.ts          # Encryption hook
-│   ├── useDecrypt.ts          # Decryption hook
+│   ├── useUserDecrypt.ts          # Decryption hook
 │   ├── useFhevmStatus.ts      # Status hook
 │   └── useFhevmClient.ts      # Raw instance access
 │
@@ -301,7 +301,7 @@ All phases implemented and tested. See commits on `feat/fhevm-sdk-wagmi-style` b
 
 - [x] Phase 4: Hooks (commit: 695f0e1)
   - [x] Create src/react/useEncrypt.ts
-  - [x] Create src/react/useDecrypt.ts
+  - [x] Create src/react/useUserDecrypt.ts
   - [x] Write tests
   - [x] Commit
 

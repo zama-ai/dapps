@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
 import { ethers } from "ethers";
-import { useFhevmContext, useDecrypt, useEncrypt, useEthersSigner } from "fhevm-sdk";
+import { useFhevmContext, useUserDecrypt, useEncrypt, useEthersSigner } from "fhevm-sdk";
 import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
@@ -13,7 +13,7 @@ import type { AllowedChainIds } from "~~/utils/helper/networks";
  *
  * What it does:
  * - Reads the current encrypted balance
- * - Decrypts the handle on-demand with useDecrypt (new simplified API)
+ * - Decrypts the handle on-demand with useUserDecrypt (new simplified API)
  * - Encrypts inputs and writes transfers with useEncrypt
  *
  * No parameters needed - everything is retrieved from FhevmProvider context.
@@ -77,7 +77,7 @@ export const useERC7984Wagmi = () => {
   }, [readResult]);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Decrypt balance using new simplified useDecrypt hook
+  // Decrypt balance using new simplified useUserDecrypt hook
   // ─────────────────────────────────────────────────────────────────────────────
   const contractAddress = erc7984?.address as `0x${string}` | undefined;
   const decryptHandle = balanceHandle && balanceHandle !== ethers.ZeroHash ? balanceHandle : undefined;
@@ -89,7 +89,7 @@ export const useERC7984Wagmi = () => {
     message: decMsg,
     results,
     error: decryptError,
-  } = useDecrypt({
+  } = useUserDecrypt({
     handle: decryptHandle,
     contractAddress: hasContract ? contractAddress : undefined,
   });

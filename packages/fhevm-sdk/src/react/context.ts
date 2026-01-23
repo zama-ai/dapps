@@ -46,7 +46,7 @@ export const FhevmContext = createContext<FhevmContextValue | null>(null);
  * Hook to access the FHEVM context.
  * Must be used within a FhevmProvider.
  *
- * @internal - Use the specific hooks (useEncrypt, useDecrypt, etc.) instead
+ * @internal - Use the specific hooks (useEncrypt, useUserDecrypt, etc.) instead
  */
 export function useFhevmContext(): FhevmContextValue {
   const context = useContext(FhevmContext);

@@ -61,11 +61,11 @@ describe("useEncrypt", () => {
   });
 });
 
-describe("useDecrypt", () => {
-  it("should export useDecrypt", async () => {
-    const { useDecrypt } = await import("../src/react/useDecrypt");
-    expect(useDecrypt).toBeDefined();
-    expect(typeof useDecrypt).toBe("function");
+describe("useUserDecrypt", () => {
+  it("should export useUserDecrypt", async () => {
+    const { useUserDecrypt } = await import("../src/react/useUserDecrypt");
+    expect(useUserDecrypt).toBeDefined();
+    expect(typeof useUserDecrypt).toBe("function");
   });
 });
 

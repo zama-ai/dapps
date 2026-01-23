@@ -229,11 +229,11 @@ const erc7984 = useERC7984();
 ### Phase 2: Simplify useFHEDecrypt signature
 
 **Files to modify:**
-- `packages/fhevm-sdk/src/react/useDecrypt.ts`
+- `packages/fhevm-sdk/src/react/useUserDecrypt.ts`
 
 **Current signature:**
 ```typescript
-function useDecrypt(
+function useUserDecrypt(
   requests: readonly DecryptRequest[] | undefined,
   signer: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn
@@ -242,13 +242,13 @@ function useDecrypt(
 **New signature (add overloads):**
 ```typescript
 // Simple single-handle usage
-function useDecrypt(params: {
+function useUserDecrypt(params: {
   handle: string | undefined;
   contractAddress: `0x${string}` | undefined;
 }): UseDecryptReturn
 
 // Batch usage (existing)
-function useDecrypt(
+function useUserDecrypt(
   requests: readonly DecryptRequest[] | undefined,
   signer?: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn
@@ -259,7 +259,7 @@ function useDecrypt(
 2. Support simple { handle, contractAddress } parameter
 3. Internally build requests array
 
-**Commit message:** `feat(sdk): simplify useDecrypt with single-handle overload`
+**Commit message:** `feat(sdk): simplify useUserDecrypt with single-handle overload`
 
 ---
 
@@ -316,7 +316,7 @@ This removes need for `useWagmiEthers` in frontend.
 **Changes:**
 1. Remove `instance` parameter (use context)
 2. Remove `initialMockChains` parameter
-3. Use new simplified `useDecrypt`
+3. Use new simplified `useUserDecrypt`
 4. Use new simplified `useEncrypt`
 5. Remove `getEncryptionMethodForTransfer` complexity
 
@@ -351,7 +351,7 @@ const {
   data: balance,
   decrypt,
   isDecrypting
-} = useDecrypt({
+} = useUserDecrypt({
   handle: balanceHandle,
   contractAddress: erc7984?.address,
 });
@@ -479,7 +479,7 @@ After Phase 4 (useEthersSigner in SDK) and Phase 7 (FHEBenchmark refactor):
 ```
 packages/fhevm-sdk/src/react/
 ├── useEncrypt.ts           # Add simple encrypt(value, contract) function
-├── useDecrypt.ts           # Add simple { handle, contractAddress } overload
+├── useUserDecrypt.ts           # Add simple { handle, contractAddress } overload
 ├── useEthersSigner.ts      # NEW: Get signer from window.ethereum
 └── index.ts                # Export new hook
 
@@ -502,7 +502,7 @@ packages/erc7984example/
 
 | Current | Target |
 |---------|--------|
-| `useFHEDecrypt({ instance, ethersSigner, storage, chainId, requests })` | `useDecrypt({ handle, contractAddress })` |
+| `useFHEDecrypt({ instance, ethersSigner, storage, chainId, requests })` | `useUserDecrypt({ handle, contractAddress })` |
 | 5 required params | 2 params (or 1 object) |
 | Must build requests array | Just pass handle |
 | Must manage storage | Automatic |
@@ -527,7 +527,7 @@ packages/erc7984example/
   - [x] Test manually
   - [x] Commit
 
-- [x] Phase 2: Simplify useDecrypt signature (commit: 71b629e)
+- [x] Phase 2: Simplify useUserDecrypt signature (commit: 71b629e)
   - [x] Add single-handle overload
   - [x] Auto-get signer from window.ethereum
   - [x] Update tests
@@ -587,7 +587,7 @@ packages/erc7984example/
 
 ## Backward Compatibility
 
-1. **useDecrypt** - New overload, existing signature still works
+1. **useUserDecrypt** - New overload, existing signature still works
 2. **useEncrypt** - Add function, existing `encryptWith` still works
 3. **Legacy hooks** - Still exported, marked deprecated
 4. **FhevmProvider** - Already handles initialization

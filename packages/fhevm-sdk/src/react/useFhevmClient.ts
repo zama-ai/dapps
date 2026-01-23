@@ -26,7 +26,7 @@ export interface UseFhevmClientReturn {
  * Hook to get direct access to the FHEVM instance.
  *
  * Use this for advanced operations or when building custom hooks.
- * For most use cases, prefer useEncrypt and useDecrypt hooks.
+ * For most use cases, prefer useEncrypt and useUserDecrypt hooks.
  *
  * @example
  * ```tsx

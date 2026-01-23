@@ -5,7 +5,7 @@ Integrate TanStack Query (React Query) into fhevm-sdk to replace manual async st
 
 ## Current Pain Points
 
-1. **Manual loading/error state management** in useDecrypt:
+1. **Manual loading/error state management** in useUserDecrypt:
 ```typescript
 const [isDecrypting, setIsDecrypting] = useState(false);
 const [message, setMessage] = useState("");
@@ -118,14 +118,14 @@ export const fhevmKeys = {
 
 ---
 
-### Phase 3: Refactor useDecrypt with useMutation
+### Phase 3: Refactor useUserDecrypt with useMutation
 
 **Files to modify:**
-- `src/react/useDecrypt.ts` - Replace manual state with useMutation
+- `src/react/useUserDecrypt.ts` - Replace manual state with useMutation
 
 **Current signature:**
 ```typescript
-function useDecrypt(params: {
+function useUserDecrypt(params: {
   requests: DecryptRequest[] | undefined;
 }): {
   canDecrypt: boolean;
@@ -142,7 +142,7 @@ function useDecrypt(params: {
 ```typescript
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useDecrypt(params: { requests: DecryptRequest[] | undefined }): UseDecryptReturn {
+export function useUserDecrypt(params: { requests: DecryptRequest[] | undefined }): UseDecryptReturn {
   const { instance, status, chainId, address } = useFhevmContext();
   const { storage } = useInMemoryStorage();
   const queryClient = useQueryClient();
@@ -186,7 +186,7 @@ export function useDecrypt(params: { requests: DecryptRequest[] | undefined }): 
       return results;
     },
     onError: (error) => {
-      console.error("[useDecrypt] Decryption failed:", error);
+      console.error("[useUserDecrypt] Decryption failed:", error);
     },
   });
 
@@ -226,21 +226,21 @@ export function useDecrypt(params: { requests: DecryptRequest[] | undefined }): 
 - Can use `mutation.reset()` to clear error
 - Results cached in queryClient
 
-**Commit message:** `refactor(sdk): migrate useDecrypt to useMutation`
+**Commit message:** `refactor(sdk): migrate useUserDecrypt to useMutation`
 
 ---
 
-### Phase 4: Add useDecryptedValue Query Hook
+### Phase 4: Add useUserDecryptedValue Query Hook
 
 **Files to create:**
-- `src/react/useDecryptedValue.ts` - Query for individual decrypted values
+- `src/react/useUserDecryptedValue.ts` - Query for individual decrypted values
 
 **Purpose:** Allow querying cached decrypted values without triggering new decryption.
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
 
-export function useDecryptedValue(params: {
+export function useUserDecryptedValue(params: {
   handle: string | undefined;
   contractAddress: string | undefined;
 }): {
@@ -255,7 +255,7 @@ export function useDecryptedValue(params: {
       : ["disabled"],
     queryFn: () => {
       // This should never be called - data comes from cache only
-      throw new Error("Decryption must be triggered via useDecrypt");
+      throw new Error("Decryption must be triggered via useUserDecrypt");
     },
     enabled: false, // Never auto-fetch
     staleTime: Infinity, // Never consider stale
@@ -268,7 +268,7 @@ export function useDecryptedValue(params: {
 }
 ```
 
-**Commit message:** `feat(sdk): add useDecryptedValue hook for cached lookups`
+**Commit message:** `feat(sdk): add useUserDecryptedValue hook for cached lookups`
 
 ---
 
@@ -337,14 +337,14 @@ export function useEncrypt(): UseEncryptReturn {
 ### Phase 6: Add Signature Caching Query
 
 **Files to create:**
-- `src/react/useDecryptionSignature.ts` - Query/mutation for signature management
+- `src/react/useUserDecryptionSignature.ts` - Query/mutation for signature management
 
 **Purpose:** Cache and manage decryption signatures with proper invalidation.
 
 ```typescript
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useDecryptionSignature() {
+export function useUserDecryptionSignature() {
   const { instance, chainId, address } = useFhevmContext();
   const { storage } = useInMemoryStorage();
   const queryClient = useQueryClient();
@@ -398,7 +398,7 @@ export function useDecryptionSignature() {
 }
 ```
 
-**Commit message:** `feat(sdk): add useDecryptionSignature hook with caching`
+**Commit message:** `feat(sdk): add useUserDecryptionSignature hook with caching`
 
 ---
 
@@ -414,8 +414,8 @@ export { fhevmQueryClient } from "./queryClient";
 export { fhevmKeys } from "./queryKeys";
 
 // New hooks
-export { useDecryptedValue } from "./useDecryptedValue";
-export { useDecryptionSignature } from "./useDecryptionSignature";
+export { useUserDecryptedValue } from "./useUserDecryptedValue";
+export { useUserDecryptionSignature } from "./useUserDecryptionSignature";
 ```
 
 **Commit message:** `feat(sdk): export TanStack Query utilities and new hooks`
@@ -445,8 +445,8 @@ export { useDecryptionSignature } from "./useDecryptionSignature";
 - `packages/erc7984example/hooks/erc7984/useERC7984Wagmi.tsx` - Use new hooks
 
 **Changes:**
-- Replace `useFHEDecrypt` with `useDecrypt`
-- Use cached values from `useDecryptedValue`
+- Replace `useFHEDecrypt` with `useUserDecrypt`
+- Use cached values from `useUserDecryptedValue`
 - Leverage mutation state for UI
 
 **Commit message:** `refactor(frontend): use new TanStack Query hooks`
@@ -463,9 +463,9 @@ src/react/
 ├── queryClient.ts              # NEW: SDK query client
 ├── queryKeys.ts                # NEW: Query key factory
 ├── useEncrypt.ts               # + mutation wrapper
-├── useDecrypt.ts               # Refactored to useMutation
-├── useDecryptedValue.ts        # NEW: Cached value lookup
-├── useDecryptionSignature.ts   # NEW: Signature caching
+├── useUserDecrypt.ts               # Refactored to useMutation
+├── useUserDecryptedValue.ts        # NEW: Cached value lookup
+├── useUserDecryptionSignature.ts   # NEW: Signature caching
 ├── useFhevmStatus.ts           # Unchanged
 ├── useFhevmClient.ts           # Unchanged
 ├── useInMemoryStorage.tsx      # Unchanged
@@ -482,13 +482,13 @@ src/react/
 ### New Hooks
 | Hook | Purpose |
 |------|---------|
-| `useDecryptedValue` | Query cached decrypted values |
-| `useDecryptionSignature` | Manage signature caching |
+| `useUserDecryptedValue` | Query cached decrypted values |
+| `useUserDecryptionSignature` | Manage signature caching |
 
 ### Modified Hooks
 | Hook | Changes |
 |------|---------|
-| `useDecrypt` | Now uses `useMutation`, adds `isSuccess`, `isError` |
+| `useUserDecrypt` | Now uses `useMutation`, adds `isSuccess`, `isError` |
 | `useEncrypt` | Adds optional `encryptMutation` object |
 
 ### New Exports
@@ -501,7 +501,7 @@ src/react/
 
 ## Backward Compatibility
 
-1. **useDecrypt** - Same return interface, adds new fields
+1. **useUserDecrypt** - Same return interface, adds new fields
 2. **useEncrypt** - Same return interface, adds `encryptMutation`
 3. **Legacy hooks** - Moved to `legacy/` but still exported with deprecation warnings
 4. **FhevmProvider** - No API changes, internally wraps with QueryClientProvider
@@ -526,16 +526,16 @@ All phases implemented and tested. See commits on `feat/fhevm-sdk-wagmi-style` b
   - [x] Write tests (12 new tests)
   - [x] Commit
 
-- [x] Phase 3: Refactor useDecrypt with useMutation (commit: f00b7cb)
-  - [x] Update useDecrypt.ts
+- [x] Phase 3: Refactor useUserDecrypt with useMutation (commit: f00b7cb)
+  - [x] Update useUserDecrypt.ts
   - [x] Cache individual decrypted values
   - [x] Add isSuccess, isError, isIdle fields
   - [x] Verify backward compatibility
   - [x] Commit
 
-- [x] Phase 4: Add useDecryptedValue hook (commit: 53b6b02)
-  - [x] Create useDecryptedValue.ts
-  - [x] Add useDecryptedValues for batch lookups
+- [x] Phase 4: Add useUserDecryptedValue hook (commit: 53b6b02)
+  - [x] Create useUserDecryptedValue.ts
+  - [x] Add useUserDecryptedValues for batch lookups
   - [x] Commit
 
 - [x] Phase 5: Refactor useEncrypt with useMutation (commit: c028ef3)
@@ -544,7 +544,7 @@ All phases implemented and tested. See commits on `feat/fhevm-sdk-wagmi-style` b
   - [x] Commit
 
 - [x] Phase 6: Signature caching (SKIPPED)
-  - Signature caching is handled internally by useDecrypt via FhevmDecryptionSignature
+  - Signature caching is handled internally by useUserDecrypt via FhevmDecryptionSignature
 
 - [x] Phase 7: Update exports (commit: 3af1f44)
   - [x] Update src/react/index.ts
