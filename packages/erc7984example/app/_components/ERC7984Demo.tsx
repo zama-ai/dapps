@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FHEBenchmark } from "./FHEBenchmark";
 import { ethers } from "ethers";
 import { useFhevmStatus, useFhevmContext } from "fhevm-sdk";
 import { useAccount } from "wagmi";
@@ -271,6 +270,16 @@ export const ERC7984Demo = () => {
         </button>
       </div>
 
+      {/* Messages */}
+      {erc7984.message && (
+        <div className={sectionClass}>
+          <h3 className={titleClass}>💬 Messages</h3>
+          <div className="glass-card p-5">
+            <p className="text-[#2D2D2D] font-medium">{erc7984.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* Transfer Section */}
       <div className={sectionClass}>
         <h3 className={titleClass}>📤 Transfer Confidential Tokens</h3>
@@ -315,16 +324,6 @@ export const ERC7984Demo = () => {
         </div>
       </div>
 
-      {/* Messages */}
-      {erc7984.message && (
-        <div className={sectionClass}>
-          <h3 className={titleClass}>💬 Messages</h3>
-          <div className="glass-card p-5">
-            <p className="text-[#2D2D2D] font-medium">{erc7984.message}</p>
-          </div>
-        </div>
-      )}
-
       {/* Status Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className={sectionClass}>
@@ -348,9 +347,6 @@ export const ERC7984Demo = () => {
           </div>
         </div>
       </div>
-
-      {/* FHE Performance Benchmark - uses context, no props needed */}
-      <FHEBenchmark />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     Airdrop: {
-      address: "0x380ee13b0039852314fFF513821729B052D06a71",
+      address: "0xE261f99A2EF5b089e9C042B3C8eEEdedaD84962f",
       abi: [
         {
           inputs: [],
@@ -74,6 +74,19 @@ const deployedContracts = {
           ],
           name: "OwnershipTransferred",
           type: "event",
+        },
+        {
+          inputs: [],
+          name: "AIRDROP_AMOUNT",
+          outputs: [
+            {
+              internalType: "uint64",
+              name: "",
+              type: "uint64",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
         },
         {
           inputs: [
@@ -188,10 +201,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 4,
+      deployedOnBlock: 11,
     },
     ERC7984Example: {
-      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
+      address: "0x31983BFF9c6B628400D978EdB159670109FCA5F9",
       abi: [
         {
           inputs: [
@@ -1053,7 +1066,143 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 3,
+      deployedOnBlock: 10,
+    },
+    PublicDecryptSingleValue: {
+      address: "0xb133B58DB46Df08cfe4e7ba9d42B4f90c77772e6",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "InvalidKMSSignatures",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              indexed: false,
+              internalType: "bytes",
+              name: "abiEncodedCleartexts",
+              type: "bytes",
+            },
+          ],
+          name: "PublicDecryptionVerified",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              internalType: "bytes",
+              name: "cleartexts",
+              type: "bytes",
+            },
+            {
+              internalType: "bytes",
+              name: "decryptionProof",
+              type: "bytes",
+            },
+          ],
+          name: "callbackDecryptSingleUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "clearUint32",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getHandle",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint32",
+              name: "value",
+              type: "uint32",
+            },
+          ],
+          name: "initializeUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint32",
+              name: "value",
+              type: "uint32",
+            },
+          ],
+          name: "initializeUint32Wrong",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "requestDecryptSingleUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 12,
     },
   },
   11155111: {
@@ -2118,6 +2267,142 @@ const deployedContracts = {
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
       deployedOnBlock: 10092096,
+    },
+    PublicDecryptSingleValue: {
+      address: "0x1365229D1769232CCbC795c7181dD65B34872348",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "InvalidKMSSignatures",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ZamaProtocolUnsupported",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              indexed: false,
+              internalType: "bytes",
+              name: "abiEncodedCleartexts",
+              type: "bytes",
+            },
+          ],
+          name: "PublicDecryptionVerified",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes32[]",
+              name: "handlesList",
+              type: "bytes32[]",
+            },
+            {
+              internalType: "bytes",
+              name: "cleartexts",
+              type: "bytes",
+            },
+            {
+              internalType: "bytes",
+              name: "decryptionProof",
+              type: "bytes",
+            },
+          ],
+          name: "callbackDecryptSingleUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "clearUint32",
+          outputs: [
+            {
+              internalType: "uint32",
+              name: "",
+              type: "uint32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "confidentialProtocolId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getHandle",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint32",
+              name: "value",
+              type: "uint32",
+            },
+          ],
+          name: "initializeUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint32",
+              name: "value",
+              type: "uint32",
+            },
+          ],
+          name: "initializeUint32Wrong",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "requestDecryptSingleUint32",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 10106218,
     },
   },
 } as const;
