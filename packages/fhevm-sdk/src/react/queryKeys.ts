@@ -38,6 +38,21 @@ export const fhevmKeys = {
     [...fhevmKeys.decrypt(), chainId, "batch", handles.sort().join(",")] as const,
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Public Decryption Queries
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /** Base key for all public decryption queries */
+  publicDecrypt: () => [...fhevmKeys.all, "publicDecrypt"] as const,
+
+  /** Key for a specific publicly decrypted handle value */
+  publicDecryptHandle: (chainId: number, handle: string) =>
+    [...fhevmKeys.publicDecrypt(), chainId, handle] as const,
+
+  /** Key for batch public decryption results */
+  publicDecryptBatch: (chainId: number, handles: string[]) =>
+    [...fhevmKeys.publicDecrypt(), chainId, "batch", handles.sort().join(",")] as const,
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Signature Queries
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -77,6 +92,9 @@ export type FhevmQueryKey =
   | ReturnType<typeof fhevmKeys.decrypt>
   | ReturnType<typeof fhevmKeys.decryptHandle>
   | ReturnType<typeof fhevmKeys.decryptBatch>
+  | ReturnType<typeof fhevmKeys.publicDecrypt>
+  | ReturnType<typeof fhevmKeys.publicDecryptHandle>
+  | ReturnType<typeof fhevmKeys.publicDecryptBatch>
   | ReturnType<typeof fhevmKeys.signature>
   | ReturnType<typeof fhevmKeys.signatureFor>
   | ReturnType<typeof fhevmKeys.encrypt>

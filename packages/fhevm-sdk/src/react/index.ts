@@ -5,6 +5,7 @@ export { FhevmContext, useFhevmContext, type FhevmContextValue, type FhevmStatus
 // Hooks (wagmi-style API)
 export { useEncrypt, type UseEncryptReturn, type EncryptedInput, type EncryptableType, type EncryptInput, type EncryptMutationState, type EncryptMutationParams } from "./useEncrypt";
 export { useUserDecrypt, type UseDecryptReturn, type DecryptRequest, type DecryptParams } from "./useUserDecrypt";
+export { usePublicDecrypt, type UsePublicDecryptReturn, type PublicDecryptResult, type PublicDecryptParams } from "./usePublicDecrypt";
 export { useFhevmStatus, type UseFhevmStatusReturn } from "./useFhevmStatus";
 export { useFhevmClient, type UseFhevmClientReturn } from "./useFhevmClient";
 export { useEthersSigner, type UseEthersSignerReturn } from "./useEthersSigner";

@@ -151,6 +151,35 @@ interface DecryptParams {
 }
 ```
 
+## Public Decryption Types
+
+### PublicDecryptParams
+
+Parameters for public decryption:
+
+```tsx
+interface PublicDecryptParams {
+  handles: (string | undefined)[] | undefined;
+}
+```
+
+### PublicDecryptResult
+
+Result from public decryption including proof for contract callbacks:
+
+```tsx
+interface PublicDecryptResult {
+  /** Decrypted values keyed by handle */
+  clearValues: Record<string, string | bigint | boolean>;
+
+  /** ABI-encoded clear values for contract callback */
+  abiEncodedClearValues: `0x${string}`;
+
+  /** Decryption proof for contract verification */
+  decryptionProof: `0x${string}`;
+}
+```
+
 ## Chain Types
 
 ### FhevmChain
@@ -233,6 +262,25 @@ interface UseDecryptReturn {
   canDecrypt: boolean;
   decrypt: () => void;
   results: Record<string, string | bigint | boolean>;
+  isDecrypting: boolean;
+  message: string;
+  error: string | null;
+  clearError: () => void;
+  isSuccess: boolean;
+  isError: boolean;
+  isIdle: boolean;
+}
+```
+
+### UsePublicDecryptReturn
+
+```tsx
+interface UsePublicDecryptReturn {
+  canDecrypt: boolean;
+  decrypt: () => void;
+  decryptAsync: () => Promise<PublicDecryptResult | undefined>;
+  result: PublicDecryptResult | undefined;
+  clearValues: Record<string, string | bigint | boolean>;
   isDecrypting: boolean;
   message: string;
   error: string | null;

@@ -21,6 +21,7 @@
 
 * [useEncrypt](hooks/use-encrypt.md)
 * [useUserDecrypt](hooks/use-user-decrypt.md)
+* [usePublicDecrypt](hooks/use-public-decrypt.md)
 * [useFhevmStatus](hooks/use-fhevm-status.md)
 * [useFhevmClient](hooks/use-fhevm-client.md)
 * [useEthersSigner](hooks/use-ethers-signer.md)
