@@ -18,19 +18,34 @@ fhevm-sdk provides wagmi-style hooks for encrypting, decrypting, and managing FH
 ## Quick Example
 
 ```tsx
-import { useEncrypt, useUserDecrypt } from "fhevm-sdk";
+import { useEncrypt, useFhevmStatus } from "fhevm-sdk";
+import { useWriteContract } from "wagmi";
 
-function EncryptedTransfer({ contractAddress }) {
-  const { encrypt, isReady } = useEncrypt();
+function EncryptedTransfer({ contractAddress, tokenAbi }) {
+  const { isReady } = useFhevmStatus();
+  const { encrypt } = useEncrypt();
+  const { writeContract } = useWriteContract();
 
-  const handleTransfer = async (amount: bigint) => {
+  const handleTransfer = async (recipient: string, amount: bigint) => {
+    // Encrypt the amount client-side
     const encrypted = await encrypt(amount, contractAddress);
-    // Use encrypted.handles[0] and encrypted.inputProof in contract call
+    if (!encrypted) return;
+
+    // Send encrypted value to contract
+    writeContract({
+      address: contractAddress,
+      abi: tokenAbi,
+      functionName: "transfer",
+      args: [recipient, encrypted.handles[0], encrypted.inputProof],
+    });
   };
 
   return (
-    <button onClick={() => handleTransfer(100n)} disabled={!isReady}>
-      Transfer
+    <button
+      onClick={() => handleTransfer("0x...", 100n)}
+      disabled={!isReady}
+    >
+      Transfer 100 Tokens
     </button>
   );
 }
