@@ -28,7 +28,7 @@ export interface DecryptParams {
 }
 
 /**
- * Return type for useDecrypt hook.
+ * Return type for useUserDecrypt hook.
  */
 export interface UseDecryptReturn {
   /**
@@ -86,7 +86,7 @@ export interface UseDecryptReturn {
  *
  * **Simple single-handle (recommended):**
  * ```tsx
- * const { decrypt, isDecrypting, results } = useDecrypt({
+ * const { decrypt, isDecrypting, results } = useUserDecrypt({
  *   handle: balanceHandle,
  *   contractAddress: '0x...'
  * })
@@ -94,7 +94,7 @@ export interface UseDecryptReturn {
  *
  * **Batch decryption:**
  * ```tsx
- * const { decrypt, results } = useDecrypt(
+ * const { decrypt, results } = useUserDecrypt(
  *   [{ handle: handle1, contractAddress }, { handle: handle2, contractAddress }],
  *   signer // optional - auto-detected from window.ethereum if not provided
  * )
@@ -104,7 +104,7 @@ export interface UseDecryptReturn {
  * ```tsx
  * // Simple usage - signer is auto-detected
  * function BalanceDisplay({ handle, contractAddress }) {
- *   const { results, decrypt, isDecrypting, canDecrypt } = useDecrypt({
+ *   const { results, decrypt, isDecrypting, canDecrypt } = useUserDecrypt({
  *     handle,
  *     contractAddress
  *   })
@@ -122,7 +122,7 @@ export interface UseDecryptReturn {
  * }
  * ```
  */
-export function useDecrypt(
+export function useUserDecrypt(
   requestsOrParams: readonly DecryptRequest[] | DecryptParams | undefined,
   signerOverride?: ethers.JsonRpcSigner | undefined
 ): UseDecryptReturn {
@@ -151,7 +151,7 @@ export function useDecrypt(
         const signer = await provider.getSigner(address);
         setAutoSigner(signer);
       } catch (err) {
-        console.error("[useDecrypt] Failed to get signer from window.ethereum:", err);
+        console.error("[useUserDecrypt] Failed to get signer from window.ethereum:", err);
         setAutoSigner(undefined);
       }
     }

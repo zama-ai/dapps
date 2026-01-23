@@ -4,13 +4,13 @@ export { FhevmContext, useFhevmContext, type FhevmContextValue, type FhevmStatus
 
 // Hooks (wagmi-style API)
 export { useEncrypt, type UseEncryptReturn, type EncryptedInput, type EncryptableType, type EncryptInput, type EncryptMutationState, type EncryptMutationParams } from "./useEncrypt";
-export { useDecrypt, type UseDecryptReturn, type DecryptRequest, type DecryptParams } from "./useDecrypt";
+export { useUserDecrypt, type UseDecryptReturn, type DecryptRequest, type DecryptParams } from "./useUserDecrypt";
 export { useFhevmStatus, type UseFhevmStatusReturn } from "./useFhevmStatus";
 export { useFhevmClient, type UseFhevmClientReturn } from "./useFhevmClient";
 export { useEthersSigner, type UseEthersSignerReturn } from "./useEthersSigner";
 
 // Cache lookup hooks (TanStack Query powered)
-export { useDecryptedValue, useDecryptedValues, type UseDecryptedValueReturn } from "./useDecryptedValue";
+export { useUserDecryptedValue, useUserDecryptedValues, type UseDecryptedValueReturn } from "./useUserDecryptedValue";
 
 // TanStack Query utilities
 export { fhevmQueryClient, createFhevmQueryClient } from "./queryClient";

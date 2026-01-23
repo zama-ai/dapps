@@ -6,7 +6,7 @@ import { useFhevmContext } from "./context";
 import { fhevmKeys } from "./queryKeys";
 
 /**
- * Return type for useDecryptedValue hook.
+ * Return type for useUserDecryptedValue hook.
  */
 export interface UseDecryptedValueReturn {
   /** The cached decrypted value, or undefined if not cached */
@@ -26,13 +26,13 @@ export interface UseDecryptedValueReturn {
  * Hook for reading cached decrypted values without triggering new decryption.
  *
  * This hook provides a read-only view of the decryption cache populated by
- * useDecrypt. It's useful for:
+ * useUserDecrypt. It's useful for:
  * - Displaying previously decrypted values
  * - Checking if a value has been decrypted before
  * - Avoiding redundant decryption operations
  *
  * Note: This hook does NOT trigger decryption. To decrypt values,
- * use the useDecrypt hook instead.
+ * use the useUserDecrypt hook instead.
  *
  * @param handle - The encrypted handle to look up, or undefined
  * @param contractAddress - The contract address, or undefined
@@ -40,7 +40,7 @@ export interface UseDecryptedValueReturn {
  * @example
  * ```tsx
  * function CachedBalance({ handle, contractAddress }) {
- *   const { data, isCached } = useDecryptedValue(handle, contractAddress)
+ *   const { data, isCached } = useUserDecryptedValue(handle, contractAddress)
  *
  *   if (!isCached) {
  *     return <p>Value not decrypted yet</p>
@@ -52,11 +52,11 @@ export interface UseDecryptedValueReturn {
  *
  * @example
  * ```tsx
- * // Use with useDecrypt for a complete flow
+ * // Use with useUserDecrypt for a complete flow
  * function Balance({ handle, contractAddress }) {
  *   const { data: signer } = useEthersSigner()
- *   const { isCached, data: cachedValue } = useDecryptedValue(handle, contractAddress)
- *   const { decrypt, isDecrypting, canDecrypt } = useDecrypt(
+ *   const { isCached, data: cachedValue } = useUserDecryptedValue(handle, contractAddress)
+ *   const { decrypt, isDecrypting, canDecrypt } = useUserDecrypt(
  *     handle && !isCached ? [{ handle, contractAddress }] : undefined,
  *     signer
  *   )
@@ -77,7 +77,7 @@ export interface UseDecryptedValueReturn {
  * }
  * ```
  */
-export function useDecryptedValue(
+export function useUserDecryptedValue(
   handle: string | undefined,
   contractAddress: `0x${string}` | undefined
 ): UseDecryptedValueReturn {
@@ -111,7 +111,7 @@ export function useDecryptedValue(
  * @example
  * ```tsx
  * function TokenBalances({ tokens }) {
- *   const cached = useDecryptedValues(
+ *   const cached = useUserDecryptedValues(
  *     tokens.map(t => ({ handle: t.handle, contractAddress: t.address }))
  *   )
  *
@@ -127,7 +127,7 @@ export function useDecryptedValue(
  * }
  * ```
  */
-export function useDecryptedValues(
+export function useUserDecryptedValues(
   handles: readonly { handle: string; contractAddress: `0x${string}` }[] | undefined
 ): {
   values: (string | bigint | boolean | undefined)[];
