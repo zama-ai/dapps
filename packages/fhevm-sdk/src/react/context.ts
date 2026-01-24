@@ -1,6 +1,8 @@
 import { createContext, useContext } from "react";
 import type { FhevmConfig } from "../config";
 import type { FhevmInstance } from "../fhevmTypes";
+import type { Eip1193Provider } from "../internal/eip1193";
+import type { GenericStringStorage } from "../storage/GenericStringStorage";
 
 /**
  * Status of the FHEVM instance initialization.
@@ -23,14 +25,20 @@ export interface FhevmContextValue {
   /** Error if status is 'error' */
   error: Error | undefined;
 
-  /** Current chain ID from wagmi */
+  /** Current chain ID */
   chainId: number | undefined;
 
-  /** User's wallet address from wagmi */
+  /** User's wallet address */
   address: `0x${string}` | undefined;
 
   /** Whether the wallet is connected */
   isConnected: boolean;
+
+  /** EIP-1193 provider for signing operations */
+  provider: Eip1193Provider | undefined;
+
+  /** Storage for caching signatures (optional, developer-provided) */
+  storage: GenericStringStorage | undefined;
 
   /** Force re-initialization of the FHEVM instance */
   refresh: () => void;

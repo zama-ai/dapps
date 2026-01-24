@@ -8,6 +8,8 @@ import React, {
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { FhevmConfig } from "../config";
 import type { FhevmInstance } from "../fhevmTypes";
+import type { Eip1193Provider } from "../internal/eip1193";
+import type { GenericStringStorage } from "../storage/GenericStringStorage";
 import { FhevmContext, type FhevmContextValue, type FhevmStatus } from "./context";
 import { createFhevmInstance, FhevmAbortError } from "../internal/fhevm";
 import { InMemoryStorageProvider } from "./useInMemoryStorage";
@@ -25,26 +27,64 @@ export interface FhevmProviderProps {
   children: React.ReactNode;
 
   /**
-   * Wagmi connection state. Pass these from wagmi's useAccount hook.
-   * If not provided, you must manage initialization manually.
+   * EIP-1193 provider for FHEVM operations.
+   * This can be window.ethereum, a wagmi connector, or any EIP-1193 compatible provider.
+   * If not provided, will attempt to use window.ethereum.
+   */
+  provider?: Eip1193Provider;
+
+  /**
+   * User's wallet address.
+   * Required for encryption and decryption operations.
+   */
+  address?: `0x${string}`;
+
+  /**
+   * Current chain ID.
+   * Required for FHEVM initialization.
+   */
+  chainId?: number;
+
+  /**
+   * Whether the wallet is connected.
+   * Controls auto-initialization.
+   */
+  isConnected?: boolean;
+
+  /**
+   * Storage for caching decryption signatures.
+   *
+   * SECURITY NOTE: The SDK does NOT provide a default storage.
+   * You must explicitly choose your storage strategy:
+   *
+   * - `memoryStorage` - Keys cleared on refresh (most secure, re-sign every time)
+   * - `sessionStorageAdapter` - Keys cleared when tab closes
+   * - `localStorageAdapter` - Persistent (accessible to any JS on the page)
+   * - `indexedDBStorage` - Persistent (from config.storage)
+   * - Custom storage - Implement GenericStringStorage interface
+   * - `undefined` - No caching, re-sign every decrypt operation
+   *
+   * @example
+   * ```tsx
+   * import { memoryStorage } from 'fhevm-sdk';
+   *
+   * <FhevmProvider storage={memoryStorage} ... />
+   * ```
+   */
+  storage?: GenericStringStorage;
+
+  /**
+   * @deprecated Use `address`, `chainId`, and `isConnected` props directly instead.
+   * This prop will be removed in a future version.
    */
   wagmi?: {
-    /** Whether wallet is connected */
     isConnected: boolean;
-    /** Current chain ID */
     chainId: number | undefined;
-    /** User's wallet address */
     address: `0x${string}` | undefined;
   };
 
   /**
-   * EIP-1193 provider for FHEVM operations.
-   * If not provided, will attempt to use window.ethereum.
-   */
-  provider?: any;
-
-  /**
-   * Whether to automatically initialize when wagmi connects.
+   * Whether to automatically initialize when wallet connects.
    * Default: true
    */
   autoInit?: boolean;
@@ -53,15 +93,16 @@ export interface FhevmProviderProps {
 /**
  * FhevmProvider initializes and manages the FHEVM instance.
  *
- * Wrap your app with this provider after WagmiProvider:
+ * Wrap your app with this provider to enable FHE encryption/decryption.
  *
  * @example
  * ```tsx
- * import { createFhevmConfig, FhevmProvider, sepolia, hardhatLocal } from 'fhevm-sdk'
+ * // With wagmi
+ * import { createFhevmConfig, FhevmProvider, sepolia, memoryStorage } from 'fhevm-sdk'
  * import { useAccount } from 'wagmi'
  *
  * const config = createFhevmConfig({
- *   chains: [sepolia, hardhatLocal],
+ *   chains: [sepolia],
  * })
  *
  * function App() {
@@ -70,7 +111,35 @@ export interface FhevmProviderProps {
  *   return (
  *     <FhevmProvider
  *       config={config}
- *       wagmi={{ isConnected, chainId, address }}
+ *       provider={window.ethereum}
+ *       address={address}
+ *       chainId={chainId}
+ *       isConnected={isConnected}
+ *       storage={memoryStorage}
+ *     >
+ *       <YourApp />
+ *     </FhevmProvider>
+ *   )
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // With viem only
+ * import { createFhevmConfig, FhevmProvider, sepolia } from 'fhevm-sdk'
+ * import { useWallet } from './useWallet' // Custom hook
+ *
+ * function App() {
+ *   const { address, chainId, isConnected } = useWallet()
+ *
+ *   return (
+ *     <FhevmProvider
+ *       config={createFhevmConfig({ chains: [sepolia] })}
+ *       provider={window.ethereum}
+ *       address={address}
+ *       chainId={chainId}
+ *       isConnected={isConnected}
+ *       // No storage = re-sign every time (most secure)
  *     >
  *       <YourApp />
  *     </FhevmProvider>
@@ -81,10 +150,29 @@ export interface FhevmProviderProps {
 export function FhevmProvider({
   config,
   children,
-  wagmi,
   provider: providerProp,
+  address: addressProp,
+  chainId: chainIdProp,
+  isConnected: isConnectedProp,
+  storage,
+  wagmi,
   autoInit = true,
 }: FhevmProviderProps): React.ReactElement {
+  // Support deprecated wagmi prop for backwards compatibility
+  const address = addressProp ?? wagmi?.address;
+  const chainId = chainIdProp ?? wagmi?.chainId;
+  const isConnected = isConnectedProp ?? wagmi?.isConnected ?? false;
+
+  // Warn about deprecated wagmi prop
+  useEffect(() => {
+    if (wagmi && process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[FhevmProvider] The 'wagmi' prop is deprecated. " +
+          "Use 'address', 'chainId', and 'isConnected' props directly instead."
+      );
+    }
+  }, [wagmi]);
+
   // Load relayer SDK script automatically
   const {
     status: scriptStatus,
@@ -115,13 +203,8 @@ export function FhevmProvider({
   // Combine script and fhevm errors
   const error = scriptError ?? fhevmError;
 
-  // Determine connection state
-  const isConnected = wagmi?.isConnected ?? false;
-  const chainId = wagmi?.chainId;
-  const address = wagmi?.address;
-
   // Get provider - prefer prop, fallback to window.ethereum
-  const provider = useMemo(() => {
+  const provider = useMemo((): Eip1193Provider | undefined => {
     if (providerProp) return providerProp;
     if (typeof window !== "undefined") {
       return (window as any).ethereum;
@@ -226,7 +309,7 @@ export function FhevmProvider({
     }
   }, [chainId, initializeFhevm]);
 
-  // Auto-initialize when wagmi connects or chain changes
+  // Auto-initialize when wallet connects or chain changes
   useEffect(() => {
     if (!autoInit) return;
 
@@ -281,9 +364,11 @@ export function FhevmProvider({
       chainId,
       address,
       isConnected,
+      provider,
+      storage,
       refresh,
     }),
-    [config, instance, status, error, chainId, address, isConnected, refresh]
+    [config, instance, status, error, chainId, address, isConnected, provider, storage, refresh]
   );
 
   return (

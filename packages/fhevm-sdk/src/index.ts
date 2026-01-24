@@ -19,6 +19,14 @@ export * from "./storage/index";
 export * from "./fhevmTypes";
 export * from "./FhevmDecryptionSignature";
 
+// EIP-1193 provider types (for use without ethers/viem/wagmi)
+export type {
+  Eip1193Provider,
+  TypedDataDomain,
+  TypedDataField,
+  EIP712TypedData,
+} from "./internal/eip1193";
+
 // Encryption types
 export type {
   FheTypeName,

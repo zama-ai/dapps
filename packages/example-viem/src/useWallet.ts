@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { createWalletClient, custom, type WalletClient, type CustomTransport, type Chain } from "viem";
+import { createWalletClient, custom, getAddress, type WalletClient, type CustomTransport, type Chain } from "viem";
 import { mainnet } from "viem/chains";
 
 declare global {
@@ -90,7 +90,8 @@ export function useWallet() {
       if (accs.length === 0) {
         disconnect();
       } else if (state.isConnected) {
-        setState((s) => ({ ...s, address: accs[0] as `0x${string}` }));
+        const checksummedAddress = getAddress(accs[0]);
+        setState((s) => ({ ...s, address: checksummedAddress }));
       }
     };
 

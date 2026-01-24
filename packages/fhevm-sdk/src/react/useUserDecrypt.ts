@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFhevmContext } from "./context";
-import { FhevmDecryptionSignature } from "../FhevmDecryptionSignature";
+import { FhevmDecryptionSignature, type SignerParams } from "../FhevmDecryptionSignature";
 import { fhevmKeys } from "./queryKeys";
-import { ethers } from "ethers";
+import { noOpStorage } from "../storage/adapters";
 
 /**
  * Request for decrypting an encrypted handle.
@@ -33,7 +33,7 @@ export interface DecryptParams {
 export interface UseDecryptReturn {
   /**
    * Whether decryption is ready to be called.
-   * False if FHEVM not ready, no signer, or already decrypting.
+   * False if FHEVM not ready, no provider, or already decrypting.
    */
   canDecrypt: boolean;
 
@@ -78,9 +78,8 @@ export interface UseDecryptReturn {
 /**
  * Hook for decrypting FHE encrypted values using TanStack Query mutations.
  *
- * Handles decryption signature management automatically using
- * the storage from FhevmConfig. Results are cached in the query client
- * for fast lookups.
+ * Uses EIP-1193 provider for signing (no ethers.js dependency).
+ * Storage must be provided via FhevmProvider to cache signatures.
  *
  * Supports two usage patterns:
  *
@@ -94,15 +93,14 @@ export interface UseDecryptReturn {
  *
  * **Batch decryption:**
  * ```tsx
- * const { decrypt, results } = useUserDecrypt(
- *   [{ handle: handle1, contractAddress }, { handle: handle2, contractAddress }],
- *   signer // optional - auto-detected from window.ethereum if not provided
- * )
+ * const { decrypt, results } = useUserDecrypt([
+ *   { handle: handle1, contractAddress },
+ *   { handle: handle2, contractAddress }
+ * ])
  * ```
  *
  * @example
  * ```tsx
- * // Simple usage - signer is auto-detected
  * function BalanceDisplay({ handle, contractAddress }) {
  *   const { results, decrypt, isDecrypting, canDecrypt } = useUserDecrypt({
  *     handle,
@@ -123,42 +121,13 @@ export interface UseDecryptReturn {
  * ```
  */
 export function useUserDecrypt(
-  requestsOrParams: readonly DecryptRequest[] | DecryptParams | undefined,
-  signerOverride?: ethers.JsonRpcSigner | undefined
+  requestsOrParams: readonly DecryptRequest[] | DecryptParams | undefined
 ): UseDecryptReturn {
-  const { instance, config, chainId, status, address } = useFhevmContext();
+  const { instance, config, chainId, status, address, provider, storage } = useFhevmContext();
   const queryClient = useQueryClient();
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Auto-detect signer from window.ethereum if not provided
-  // ─────────────────────────────────────────────────────────────────────────────
-  const [autoSigner, setAutoSigner] = useState<ethers.JsonRpcSigner | undefined>(undefined);
-
-  useEffect(() => {
-    async function getSigner() {
-      if (signerOverride) {
-        setAutoSigner(undefined); // Use override, don't need auto signer
-        return;
-      }
-
-      if (typeof window === "undefined" || !(window as any).ethereum || !address) {
-        setAutoSigner(undefined);
-        return;
-      }
-
-      try {
-        const provider = new ethers.BrowserProvider((window as any).ethereum);
-        const signer = await provider.getSigner(address);
-        setAutoSigner(signer);
-      } catch (err) {
-        console.error("[useUserDecrypt] Failed to get signer from window.ethereum:", err);
-        setAutoSigner(undefined);
-      }
-    }
-    getSigner();
-  }, [signerOverride, address, chainId]); // Re-create signer when chain changes
-
-  const signer = signerOverride ?? autoSigner;
+  // Use noOpStorage if no storage is provided (no caching)
+  const effectiveStorage = storage ?? noOpStorage;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Normalize requests: support both single-handle and batch patterns
@@ -177,15 +146,6 @@ export function useUserDecrypt(
     return requestsOrParams as readonly DecryptRequest[];
   }, [requestsOrParams]);
 
-  // Create a stable key for the current requests
-  const requestsKey = useMemo(() => {
-    if (!requests || requests.length === 0) return "";
-    const sorted = [...requests].sort((a, b) =>
-      (a.handle + a.contractAddress).localeCompare(b.handle + b.contractAddress)
-    );
-    return JSON.stringify(sorted);
-  }, [requests]);
-
   // TanStack Query mutation for decryption
   const mutation = useMutation({
     mutationKey: chainId
@@ -198,8 +158,11 @@ export function useUserDecrypt(
       if (!instance) {
         throw new Error("FHEVM instance not ready");
       }
-      if (!signer) {
-        throw new Error("Signer not available");
+      if (!provider) {
+        throw new Error("No provider available. Pass a provider to FhevmProvider.");
+      }
+      if (!address) {
+        throw new Error("No address available. Pass address to FhevmProvider.");
       }
       if (!chainId) {
         throw new Error("Chain ID not available");
@@ -207,6 +170,12 @@ export function useUserDecrypt(
       if (decryptRequests.length === 0) {
         throw new Error("No requests to decrypt");
       }
+
+      // Create signer params from context
+      const signer: SignerParams = {
+        provider,
+        address,
+      };
 
       // Get unique contract addresses
       const uniqueAddresses = Array.from(
@@ -218,7 +187,7 @@ export function useUserDecrypt(
         instance,
         uniqueAddresses as `0x${string}`[],
         signer,
-        config.storage
+        effectiveStorage
       );
 
       if (!sig) {
@@ -263,12 +232,13 @@ export function useUserDecrypt(
     return (
       status === "ready" &&
       instance !== undefined &&
-      signer !== undefined &&
+      provider !== undefined &&
+      address !== undefined &&
       requests !== undefined &&
       requests.length > 0 &&
       !mutation.isPending
     );
-  }, [status, instance, signer, requests, mutation.isPending]);
+  }, [status, instance, provider, address, requests, mutation.isPending]);
 
   // Decrypt callback that triggers the mutation
   const decrypt = useCallback(() => {

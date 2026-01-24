@@ -1,21 +1,29 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FhevmDecryptionSignature } from "../FhevmDecryptionSignature.js";
+import { FhevmDecryptionSignature, type SignerParams } from "../FhevmDecryptionSignature.js";
 import { GenericStringStorage } from "../storage/GenericStringStorage.js";
 import { FhevmInstance } from "../fhevmTypes.js";
-import { ethers } from "ethers";
+import type { Eip1193Provider } from "../internal/eip1193.js";
 
 export type FHEDecryptRequest = { handle: string; contractAddress: `0x${string}` };
 
+/**
+ * @deprecated Use useUserDecrypt instead, which integrates with FhevmProvider context.
+ *
+ * Legacy hook for FHE decryption. Requires manual provider and storage management.
+ */
 export const useFHEDecrypt = (params: {
   instance: FhevmInstance | undefined;
-  ethersSigner: ethers.JsonRpcSigner | undefined;
+  /** EIP-1193 provider (window.ethereum, wagmi connector, etc.) */
+  provider: Eip1193Provider | undefined;
+  /** User's wallet address */
+  address: `0x${string}` | undefined;
   fhevmDecryptionSignatureStorage: GenericStringStorage;
   chainId: number | undefined;
   requests: readonly FHEDecryptRequest[] | undefined;
 }) => {
-  const { instance, ethersSigner, fhevmDecryptionSignatureStorage, chainId, requests } = params;
+  const { instance, provider, address, fhevmDecryptionSignatureStorage, chainId, requests } = params;
 
   const [isDecrypting, setIsDecrypting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
@@ -34,15 +42,16 @@ export const useFHEDecrypt = (params: {
   }, [requests]);
 
   const canDecrypt = useMemo(() => {
-    return Boolean(instance && ethersSigner && requests && requests.length > 0 && !isDecrypting);
-  }, [instance, ethersSigner, requests, isDecrypting]);
+    return Boolean(instance && provider && address && requests && requests.length > 0 && !isDecrypting);
+  }, [instance, provider, address, requests, isDecrypting]);
 
   const decrypt = useCallback(() => {
     if (isDecryptingRef.current) return;
-    if (!instance || !ethersSigner || !requests || requests.length === 0) return;
+    if (!instance || !provider || !address || !requests || requests.length === 0) return;
 
     const thisChainId = chainId;
-    const thisSigner = ethersSigner;
+    const thisProvider = provider;
+    const thisAddress = address;
     const thisRequests = requests;
 
     // Capture the current requests key to avoid false "stale" detection on first run
@@ -55,34 +64,22 @@ export const useFHEDecrypt = (params: {
 
     const run = async () => {
       const isStale = () =>
-        thisChainId !== chainId || thisSigner !== ethersSigner || requestsKey !== lastReqKeyRef.current;
+        thisChainId !== chainId || thisProvider !== provider || thisAddress !== address || requestsKey !== lastReqKeyRef.current;
 
       try {
         console.log("[useFHEDecrypt] Starting decrypt...");
         const uniqueAddresses = Array.from(new Set(thisRequests.map(r => r.contractAddress)));
         console.log("[useFHEDecrypt] Unique addresses:", uniqueAddresses);
 
-        // Debug: test generateKeypair directly
-        console.log("[useFHEDecrypt] Testing generateKeypair directly...");
-        try {
-          const testKeypair = (instance as any).generateKeypair();
-          console.log("[useFHEDecrypt] Direct generateKeypair result:", {
-            hasPublicKey: !!testKeypair?.publicKey,
-            hasPrivateKey: !!testKeypair?.privateKey,
-            publicKeyLength: testKeypair?.publicKey?.length,
-            privateKeyLength: testKeypair?.privateKey?.length,
-            publicKeyType: typeof testKeypair?.publicKey,
-            privateKeyType: typeof testKeypair?.privateKey,
-            privateKeyPrefix: testKeypair?.privateKey?.substring?.(0, 50),
-          });
-        } catch (kpErr) {
-          console.error("[useFHEDecrypt] generateKeypair failed:", kpErr);
-        }
+        const signer: SignerParams = {
+          provider: thisProvider,
+          address: thisAddress,
+        };
 
         const sig: FhevmDecryptionSignature | null = await FhevmDecryptionSignature.loadOrSign(
           instance,
           uniqueAddresses as `0x${string}`[],
-          ethersSigner,
+          signer,
           fhevmDecryptionSignatureStorage,
         );
         console.log("[useFHEDecrypt] Signature loaded:", !!sig);
@@ -102,19 +99,6 @@ export const useFHEDecrypt = (params: {
 
         const mutableReqs = thisRequests.map(r => ({ handle: r.handle, contractAddress: r.contractAddress }));
 
-        // Detailed logging of all parameters
-        console.log("[useFHEDecrypt] ====== DECRYPT PARAMETERS ======");
-        console.log("[useFHEDecrypt] requests:", JSON.stringify(mutableReqs));
-        console.log("[useFHEDecrypt] sig object keys:", Object.keys(sig));
-        console.log("[useFHEDecrypt] sig.privateKey:", sig.privateKey);
-        console.log("[useFHEDecrypt] sig.publicKey:", sig.publicKey);
-        console.log("[useFHEDecrypt] sig.signature:", sig.signature?.substring(0, 50) + "...");
-        console.log("[useFHEDecrypt] sig.contractAddresses:", sig.contractAddresses);
-        console.log("[useFHEDecrypt] sig.userAddress:", sig.userAddress);
-        console.log("[useFHEDecrypt] sig.startTimestamp:", sig.startTimestamp);
-        console.log("[useFHEDecrypt] sig.durationDays:", sig.durationDays);
-        console.log("[useFHEDecrypt] ================================");
-
         let res: Record<string, string | bigint | boolean> = {};
         try {
           res = await instance.userDecrypt(
@@ -129,7 +113,6 @@ export const useFHEDecrypt = (params: {
           );
         } catch (e) {
           console.error("[useFHEDecrypt] userDecrypt FAILED:", e);
-          console.error("[useFHEDecrypt] Full error object:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
           const err = e as unknown as { name?: string; message?: string };
           const code = err && typeof err === "object" && "name" in (err as any) ? (err as any).name : "DECRYPT_ERROR";
           const msg = err && typeof err === "object" && "message" in (err as any) ? (err as any).message : "Decryption failed";
@@ -139,8 +122,6 @@ export const useFHEDecrypt = (params: {
         }
 
         console.log("[useFHEDecrypt] userDecrypt result:", res);
-        console.log("[useFHEDecrypt] result keys:", Object.keys(res));
-        console.log("[useFHEDecrypt] requested handles:", mutableReqs.map(r => r.handle));
         setMessage("FHEVM userDecrypt completed!");
 
         if (isStale()) {
@@ -163,7 +144,7 @@ export const useFHEDecrypt = (params: {
     };
 
     run();
-  }, [instance, ethersSigner, fhevmDecryptionSignatureStorage, chainId, requests, requestsKey]);
+  }, [instance, provider, address, fhevmDecryptionSignatureStorage, chainId, requests, requestsKey]);
 
   return { canDecrypt, decrypt, isDecrypting, message, results, error, setMessage, setError } as const;
 };

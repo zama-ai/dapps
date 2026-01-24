@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BrowserProvider, JsonRpcSigner } from "ethers";
+import { BrowserProvider, JsonRpcSigner, getAddress } from "ethers";
 
 declare global {
   interface Window {
@@ -12,7 +12,7 @@ declare global {
 }
 
 interface WalletState {
-  address: string | undefined;
+  address: `0x${string}` | undefined;
   chainId: number | undefined;
   isConnected: boolean;
   isConnecting: boolean;
@@ -47,8 +47,11 @@ export function useWallet() {
       const network = await provider.getNetwork();
       const signer = await provider.getSigner();
 
+      // Use getAddress to get checksummed address
+      const checksummedAddress = getAddress(accounts[0]) as `0x${string}`;
+
       setState({
-        address: accounts[0],
+        address: checksummedAddress,
         chainId: Number(network.chainId),
         isConnected: true,
         isConnecting: false,
@@ -84,7 +87,8 @@ export function useWallet() {
       if (accs.length === 0) {
         disconnect();
       } else if (state.isConnected) {
-        setState((s) => ({ ...s, address: accs[0] }));
+        const checksummedAddress = getAddress(accs[0]) as `0x${string}`;
+        setState((s) => ({ ...s, address: checksummedAddress }));
       }
     };
 

@@ -1,4 +1,5 @@
 import { useConnect, useConnection, useConnectors, useDisconnect } from 'wagmi'
+import { EncryptDemo } from './EncryptDemo'
 
 function App() {
   const connection = useConnection()
@@ -8,6 +9,9 @@ function App() {
 
   return (
     <>
+      <h1>example-wagmi</h1>
+      <p>Using wagmi + fhevm-sdk</p>
+
       <div>
         <h2>Connection</h2>
 
@@ -40,6 +44,8 @@ function App() {
         <div>{status}</div>
         <div>{error?.message}</div>
       </div>
+
+      <EncryptDemo />
     </>
   )
 }

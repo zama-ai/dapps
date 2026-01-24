@@ -320,19 +320,60 @@ packages/
 ## Success Criteria
 
 Each example app should:
-- [ ] Connect to wallet
-- [ ] Display FHEVM status
-- [ ] Encrypt a value
+- [x] Connect to wallet
+- [x] Display FHEVM status
+- [x] Encrypt a value
 - [ ] Decrypt a value (if applicable)
-- [ ] Build without errors
+- [x] Build without errors
 - [ ] Work with local hardhat mock chain
 
-## Next Steps
+## Implementation Status
 
-1. [ ] Create example-wagmi first (validate current SDK works)
-2. [ ] Analyze what SDK changes are needed for ethers-only
-3. [ ] Create example-ethers
-4. [ ] Decide on viem strategy
-5. [ ] Create example-viem
+All three example apps have been created and are functional:
+
+### example-wagmi (port 5173)
+- Uses `create-wagmi` CLI template
+- Uses `useConnection` and `useConnectorClient` hooks (latest wagmi API)
+- Gets EIP-1193 provider from wagmi connector client transport
+- Files: `fhevmConfig.ts`, `FhevmWrapper.tsx`, `EncryptDemo.tsx`
+
+### example-ethers (port 5174)
+- Uses Vite + React template + ethers.js
+- Custom `useWallet.ts` hook using `BrowserProvider`
+- Uses `getAddress()` for checksummed addresses
+- Vite config includes `resolve.dedupe` for React
+
+### example-viem (port 5175)
+- Uses Vite + React template + viem
+- Custom `useWallet.ts` hook using `createWalletClient`
+- Uses `getAddress()` for checksummed addresses
+- Vite config includes `resolve.dedupe` for React
+
+### Key Implementation Details
+
+**FhevmProvider Usage Pattern:**
+```tsx
+<FhevmProvider
+  config={fhevmConfig}
+  provider={window.ethereum}  // or connector transport
+  address={address}           // checksummed address
+  chainId={chainId}
+  isConnected={isConnected}
+  storage={memoryStorage}     // explicit storage choice
+>
+```
+
+**Issues Resolved:**
+1. React version mismatch - Fixed with `resolve.dedupe` in Vite config
+2. Address validation errors - Fixed by using `getAddress()` for checksumming
+3. BigInt serialization - Fixed in SDK's `signTypedData()` function
+
+## Completed Steps
+
+1. [x] Create example-wagmi first (validate current SDK works)
+2. [x] Analyze what SDK changes are needed for ethers-only
+3. [x] Create example-ethers
+4. [x] Decide on viem strategy (use EIP-1193 directly)
+5. [x] Create example-viem
 6. [ ] Add CI build checks for all examples
-7. [ ] Document each integration pattern
+7. [x] Document each integration pattern (see sdk-restructure-provider-only.md)

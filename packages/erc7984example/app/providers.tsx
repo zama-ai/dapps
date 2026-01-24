@@ -8,8 +8,8 @@ import { WagmiProvider as PrivyWagmiProvider, createConfig } from "@privy-io/wag
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { sepolia, hardhat } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
-import { WagmiProvider as StandardWagmiProvider, useAccount } from "wagmi";
-import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal } from "fhevm-sdk";
+import { WagmiProvider as StandardWagmiProvider, useAccount, useConnectorClient } from "wagmi";
+import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
 import { Header } from "~~/components/Header";
 import scaffoldConfig from "~~/scaffold.config";
 
@@ -77,15 +77,29 @@ export const wagmiConfig = privyWagmiConfig;
 // ─────────────────────────────────────────────────────────────────────────────
 
 function FhevmWrapper({ children }: { children: ReactNode }) {
-  const { isConnected, chainId, address } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
+  const { data: connectorClient } = useConnectorClient();
 
-  const provider = useMemo(() => {
-    if (typeof window === "undefined") return undefined;
-    return (window as any).ethereum;
-  }, []);
+  // Get EIP-1193 provider from wagmi connector client or window.ethereum
+  const provider = useMemo((): Eip1193Provider | undefined => {
+    if (connectorClient?.transport) {
+      return connectorClient.transport as Eip1193Provider;
+    }
+    if (typeof window !== "undefined") {
+      return (window as any).ethereum;
+    }
+    return undefined;
+  }, [connectorClient]);
 
   return (
-    <FhevmProvider config={fhevmConfig} wagmi={{ isConnected, chainId, address }} provider={provider}>
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={provider}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
       {children}
     </FhevmProvider>
   );

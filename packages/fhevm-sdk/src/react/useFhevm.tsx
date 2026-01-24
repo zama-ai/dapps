@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FhevmInstance } from "../fhevmTypes.js";
 import { createFhevmInstance } from "../internal/fhevm.js";
-import { ethers } from "ethers";
+import type { Eip1193Provider } from "../internal/eip1193.js";
 
 function _assert(condition: boolean, message?: string): asserts condition {
   if (!condition) {
@@ -13,7 +13,7 @@ function _assert(condition: boolean, message?: string): asserts condition {
 export type FhevmGoState = "idle" | "loading" | "ready" | "error";
 
 export function useFhevm(parameters: {
-  provider: string | ethers.Eip1193Provider | undefined;
+  provider: string | Eip1193Provider | undefined;
   chainId: number | undefined;
   enabled?: boolean;
   initialMockChains?: Readonly<Record<number, string>>;
@@ -31,7 +31,7 @@ export function useFhevm(parameters: {
   const [_isRunning, _setIsRunning] = useState<boolean>(enabled);
   const [_providerChanged, _setProviderChanged] = useState<number>(0);
   const _abortControllerRef = useRef<AbortController | null>(null);
-  const _providerRef = useRef<string | ethers.Eip1193Provider | undefined>(provider);
+  const _providerRef = useRef<string | Eip1193Provider | undefined>(provider);
   const _chainIdRef = useRef<number | undefined>(chainId);
   const _mockChainsRef = useRef<Record<number, string> | undefined>(initialMockChains as any);
 

@@ -1,4 +1,7 @@
 import { useWallet } from "./useWallet";
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
+import { fhevmConfig } from "./fhevmConfig";
+import { EncryptDemo } from "./EncryptDemo";
 import "./App.css";
 
 function App() {
@@ -6,9 +9,16 @@ function App() {
     useWallet();
 
   return (
-    <>
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={window.ethereum as Eip1193Provider}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
       <h1>example-ethers</h1>
-      <p>Using ethers.js for wallet connection</p>
+      <p>Using ethers.js + fhevm-sdk</p>
 
       <div className="card">
         <h2>Connection</h2>
@@ -28,7 +38,9 @@ function App() {
 
         {error && <p style={{ color: "red" }}>{error.message}</p>}
       </div>
-    </>
+
+      <EncryptDemo />
+    </FhevmProvider>
   );
 }
 
