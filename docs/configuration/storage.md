@@ -4,44 +4,9 @@ The `storage` prop on FhevmProvider controls how decryption signatures are cache
 
 **Important:** No default storage is provided. You must explicitly choose a storage option.
 
-## Built-in Storage Adapters
+## Quick Start
 
-fhevm-sdk provides four built-in storage adapters:
-
-```tsx
-import {
-  memoryStorage,         // In-memory, cleared on refresh
-  localStorageAdapter,   // Persistent in localStorage
-  sessionStorageAdapter, // Cleared when tab closes
-  noOpStorage,           // No caching
-} from "fhevm-sdk";
-```
-
-### Memory Storage (Recommended)
-
-In-memory storage that clears on page refresh. Most secure option.
-
-```tsx
-import { FhevmProvider, memoryStorage } from "fhevm-sdk";
-
-<FhevmProvider
-  config={fhevmConfig}
-  storage={memoryStorage}
-  // ...other props
->
-  {children}
-</FhevmProvider>
-```
-
-Characteristics:
-- Data cleared on page refresh
-- Most secure (signatures don't persist)
-- User signs once per session
-- Good balance of security and UX
-
-### localStorage Adapter
-
-Persistent storage using browser's localStorage.
+For most applications, use `localStorageAdapter` for the best user experience:
 
 ```tsx
 import { FhevmProvider, localStorageAdapter } from "fhevm-sdk";
@@ -55,11 +20,45 @@ import { FhevmProvider, localStorageAdapter } from "fhevm-sdk";
 </FhevmProvider>
 ```
 
-Characteristics:
+## Built-in Storage Adapters
+
+fhevm-sdk provides four built-in storage adapters:
+
+```tsx
+import {
+  memoryStorage,         // In-memory, cleared on refresh
+  localStorageAdapter,   // Persistent in localStorage
+  sessionStorageAdapter, // Cleared when tab closes
+  noOpStorage,           // No caching
+} from "fhevm-sdk";
+```
+
+### localStorage Adapter (Recommended for UX)
+
+Persistent storage using browser's localStorage. Best user experience.
+
+```tsx
+import { FhevmProvider, localStorageAdapter } from "fhevm-sdk";
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={localStorageAdapter}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
+```
+
+**Characteristics:**
 - Persists across sessions and page refreshes
-- Better UX (fewer signature requests)
-- Less secure (signatures persist on disk)
-- Use only if you trust the user's device
+- User signs once, then can decrypt for 24 hours without re-signing
+- Keys stored with `fhevm:` prefix
+- Best UX (minimal signature requests)
+
+**When to use:**
+- Consumer-facing dApps where UX is priority
+- Apps where users decrypt frequently
+- Trusted device environments
 
 ### sessionStorage Adapter
 
@@ -77,11 +76,43 @@ import { FhevmProvider, sessionStorageAdapter } from "fhevm-sdk";
 </FhevmProvider>
 ```
 
-Characteristics:
+**Characteristics:**
 - Persists across page refreshes within same tab
 - Cleared when tab closes
-- Middle ground between memory and localStorage
-- Good for longer sessions
+- Keys stored with `fhevm:` prefix
+- Good balance of security and UX
+
+**When to use:**
+- Apps where users have longer sessions
+- When you want automatic cleanup on tab close
+- Middle-ground security requirements
+
+### Memory Storage
+
+In-memory storage that clears on page refresh.
+
+```tsx
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={memoryStorage}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
+```
+
+**Characteristics:**
+- Data cleared on page refresh
+- No persistence to disk
+- User must re-sign after each page reload
+- Most secure built-in option
+
+**When to use:**
+- High-security applications
+- When signatures should never persist
+- Testing and development
 
 ### No-op Storage
 
@@ -111,11 +142,34 @@ Or simply pass `undefined`:
 </FhevmProvider>
 ```
 
-Characteristics:
+**Characteristics:**
 - No caching at all
-- Maximum security
-- Worst UX (sign every time)
-- Use for highly sensitive operations
+- User signs for every decrypt operation
+- Maximum security, worst UX
+
+**When to use:**
+- Extremely sensitive operations
+- When you need explicit user consent for each decrypt
+- Compliance requirements that prohibit caching
+
+## Custom Prefix
+
+Create storage adapters with custom prefixes to isolate different apps or environments:
+
+```tsx
+import { createLocalStorageAdapter, createSessionStorageAdapter } from "fhevm-sdk";
+
+// Isolate staging from production
+const stagingStorage = createLocalStorageAdapter("fhevm-staging:");
+const productionStorage = createLocalStorageAdapter("fhevm-prod:");
+
+// Use in provider
+<FhevmProvider
+  config={fhevmConfig}
+  storage={stagingStorage}
+  // ...
+>
+```
 
 ## Custom Storage
 
@@ -132,18 +186,24 @@ interface GenericStringStorage {
 ### Example: IndexedDB Storage
 
 ```tsx
+import { openDB } from "idb";
+
 const indexedDBStorage: GenericStringStorage = {
   async getItem(key) {
-    const db = await openDB();
-    return db.get("fhevm", key);
+    const db = await openDB("fhevm-store", 1, {
+      upgrade(db) {
+        db.createObjectStore("signatures");
+      },
+    });
+    return db.get("signatures", key);
   },
   async setItem(key, value) {
-    const db = await openDB();
-    await db.put("fhevm", value, key);
+    const db = await openDB("fhevm-store", 1);
+    await db.put("signatures", value, key);
   },
   async removeItem(key) {
-    const db = await openDB();
-    await db.delete("fhevm", key);
+    const db = await openDB("fhevm-store", 1);
+    await db.delete("signatures", key);
   },
 };
 
@@ -158,17 +218,44 @@ const indexedDBStorage: GenericStringStorage = {
 
 ### Example: Encrypted Storage
 
+For additional security, encrypt signatures before storing:
+
 ```tsx
+import CryptoJS from "crypto-js";
+
+const SECRET_KEY = "your-encryption-key"; // Derive from user password or secure source
+
 const encryptedStorage: GenericStringStorage = {
   getItem(key) {
-    const encrypted = localStorage.getItem(key);
-    return encrypted ? decrypt(encrypted) : null;
+    const encrypted = localStorage.getItem(`fhevm-encrypted:${key}`);
+    if (!encrypted) return null;
+    const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8);
   },
   setItem(key, value) {
-    localStorage.setItem(key, encrypt(value));
+    const encrypted = CryptoJS.AES.encrypt(value, SECRET_KEY).toString();
+    localStorage.setItem(`fhevm-encrypted:${key}`, encrypted);
   },
   removeItem(key) {
-    localStorage.removeItem(key);
+    localStorage.removeItem(`fhevm-encrypted:${key}`);
+  },
+};
+```
+
+### Example: React Native AsyncStorage
+
+```tsx
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const asyncStorageAdapter: GenericStringStorage = {
+  async getItem(key) {
+    return AsyncStorage.getItem(`fhevm:${key}`);
+  },
+  async setItem(key, value) {
+    await AsyncStorage.setItem(`fhevm:${key}`, value);
+  },
+  async removeItem(key) {
+    await AsyncStorage.removeItem(`fhevm:${key}`);
   },
 };
 ```
@@ -177,20 +264,79 @@ const encryptedStorage: GenericStringStorage = {
 
 The storage persists decryption signatures, which include:
 
-- Public/private key pairs for decryption
-- Signature from the user's wallet
-- Contract addresses authorized for decryption
-- Timestamp and duration
+- **Public/private key pairs** - For decrypting values
+- **EIP-712 signature** - From the user's wallet
+- **Contract addresses** - Authorized for decryption
+- **Timestamp** - When the signature was created
+- **Duration** - Validity period (default: 24 hours)
 
 This allows decryption without re-signing on every request.
 
-## Security Considerations
+## Signature Validity
 
-| Storage | Security | UX | Recommendation |
-|---------|----------|----|--------------------|
-| `memoryStorage` | High | Good | Default choice |
-| `sessionStorageAdapter` | Medium | Better | Longer sessions |
-| `localStorageAdapter` | Low | Best | Trusted devices only |
-| `noOpStorage` | Highest | Poor | High-security apps |
+Signatures are valid for **24 hours** by default. After expiration:
+- The cached signature is automatically ignored
+- User will be prompted to sign again
+- A new signature is generated and cached
 
-For most applications, `memoryStorage` provides the best balance of security and user experience.
+## Clearing Cached Signatures
+
+To manually clear cached signatures:
+
+```tsx
+// Clear all fhevm signatures from localStorage
+Object.keys(localStorage)
+  .filter(key => key.startsWith("fhevm:sig:"))
+  .forEach(key => localStorage.removeItem(key));
+
+// Clear from sessionStorage
+Object.keys(sessionStorage)
+  .filter(key => key.startsWith("fhevm:sig:"))
+  .forEach(key => sessionStorage.removeItem(key));
+```
+
+Or provide a logout handler:
+
+```tsx
+function handleLogout() {
+  // Clear fhevm signatures
+  Object.keys(localStorage)
+    .filter(key => key.startsWith("fhevm:"))
+    .forEach(key => localStorage.removeItem(key));
+
+  // Continue with logout...
+}
+```
+
+## Security Comparison
+
+| Storage | Persistence | Security | UX | Use Case |
+|---------|-------------|----------|-----|----------|
+| `localStorageAdapter` | Permanent | Low | Best | Consumer apps |
+| `sessionStorageAdapter` | Tab lifetime | Medium | Good | Balanced apps |
+| `memoryStorage` | Page lifetime | High | Fair | Security-first apps |
+| `noOpStorage` | None | Highest | Poor | Max security |
+| Custom encrypted | Configurable | Highest | Good | Enterprise apps |
+
+## Troubleshooting
+
+### Signature not being cached
+
+Check the browser console for debug logs:
+```
+[LocalStorageAdapter] setItem: fhevm:sig:0x... -> 1234 chars
+[LocalStorageAdapter] verified save: OK
+```
+
+If you see "window undefined (SSR)", the code is running on the server. Make sure your FhevmProvider is only rendered on the client.
+
+### User prompted to sign on every page load
+
+1. Verify you're using a persistent storage adapter (`localStorageAdapter` or `sessionStorageAdapter`)
+2. Check that the storage is passed to FhevmProvider
+3. Verify the signature hasn't expired (24 hour validity)
+4. Check browser console for any storage errors
+
+### Different signatures for different contracts
+
+This is expected behavior. Each unique set of contract addresses requires its own signature. If your app interacts with multiple contracts, users may need to sign multiple times (once per contract set).
