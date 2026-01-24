@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { sepolia, hardhat } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
 import { WagmiProvider as StandardWagmiProvider, useAccount, useConnectorClient } from "wagmi";
-import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
+import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal, localStorageAdapter, type Eip1193Provider } from "fhevm-sdk";
 import { Header } from "~~/components/Header";
 import scaffoldConfig from "~~/scaffold.config";
 
@@ -98,7 +98,7 @@ function FhevmWrapper({ children }: { children: ReactNode }) {
       address={address}
       chainId={chainId}
       isConnected={isConnected}
-      storage={memoryStorage}
+      storage={localStorageAdapter}
     >
       {children}
     </FhevmProvider>

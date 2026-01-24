@@ -58,13 +58,27 @@ class LocalStorageAdapter implements GenericStringStorage {
   }
 
   getItem(key: string): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(this.#prefix + key);
+    if (typeof window === "undefined") {
+      console.log("[LocalStorageAdapter] getItem - window undefined (SSR)");
+      return null;
+    }
+    const fullKey = this.#prefix + key;
+    const value = localStorage.getItem(fullKey);
+    console.log("[LocalStorageAdapter] getItem:", fullKey, "->", value ? `${value.length} chars` : "null");
+    return value;
   }
 
   setItem(key: string, value: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(this.#prefix + key, value);
+    if (typeof window === "undefined") {
+      console.log("[LocalStorageAdapter] setItem - window undefined (SSR)");
+      return;
+    }
+    const fullKey = this.#prefix + key;
+    console.log("[LocalStorageAdapter] setItem:", fullKey, "->", value.length, "chars");
+    localStorage.setItem(fullKey, value);
+    // Verify it was saved
+    const saved = localStorage.getItem(fullKey);
+    console.log("[LocalStorageAdapter] verified save:", saved ? "OK" : "FAILED");
   }
 
   removeItem(key: string): void {

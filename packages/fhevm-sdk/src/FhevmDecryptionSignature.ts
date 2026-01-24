@@ -3,7 +3,6 @@ import { EIP712Type, FhevmDecryptionSignatureType, FhevmInstance } from "./fhevm
 import {
   isAddress,
   signTypedData,
-  hashTypedDataForKey,
   type Eip1193Provider,
   type EIP712TypedData,
 } from "./internal/eip1193";
@@ -29,7 +28,7 @@ class FhevmDecryptionSignatureStorageKey {
   #key: string;
 
   constructor(
-    instance: FhevmInstance,
+    _instance: FhevmInstance,
     contractAddresses: string[],
     userAddress: string,
     publicKey?: string
@@ -40,28 +39,17 @@ class FhevmDecryptionSignatureStorageKey {
 
     const sortedContractAddresses = (contractAddresses as `0x${string}`[]).sort();
 
-    // Create a minimal EIP712 structure for hashing (using zero address and 0 timestamps)
-    const emptyEIP712 = (instance as any).createEIP712(
-      publicKey ?? "0x0000000000000000000000000000000000000000",
-      sortedContractAddresses,
-      0,
-      0
-    );
-
-    // Create a simple hash for the storage key
-    const typedData: EIP712TypedData = {
-      domain: emptyEIP712.domain,
-      types: { UserDecryptRequestVerification: emptyEIP712.types.UserDecryptRequestVerification },
-      primaryType: "UserDecryptRequestVerification",
-      message: emptyEIP712.message,
-    };
-
-    const hash = hashTypedDataForKey(typedData);
+    // Create a simple, stable storage key based on user address and contract addresses
+    // This ensures the key doesn't change between page loads even if the FhevmInstance differs
+    const contractsHash = sortedContractAddresses.join(",").toLowerCase();
 
     this.#contractAddresses = sortedContractAddresses;
-    this.#userAddress = userAddress as `0x${string}`;
+    this.#userAddress = userAddress.toLowerCase() as `0x${string}`;
     this.#publicKey = publicKey;
-    this.#key = `${userAddress}:${hash}`;
+    // Key format: userAddress:contracts_hash[:publicKey]
+    this.#key = publicKey
+      ? `sig:${userAddress.toLowerCase()}:${contractsHash}:${publicKey.slice(0, 20)}`
+      : `sig:${userAddress.toLowerCase()}:${contractsHash}`;
   }
 
   get contractAddresses(): `0x${string}`[] {
@@ -206,7 +194,15 @@ export class FhevmDecryptionSignature {
   }
 
   static fromJSON(json: unknown) {
-    const data = typeof json === "string" ? JSON.parse(json) : json;
+    // Custom reviver to handle BigInt deserialization
+    const reviver = (_key: string, value: unknown): unknown => {
+      if (value && typeof value === "object" && (value as any).__type === "bigint") {
+        return BigInt((value as any).value);
+      }
+      return value;
+    };
+
+    const data = typeof json === "string" ? JSON.parse(json, reviver) : json;
     return new FhevmDecryptionSignature(data as any);
   }
 
@@ -224,7 +220,15 @@ export class FhevmDecryptionSignature {
     withPublicKey: boolean
   ) {
     try {
-      const value = JSON.stringify(this);
+      // Custom replacer to handle BigInt serialization
+      const replacer = (_key: string, value: unknown): unknown => {
+        if (typeof value === "bigint") {
+          return { __type: "bigint", value: value.toString() };
+        }
+        return value;
+      };
+
+      const value = JSON.stringify(this.toJSON(), replacer);
 
       const storageKey = new FhevmDecryptionSignatureStorageKey(
         instance,
@@ -232,9 +236,10 @@ export class FhevmDecryptionSignature {
         this.#userAddress,
         withPublicKey ? this.#publicKey : undefined
       );
+      console.log("[FhevmDecryptionSignature] Saving signature with key:", storageKey.key);
       await storage.setItem(storageKey.key, value);
-    } catch {
-      // ignore
+    } catch (e) {
+      console.error("[FhevmDecryptionSignature] Failed to save to storage:", e);
     }
   }
 
@@ -253,23 +258,29 @@ export class FhevmDecryptionSignature {
         publicKey
       );
 
+      console.log("[FhevmDecryptionSignature] Looking for cached signature with key:", storageKey.key);
       const result = await storage.getItem(storageKey.key);
 
       if (!result) {
+        console.log("[FhevmDecryptionSignature] No cached signature found");
         return null;
       }
 
       try {
         const kps = FhevmDecryptionSignature.fromJSON(result);
         if (!kps.isValid()) {
+          console.log("[FhevmDecryptionSignature] Cached signature expired");
           return null;
         }
 
+        console.log("[FhevmDecryptionSignature] Found valid cached signature");
         return kps;
-      } catch {
+      } catch (e) {
+        console.log("[FhevmDecryptionSignature] Failed to parse cached signature:", e);
         return null;
       }
-    } catch {
+    } catch (e) {
+      console.log("[FhevmDecryptionSignature] Error loading from storage:", e);
       return null;
     }
   }
@@ -336,6 +347,12 @@ export class FhevmDecryptionSignature {
     keyPair?: { publicKey: string; privateKey: string }
   ): Promise<FhevmDecryptionSignature | null> {
     const userAddress = signer.address;
+
+    // Debug: Check storage type
+    const storageType = storage.constructor?.name || "unknown";
+    console.log("[FhevmDecryptionSignature] Using storage type:", storageType);
+    console.log("[FhevmDecryptionSignature] Contract addresses:", contractAddresses);
+    console.log("[FhevmDecryptionSignature] User address:", userAddress);
 
     const cached: FhevmDecryptionSignature | null =
       await FhevmDecryptionSignature.loadFromGenericStringStorage(

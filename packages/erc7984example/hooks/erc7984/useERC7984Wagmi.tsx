@@ -1,12 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useDeployedContractInfo } from "../helper";
 import { ethers } from "ethers";
 import { useFhevmContext, useUserDecrypt, useEncrypt, useEthersSigner } from "fhevm-sdk";
 import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
+
+// Transfer status for detailed UI feedback
+export type TransferStatus =
+  | "idle"
+  | "encrypting"
+  | "signing"
+  | "confirming"
+  | "success"
+  | "error";
 
 /**
  * useERC7984Wagmi - ERC7984 Confidential Token hook for Wagmi
@@ -37,6 +46,11 @@ export const useERC7984Wagmi = () => {
   type ERC7984Info = Contract<"ERC7984Example"> & { chainId?: number };
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [transferStatus, setTransferStatus] = useState<TransferStatus>("idle");
+  const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
+
+  // Track previous decrypting state to detect transitions
+  const prevDecryptingRef = useRef<boolean>(false);
 
   // -------------
   // Helpers
@@ -129,33 +143,71 @@ export const useERC7984Wagmi = () => {
 
   // Simplified transferTokens using new encrypt() with default uint64 type
   const transferTokens = useCallback(
-    async (to: string, amount: number) => {
-      if (isProcessing || !canTransfer || amount <= 0 || !contractAddress) return;
+    async (to: string, amount: number): Promise<{ success: boolean; error?: string; txHash?: string }> => {
+      if (isProcessing || !canTransfer || amount <= 0 || !contractAddress) {
+        return { success: false, error: "Cannot transfer at this time" };
+      }
       setIsProcessing(true);
-      setMessage(`Starting transfer of ${amount} tokens to ${to}...`);
+      setTransferStatus("encrypting");
+      setIsEncrypting(true);
+      setMessage(`Encrypting ${amount} tokens...`);
+
       try {
         // Encrypt amount using new tuple-return API
-        setMessage("Encrypting amount...");
         const result = await encrypt([
           { type: "uint64", value: BigInt(amount) },
         ], contractAddress);
-        if (!result) return setMessage("Encryption failed");
+        setIsEncrypting(false);
+
+        if (!result) {
+          setTransferStatus("error");
+          setMessage("Encryption failed");
+          return { success: false, error: "Encryption failed" };
+        }
         const [amountHandle, proof] = result;
 
         const writeContract = getContract("write");
-        if (!writeContract) return setMessage("Contract info or signer not available");
+        if (!writeContract) {
+          setTransferStatus("error");
+          setMessage("Contract info or signer not available");
+          return { success: false, error: "Contract not available" };
+        }
 
         // Get the specific function overload using getFunction to avoid ambiguity
+        setTransferStatus("signing");
+        setMessage("Please sign the transaction in your wallet...");
+
         const transferFn = writeContract.getFunction("confidentialTransfer(address,bytes32,bytes)");
         const tx = await transferFn(to, amountHandle, proof);
-        setMessage("Waiting for transaction...");
-        await tx.wait();
-        setMessage(`Transfer of ${amount} tokens completed!`);
+
+        setTransferStatus("confirming");
+        setMessage("Transaction submitted. Waiting for confirmation...");
+
+        const receipt = await tx.wait();
+        setTransferStatus("success");
+        setMessage(`Successfully transferred ${amount} tokens!`);
         refreshBalanceHandle();
+
+        return { success: true, txHash: receipt.hash };
       } catch (e) {
-        setMessage(`Transfer failed: ${e instanceof Error ? e.message : String(e)}`);
+        setTransferStatus("error");
+        setIsEncrypting(false);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+
+        // Handle user rejection
+        if (errorMsg.includes("user rejected") || errorMsg.includes("User denied")) {
+          setMessage("Transaction cancelled by user");
+          return { success: false, error: "Transaction cancelled" };
+        }
+
+        setMessage(`Transfer failed: ${errorMsg}`);
+        return { success: false, error: errorMsg };
       } finally {
         setIsProcessing(false);
+        // Reset status after a delay
+        setTimeout(() => {
+          setTransferStatus("idle");
+        }, 3000);
       }
     },
     [isProcessing, canTransfer, contractAddress, encrypt, getContract, refreshBalanceHandle],
@@ -176,6 +228,8 @@ export const useERC7984Wagmi = () => {
     isDecrypting,
     isRefreshing,
     isProcessing,
+    isEncrypting,
+    transferStatus,
     decryptError,
     // Wagmi-specific values
     chainId,
