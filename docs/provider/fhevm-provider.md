@@ -2,6 +2,13 @@
 
 The FhevmProvider component wraps your application to provide FHEVM context to all hooks.
 
+## Features
+
+- **Automatic script loading** - Loads the Zama Relayer SDK automatically (no manual script tag needed)
+- **Auto-initialization** - Initializes FHEVM when wallet connects
+- **Chain switching** - Reinitializes when chain changes
+- **Error handling** - Exposes script and initialization errors via `useFhevmStatus`
+
 ## Basic Usage
 
 ```tsx
@@ -142,9 +149,20 @@ function MyComponent() {
 }
 ```
 
+## Automatic Script Loading
+
+FhevmProvider automatically loads the Zama Relayer SDK script from CDN. You don't need to add any script tags to your HTML or layout.
+
+The provider handles:
+- Loading the script on first mount
+- Deduplication (won't load twice if multiple providers exist)
+- Error states if the script fails to load
+
+The script version is locked internally and managed by the SDK.
+
 ## Error Handling
 
-Handle initialization errors:
+Handle initialization errors (including script loading failures):
 
 ```tsx
 import { useFhevmStatus } from "fhevm-sdk";

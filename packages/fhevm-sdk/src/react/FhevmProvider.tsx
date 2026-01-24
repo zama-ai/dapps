@@ -12,6 +12,7 @@ import { FhevmContext, type FhevmContextValue, type FhevmStatus } from "./contex
 import { createFhevmInstance, FhevmAbortError } from "../internal/fhevm";
 import { InMemoryStorageProvider } from "./useInMemoryStorage";
 import { fhevmQueryClient } from "./queryClient";
+import { useRelayerScript } from "../internal/useRelayerScript";
 
 /**
  * Props for FhevmProvider component.
@@ -84,9 +85,16 @@ export function FhevmProvider({
   provider: providerProp,
   autoInit = true,
 }: FhevmProviderProps): React.ReactElement {
+  // Load relayer SDK script automatically
+  const {
+    status: scriptStatus,
+    error: scriptError,
+    isReady: scriptReady,
+  } = useRelayerScript();
+
   const [instance, setInstance] = useState<FhevmInstance | undefined>(undefined);
-  const [status, setStatus] = useState<FhevmStatus>("idle");
-  const [error, setError] = useState<Error | undefined>(undefined);
+  const [fhevmStatus, setFhevmStatus] = useState<FhevmStatus>("idle");
+  const [fhevmError, setFhevmError] = useState<Error | undefined>(undefined);
 
   // Track initialization to prevent duplicate inits
   const initRef = useRef<{
@@ -96,6 +104,16 @@ export function FhevmProvider({
     chainId: undefined,
     abortController: null,
   });
+
+  // Combine script and fhevm status
+  const status: FhevmStatus = useMemo(() => {
+    if (scriptStatus === "loading") return "initializing";
+    if (scriptStatus === "error") return "error";
+    return fhevmStatus;
+  }, [scriptStatus, fhevmStatus]);
+
+  // Combine script and fhevm errors
+  const error = scriptError ?? fhevmError;
 
   // Determine connection state
   const isConnected = wagmi?.isConnected ?? false;
@@ -136,7 +154,7 @@ export function FhevmProvider({
         console.warn(
           `[FhevmProvider] Chain ${targetChainId} is not configured. Skipping initialization.`
         );
-        setStatus("idle");
+        setFhevmStatus("idle");
         return;
       }
 
@@ -145,7 +163,7 @@ export function FhevmProvider({
         console.warn(
           "[FhevmProvider] No provider available. Skipping initialization."
         );
-        setStatus("idle");
+        setFhevmStatus("idle");
         return;
       }
 
@@ -155,8 +173,8 @@ export function FhevmProvider({
         abortController,
       };
 
-      setStatus("initializing");
-      setError(undefined);
+      setFhevmStatus("initializing");
+      setFhevmError(undefined);
       setInstance(undefined);
 
       try {
@@ -183,7 +201,7 @@ export function FhevmProvider({
         }
 
         setInstance(newInstance);
-        setStatus("ready");
+        setFhevmStatus("ready");
         console.log(
           `[FhevmProvider] FHEVM instance ready for chain ${targetChainId}`
         );
@@ -194,8 +212,8 @@ export function FhevmProvider({
         }
 
         console.error("[FhevmProvider] Failed to initialize FHEVM:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-        setStatus("error");
+        setFhevmError(err instanceof Error ? err : new Error(String(err)));
+        setFhevmStatus("error");
       }
     },
     [provider, config, mockChains]
@@ -215,6 +233,9 @@ export function FhevmProvider({
     // Don't initialize in SSR
     if (config.ssr && typeof window === "undefined") return;
 
+    // Don't initialize until script is ready
+    if (!scriptReady) return;
+
     // Don't initialize if not connected
     if (!isConnected || chainId === undefined) {
       // Clean up existing instance if disconnected
@@ -223,13 +244,13 @@ export function FhevmProvider({
         initRef.current.abortController = null;
       }
       setInstance(undefined);
-      setStatus("idle");
-      setError(undefined);
+      setFhevmStatus("idle");
+      setFhevmError(undefined);
       return;
     }
 
     // Don't re-initialize for the same chain
-    if (initRef.current.chainId === chainId && status === "ready") {
+    if (initRef.current.chainId === chainId && fhevmStatus === "ready") {
       return;
     }
 
@@ -239,7 +260,7 @@ export function FhevmProvider({
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [autoInit, isConnected, chainId, config.ssr, initializeFhevm, status]);
+  }, [autoInit, isConnected, chainId, config.ssr, initializeFhevm, fhevmStatus, scriptReady]);
 
   // Cleanup on unmount
   useEffect(() => {
