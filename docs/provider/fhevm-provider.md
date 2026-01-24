@@ -8,20 +8,26 @@ The FhevmProvider component wraps your application to provide FHEVM context to a
 - **Auto-initialization** - Initializes FHEVM when wallet connects
 - **Chain switching** - Reinitializes when chain changes
 - **Error handling** - Exposes script and initialization errors via `useFhevmStatus`
+- **Library agnostic** - Works with wagmi, viem, ethers, or raw `window.ethereum`
 
 ## Basic Usage
 
 ```tsx
-import { FhevmProvider } from "fhevm-sdk";
-import { useAccount } from "wagmi";
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+import { useAccount, useConnectorClient } from "wagmi";
 
-function App({ children }) {
-  const { isConnected, chainId, address } = useAccount();
+function FhevmWrapper({ children }) {
+  const { address, chainId, isConnected } = useAccount();
+  const { data: connectorClient } = useConnectorClient();
 
   return (
     <FhevmProvider
       config={fhevmConfig}
-      wagmi={{ isConnected, chainId, address }}
+      provider={connectorClient?.transport ?? window.ethereum}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
     >
       {children}
     </FhevmProvider>
@@ -31,13 +37,46 @@ function App({ children }) {
 
 ## Props
 
-| Prop       | Type                                | Default           | Description                         |
-| ---------- | ----------------------------------- | ----------------- | ----------------------------------- |
-| `config`   | `FhevmConfig`                       | Required          | Config from `createFhevmConfig()`   |
-| `children` | `ReactNode`                         | Required          | Child components                    |
-| `wagmi`    | `{ isConnected, chainId, address }` | `undefined`       | Wagmi state for auto-initialization |
-| `provider` | `EIP1193Provider`                   | `window.ethereum` | EIP-1193 provider                   |
-| `autoInit` | `boolean`                           | `true`            | Auto-initialize when wallet connects |
+| Prop          | Type                  | Default           | Description                                      |
+| ------------- | --------------------- | ----------------- | ------------------------------------------------ |
+| `config`      | `FhevmConfig`         | Required          | Config from `createFhevmConfig()`                |
+| `children`    | `ReactNode`           | Required          | Child components                                 |
+| `provider`    | `Eip1193Provider`     | `window.ethereum` | EIP-1193 provider (wallet)                       |
+| `address`     | `` `0x${string}` ``   | `undefined`       | Connected wallet address                         |
+| `chainId`     | `number`              | `undefined`       | Current chain ID                                 |
+| `isConnected` | `boolean`             | `false`           | Whether wallet is connected                      |
+| `storage`     | `GenericStringStorage`| `undefined`       | Storage for caching decryption signatures        |
+| `autoInit`    | `boolean`             | `true`            | Auto-initialize when wallet connects             |
+
+### Deprecated Props
+
+| Prop    | Type                                | Description                                |
+| ------- | ----------------------------------- | ------------------------------------------ |
+| `wagmi` | `{ isConnected, chainId, address }` | **Deprecated.** Use explicit props instead |
+
+## Storage Options
+
+The `storage` prop controls how decryption signatures are cached. **No default is provided** - you must explicitly choose:
+
+```tsx
+import {
+  memoryStorage,        // Cleared on page refresh (most secure)
+  localStorageAdapter,  // Persistent in localStorage
+  sessionStorageAdapter,// Cleared when tab closes
+  noOpStorage,          // No caching, re-sign every time
+} from "fhevm-sdk";
+
+// Most secure - keys cleared on refresh
+<FhevmProvider storage={memoryStorage} ... />
+
+// Persistent - better UX, less secure
+<FhevmProvider storage={localStorageAdapter} ... />
+
+// No caching - re-sign every decrypt
+<FhevmProvider storage={undefined} ... />
+```
+
+See [Storage Configuration](../configuration/storage.md) for details.
 
 ## Provider Hierarchy
 
@@ -46,25 +85,33 @@ Place FhevmProvider after WagmiProvider and QueryClientProvider:
 ```tsx
 <WagmiProvider config={wagmiConfig}>
   <QueryClientProvider client={queryClient}>
-    <FhevmProvider config={fhevmConfig} wagmi={wagmiState}>
+    <FhevmProvider config={fhevmConfig} ...>
       <YourApp />
     </FhevmProvider>
   </QueryClientProvider>
 </WagmiProvider>
 ```
 
-## Wagmi Integration
+## Integration Examples
 
-The `wagmi` prop connects FhevmProvider to your wagmi state:
+### With wagmi
 
 ```tsx
+import { useAccount, useConnectorClient } from "wagmi";
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+
 function FhevmWrapper({ children }) {
-  const { isConnected, chainId, address } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
+  const { data: connectorClient } = useConnectorClient();
 
   return (
     <FhevmProvider
       config={fhevmConfig}
-      wagmi={{ isConnected, chainId, address }}
+      provider={connectorClient?.transport}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
     >
       {children}
     </FhevmProvider>
@@ -72,11 +119,53 @@ function FhevmWrapper({ children }) {
 }
 ```
 
-When wagmi state changes:
+### With viem only
 
-- **Connect**: FHEVM instance initializes automatically
-- **Disconnect**: Instance is cleared
-- **Chain change**: Instance reinitializes for new chain
+```tsx
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+import { useWallet } from "./useWallet"; // Custom hook
+
+function App() {
+  const { address, chainId, isConnected } = useWallet();
+
+  return (
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={window.ethereum}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
+      <YourApp />
+    </FhevmProvider>
+  );
+}
+```
+
+### With ethers only
+
+```tsx
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+import { useWallet } from "./useWallet"; // Custom hook using ethers
+
+function App() {
+  const { address, chainId, isConnected } = useWallet();
+
+  return (
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={window.ethereum}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
+      <YourApp />
+    </FhevmProvider>
+  );
+}
+```
 
 ## Manual Initialization
 
@@ -100,28 +189,6 @@ function ManualInit() {
 }
 ```
 
-## Custom Provider
-
-Use a custom EIP-1193 provider instead of `window.ethereum`:
-
-```tsx
-import { useWalletClient } from "wagmi";
-
-function FhevmWrapper({ children }) {
-  const { data: walletClient } = useWalletClient();
-
-  return (
-    <FhevmProvider
-      config={fhevmConfig}
-      provider={walletClient}
-      wagmi={wagmiState}
-    >
-      {children}
-    </FhevmProvider>
-  );
-}
-```
-
 ## Context Value
 
 FhevmProvider exposes these values via context:
@@ -135,6 +202,8 @@ interface FhevmContextValue {
   chainId: number | undefined;
   address: `0x${string}` | undefined;
   isConnected: boolean;
+  provider: Eip1193Provider | undefined;
+  storage: GenericStringStorage | undefined;
   refresh: () => void;
 }
 ```
@@ -145,7 +214,7 @@ Access context directly with `useFhevmContext`:
 import { useFhevmContext } from "fhevm-sdk";
 
 function MyComponent() {
-  const { instance, status, chainId } = useFhevmContext();
+  const { instance, status, chainId, provider } = useFhevmContext();
 }
 ```
 
@@ -181,4 +250,26 @@ function FHEStatus() {
 
   return null;
 }
+```
+
+## Migration from wagmi prop
+
+If you were using the deprecated `wagmi` prop, update to explicit props:
+
+```tsx
+// Before (deprecated)
+<FhevmProvider
+  config={fhevmConfig}
+  wagmi={{ isConnected, chainId, address }}
+>
+
+// After (recommended)
+<FhevmProvider
+  config={fhevmConfig}
+  provider={window.ethereum}
+  address={address}
+  chainId={chainId}
+  isConnected={isConnected}
+  storage={memoryStorage}
+>
 ```

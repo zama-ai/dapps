@@ -1,77 +1,128 @@
-# Storage
+# Storage Configuration
 
-fhevm-sdk uses storage to persist decryption signatures, avoiding repeated signature requests.
+The `storage` prop on FhevmProvider controls how decryption signatures are cached. This avoids repeated signature requests from the user's wallet.
 
-## Storage Options
+**Important:** No default storage is provided. You must explicitly choose a storage option.
 
-### Web Storage (Default)
+## Built-in Storage Adapters
 
-Uses browser's localStorage or sessionStorage:
-
-```tsx
-import { createStorage } from "fhevm-sdk";
-
-const storage = createStorage({
-  storage: window.localStorage, // or sessionStorage
-  key: "fhevm", // optional prefix (default: "fhevm")
-});
-```
-
-### Memory Storage
-
-In-memory storage for testing or ephemeral sessions:
+fhevm-sdk provides four built-in storage adapters:
 
 ```tsx
-import { createMemoryStorage } from "fhevm-sdk";
-
-const storage = createMemoryStorage();
+import {
+  memoryStorage,         // In-memory, cleared on refresh
+  localStorageAdapter,   // Persistent in localStorage
+  sessionStorageAdapter, // Cleared when tab closes
+  noOpStorage,           // No caching
+} from "fhevm-sdk";
 ```
 
-Memory storage:
+### Memory Storage (Recommended)
 
-- Data lost on page refresh
-- Useful for testing
-- No persistence between sessions
+In-memory storage that clears on page refresh. Most secure option.
+
+```tsx
+import { FhevmProvider, memoryStorage } from "fhevm-sdk";
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={memoryStorage}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
+```
+
+Characteristics:
+- Data cleared on page refresh
+- Most secure (signatures don't persist)
+- User signs once per session
+- Good balance of security and UX
+
+### localStorage Adapter
+
+Persistent storage using browser's localStorage.
+
+```tsx
+import { FhevmProvider, localStorageAdapter } from "fhevm-sdk";
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={localStorageAdapter}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
+```
+
+Characteristics:
+- Persists across sessions and page refreshes
+- Better UX (fewer signature requests)
+- Less secure (signatures persist on disk)
+- Use only if you trust the user's device
+
+### sessionStorage Adapter
+
+Storage that clears when the browser tab closes.
+
+```tsx
+import { FhevmProvider, sessionStorageAdapter } from "fhevm-sdk";
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={sessionStorageAdapter}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
+```
+
+Characteristics:
+- Persists across page refreshes within same tab
+- Cleared when tab closes
+- Middle ground between memory and localStorage
+- Good for longer sessions
 
 ### No-op Storage
 
-Does nothing, used for SSR or when persistence isn't needed:
+Disables caching entirely. User must sign for every decryption.
 
 ```tsx
-import { noopStorage } from "fhevm-sdk";
+import { FhevmProvider, noOpStorage } from "fhevm-sdk";
 
-const config = createFhevmConfig({
-  chains: [sepolia],
-  storage: noopStorage,
-});
+<FhevmProvider
+  config={fhevmConfig}
+  storage={noOpStorage}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
 ```
 
-## Default Behavior
-
-If no storage is specified:
-
-- **Browser**: Uses `localStorage` automatically
-- **SSR mode** (`ssr: true`): Uses `noopStorage` automatically
+Or simply pass `undefined`:
 
 ```tsx
-// Browser: uses localStorage
-const config = createFhevmConfig({
-  chains: [sepolia],
-});
-
-// SSR: uses noopStorage
-const config = createFhevmConfig({
-  chains: [sepolia],
-  ssr: true,
-});
+<FhevmProvider
+  config={fhevmConfig}
+  storage={undefined}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
 ```
+
+Characteristics:
+- No caching at all
+- Maximum security
+- Worst UX (sign every time)
+- Use for highly sensitive operations
 
 ## Custom Storage
 
-Implement the `FhevmStorage` interface for custom storage:
+Implement the `GenericStringStorage` interface for custom storage:
 
 ```tsx
-interface FhevmStorage {
+interface GenericStringStorage {
   getItem(key: string): string | null | Promise<string | null>;
   setItem(key: string, value: string): void | Promise<void>;
   removeItem(key: string): void | Promise<void>;
@@ -81,7 +132,7 @@ interface FhevmStorage {
 ### Example: IndexedDB Storage
 
 ```tsx
-const indexedDBStorage: FhevmStorage = {
+const indexedDBStorage: GenericStringStorage = {
   async getItem(key) {
     const db = await openDB();
     return db.get("fhevm", key);
@@ -95,12 +146,20 @@ const indexedDBStorage: FhevmStorage = {
     await db.delete("fhevm", key);
   },
 };
+
+<FhevmProvider
+  config={fhevmConfig}
+  storage={indexedDBStorage}
+  // ...other props
+>
+  {children}
+</FhevmProvider>
 ```
 
 ### Example: Encrypted Storage
 
 ```tsx
-const encryptedStorage: FhevmStorage = {
+const encryptedStorage: GenericStringStorage = {
   getItem(key) {
     const encrypted = localStorage.getItem(key);
     return encrypted ? decrypt(encrypted) : null;
@@ -124,3 +183,14 @@ The storage persists decryption signatures, which include:
 - Timestamp and duration
 
 This allows decryption without re-signing on every request.
+
+## Security Considerations
+
+| Storage | Security | UX | Recommendation |
+|---------|----------|----|--------------------|
+| `memoryStorage` | High | Good | Default choice |
+| `sessionStorageAdapter` | Medium | Better | Longer sessions |
+| `localStorageAdapter` | Low | Best | Trusted devices only |
+| `noOpStorage` | Highest | Poor | High-security apps |
+
+For most applications, `memoryStorage` provides the best balance of security and user experience.

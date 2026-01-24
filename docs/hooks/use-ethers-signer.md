@@ -1,103 +1,97 @@
-# useEthersSigner
+# useEthersSigner (Deprecated)
 
-Hook to get an ethers.js signer from the connected wallet.
+> **Deprecated:** This hook is deprecated and will be removed in a future version. The SDK now uses EIP-1193 providers directly, eliminating the need for ethers.js signers.
 
-## Import
+## Migration Guide
+
+The SDK no longer requires ethers.js. Instead, pass an EIP-1193 provider directly to FhevmProvider:
+
+### Before (Deprecated)
 
 ```tsx
 import { useEthersSigner } from "fhevm-sdk";
-```
 
-## Usage
-
-```tsx
-function SignerInfo() {
-  const { signer, provider, isLoading, error, isReady } = useEthersSigner();
-
-  if (isLoading) return <p>Loading signer...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  if (!isReady) return <p>Connect wallet</p>;
-
-  return <p>Signer ready</p>;
+function MyComponent() {
+  const { signer, isReady } = useEthersSigner();
+  // Use signer for operations
 }
 ```
 
-## Returns
+### After (Recommended)
 
-| Property    | Type                                  | Description                     |
-| ----------- | ------------------------------------- | ------------------------------- |
-| `signer`    | `ethers.JsonRpcSigner \| undefined`   | Ethers signer                   |
-| `provider`  | `ethers.BrowserProvider \| undefined` | Ethers provider                 |
-| `isLoading` | `boolean`                             | Whether signer is being created |
-| `error`     | `Error \| null`                       | Error if creation failed        |
-| `isReady`   | `boolean`                             | Whether signer is ready         |
-
-## How It Works
-
-1. Reads wallet state from FhevmProvider context
-2. Creates an ethers.js BrowserProvider from `window.ethereum`
-3. Gets a signer for the connected address
-4. Recreates signer when chain changes
-
-## Examples
-
-### Basic Usage
+The SDK handles signing internally using the provider passed to FhevmProvider:
 
 ```tsx
-function WalletInfo() {
-  const { signer, isReady } = useEthersSigner();
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
+import { useAccount, useConnectorClient } from "wagmi";
 
-  const showAddress = async () => {
-    if (!signer) return;
-    const address = await signer.getAddress();
-    console.log("Address:", address);
-  };
+function FhevmWrapper({ children }) {
+  const { address, chainId, isConnected } = useAccount();
+  const { data: connectorClient } = useConnectorClient();
 
   return (
-    <button onClick={showAddress} disabled={!isReady}>
-      Show Address
-    </button>
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={connectorClient?.transport as Eip1193Provider}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
+      {children}
+    </FhevmProvider>
   );
 }
 ```
 
-### Signing Messages
+### Using viem or ethers directly
+
+If you still need a signer for your own operations (outside of fhevm-sdk), create one directly:
+
+#### With viem
 
 ```tsx
-function MessageSigner() {
-  const { signer, isReady } = useEthersSigner();
-  const [signature, setSignature] = useState<string>();
+import { createWalletClient, custom } from "viem";
 
-  const signMessage = async () => {
-    if (!signer) return;
-
-    const sig = await signer.signMessage("Hello, FHE!");
-    setSignature(sig);
-  };
-
-  return (
-    <div>
-      <button onClick={signMessage} disabled={!isReady}>
-        Sign Message
-      </button>
-      {signature && <p>Signature: {signature.slice(0, 20)}...</p>}
-    </div>
-  );
-}
+const client = createWalletClient({
+  chain: mainnet,
+  transport: custom(window.ethereum),
+});
 ```
 
-### With useUserDecrypt
-
-Pass the signer to useUserDecrypt for explicit control:
+#### With ethers
 
 ```tsx
+import { BrowserProvider } from "ethers";
+
+const provider = new BrowserProvider(window.ethereum);
+const signer = await provider.getSigner();
+```
+
+## Why This Change?
+
+The SDK was restructured to:
+
+1. **Remove hard dependencies** - No longer requires ethers.js
+2. **Work with any wallet** - Uses the standard EIP-1193 interface
+3. **Smaller bundle size** - No ethers.js bundled with the SDK
+4. **Library agnostic** - Works with wagmi, viem, ethers, or raw providers
+
+## What Replaces It?
+
+The SDK now uses `eth_signTypedData_v4` directly via the EIP-1193 provider for all signing operations. This is handled internally - you don't need to manage signers yourself.
+
+For decryption, simply use:
+
+```tsx
+import { useUserDecrypt } from "fhevm-sdk";
+
 function Balance({ handle, contractAddress }) {
-  const { signer } = useEthersSigner();
-
-  const { decrypt, results } = useUserDecrypt(
-    [{ handle, contractAddress }],
-    signer // explicit signer
-  );
+  // Signing is handled automatically using the provider from FhevmProvider
+  const { decrypt, results } = useUserDecrypt({
+    handle,
+    contractAddress,
+  });
 
   return (
     <div>
@@ -107,52 +101,3 @@ function Balance({ handle, contractAddress }) {
   );
 }
 ```
-
-### Provider Access
-
-```tsx
-function BlockNumber() {
-  const { provider } = useEthersSigner();
-  const [blockNumber, setBlockNumber] = useState<number>();
-
-  useEffect(() => {
-    if (!provider) return;
-
-    provider.getBlockNumber().then(setBlockNumber);
-  }, [provider]);
-
-  return <p>Block: {blockNumber ?? "..."}</p>;
-}
-```
-
-## Chain Switching
-
-The hook automatically recreates the signer when the chain changes:
-
-```tsx
-function ChainAwareSigner() {
-  const { signer, isLoading } = useEthersSigner();
-  const { chainId } = useAccount();
-
-  // signer is recreated when chainId changes
-  // isLoading will be true during recreation
-
-  return (
-    <div>
-      <p>Chain: {chainId}</p>
-      <p>Signer: {isLoading ? "Updating..." : signer ? "Ready" : "Not available"}</p>
-    </div>
-  );
-}
-```
-
-## When to Use
-
-Use `useEthersSigner` when you need:
-
-- An ethers.js signer for signing operations
-- To pass an explicit signer to `useUserDecrypt`
-- Access to the ethers provider
-- Custom ethers.js operations
-
-Note: Most hooks (like `useUserDecrypt`) auto-detect the signer from `window.ethereum`, so explicit signer usage is often optional.

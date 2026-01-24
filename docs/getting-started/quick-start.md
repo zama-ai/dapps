@@ -23,35 +23,68 @@ Wrap your application with the FhevmProvider after WagmiProvider:
 // app/providers.tsx
 "use client";
 
-import { FhevmProvider } from "fhevm-sdk";
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
+import { useAccount, useConnectorClient } from "wagmi";
 import { fhevmConfig } from "./config/fhevm";
 import { wagmiConfig } from "./config/wagmi";
 
 const queryClient = new QueryClient();
 
-function FhevmWrapper({ children }) {
-  const { isConnected, chainId, address } = useAccount();
+function FhevmWrapper({ children }: { children: React.ReactNode }) {
+  const { address, chainId, isConnected } = useAccount();
+  const { data: connectorClient } = useConnectorClient();
+
+  // Get EIP-1193 provider from wagmi connector
+  const provider = connectorClient?.transport as Eip1193Provider | undefined;
 
   return (
     <FhevmProvider
       config={fhevmConfig}
-      wagmi={{ isConnected, chainId, address }}
+      provider={provider}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
     >
       {children}
     </FhevmProvider>
   );
 }
 
-export function Providers({ children }) {
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <FhevmWrapper>{children}</FhevmWrapper>
       </QueryClientProvider>
     </WagmiProvider>
+  );
+}
+```
+
+### Without wagmi
+
+If you're not using wagmi, pass the provider directly:
+
+```tsx
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
+
+function FhevmWrapper({ children }: { children: React.ReactNode }) {
+  const { address, chainId, isConnected } = useWallet(); // Your wallet hook
+
+  return (
+    <FhevmProvider
+      config={fhevmConfig}
+      provider={window.ethereum as Eip1193Provider}
+      address={address}
+      chainId={chainId}
+      isConnected={isConnected}
+      storage={memoryStorage}
+    >
+      {children}
+    </FhevmProvider>
   );
 }
 ```
@@ -221,6 +254,7 @@ function EncryptedToken({ contractAddress, userAddress }) {
 
 ## Next Steps
 
-- [Configuration](../configuration/overview.md) - Learn about configuration options
+- [FhevmProvider](../provider/fhevm-provider.md) - Learn about provider configuration
+- [Storage Configuration](../configuration/storage.md) - Configure signature caching
 - [useEncrypt](../hooks/use-encrypt.md) - Explore encryption options
 - [useUserDecrypt](../hooks/use-user-decrypt.md) - Learn about decryption
