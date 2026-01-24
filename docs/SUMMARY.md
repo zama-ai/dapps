@@ -12,6 +12,7 @@
 * [Overview](configuration/overview.md)
 * [Chains](configuration/chains.md)
 * [Storage](configuration/storage.md)
+* [Threading & Performance](configuration/threading.md)
 
 ## Provider
 
