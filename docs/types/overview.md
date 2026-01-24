@@ -59,23 +59,12 @@ interface FhevmInstance {
 
 ## Encryption Types
 
-### EncryptedInput
+### FheTypeName
 
-Result of an encryption operation:
-
-```tsx
-type EncryptedInput = {
-  handles: Uint8Array[]; // Encrypted handles for contract
-  inputProof: Uint8Array; // Proof for verification
-};
-```
-
-### EncryptableType
-
-Supported FHE types:
+Supported FHE type names (Solidity-style):
 
 ```tsx
-type EncryptableType =
+type FheTypeName =
   | "bool"
   | "uint8"
   | "uint16"
@@ -88,43 +77,40 @@ type EncryptableType =
 
 ### EncryptInput
 
-Input for batch encryption:
+Type-safe input for encryption. Uses discriminated unions to enforce correct value types at compile time:
 
 ```tsx
-interface EncryptInput {
-  type: EncryptableType;
-  value: boolean | number | bigint | string;
-}
+type EncryptInput =
+  | { type: "bool"; value: boolean }
+  | { type: "uint8"; value: number }
+  | { type: "uint16"; value: number }
+  | { type: "uint32"; value: number }
+  | { type: "uint64"; value: bigint }
+  | { type: "uint128"; value: bigint }
+  | { type: "uint256"; value: bigint }
+  | { type: "address"; value: `0x${string}` };
 ```
 
-### EncryptMutationParams
+### EncryptResult
 
-Parameters for encryption mutation:
+Result tuple from encryption - handles followed by proof:
 
 ```tsx
-interface EncryptMutationParams {
-  type?: EncryptableType; // defaults to 'uint64'
-  value: boolean | number | bigint | string;
-  contractAddress: `0x${string}`;
-}
+type EncryptResult<T extends readonly EncryptInput[]> = readonly [
+  ...{ [K in keyof T]: Uint8Array },
+  Uint8Array,
+];
 ```
 
-### EncryptMutationState
+### EncryptedOutput
 
-TanStack Query mutation state:
+Raw encrypted output structure:
 
 ```tsx
-interface EncryptMutationState {
-  mutate: (params: EncryptMutationParams) => void;
-  mutateAsync: (params: EncryptMutationParams) => Promise<EncryptedInput>;
-  isPending: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  isIdle: boolean;
-  error: Error | null;
-  data: EncryptedInput | undefined;
-  reset: () => void;
-}
+type EncryptedOutput = {
+  handles: Uint8Array[]; // Encrypted handles for contract
+  inputProof: Uint8Array; // Proof for verification
+};
 ```
 
 ## Decryption Types
@@ -248,10 +234,10 @@ interface FhevmStorage {
 ```tsx
 interface UseEncryptReturn {
   isReady: boolean;
-  encrypt: (value, contract) => Promise<EncryptedInput | undefined>;
-  encryptBatch: (inputs[], contract) => Promise<EncryptedInput | undefined>;
-  encryptWith: (contract, buildFn) => Promise<EncryptedInput | undefined>;
-  mutation: EncryptMutationState;
+  encrypt: <T extends EncryptInput[]>(
+    inputs: T,
+    contractAddress: `0x${string}`
+  ) => Promise<EncryptResult<T> | undefined>;
 }
 ```
 

@@ -14,162 +14,204 @@ import { useEncrypt } from "fhevm-sdk";
 function TransferForm({ contractAddress }) {
   const { encrypt, isReady } = useEncrypt();
 
-  const handleTransfer = async (amount: bigint) => {
+  const handleTransfer = async (amount: bigint, recipient: `0x${string}`) => {
     if (!isReady) return;
 
-    const encrypted = await encrypt(amount, contractAddress);
-    if (!encrypted) return;
+    // Encrypt values - returns [handle1, handle2, ..., proof]
+    const [amountHandle, recipientHandle, proof] = await encrypt([
+      { type: "uint64", value: amount },
+      { type: "address", value: recipient },
+    ], contractAddress);
 
-    // Use encrypted.handles[0] and encrypted.inputProof
+    if (!amountHandle) return;
+
+    // Use directly in contract call
+    writeContract({
+      address: contractAddress,
+      abi: tokenAbi,
+      functionName: "transfer",
+      args: [amountHandle, recipientHandle, proof],
+    });
   };
 }
 ```
 
 ## Returns
 
-| Property       | Type                                               | Description                     |
-| -------------- | -------------------------------------------------- | ------------------------------- |
-| `isReady`      | `boolean`                                          | Whether encryption is ready     |
-| `encrypt`      | `(value, contract) => Promise<EncryptedInput>`     | Encrypt a single value          |
-| `encryptBatch` | `(inputs[], contract) => Promise<EncryptedInput>`  | Encrypt multiple values         |
-| `encryptWith`  | `(contract, buildFn) => Promise<EncryptedInput>`   | Builder pattern for advanced use |
-| `mutation`     | `EncryptMutationState`                             | TanStack Query mutation state   |
+| Property  | Type                                                      | Description                 |
+| --------- | --------------------------------------------------------- | --------------------------- |
+| `isReady` | `boolean`                                                 | Whether encryption is ready |
+| `encrypt` | `(inputs, contract) => Promise<[...handles, proof]>` | Encrypt values              |
 
 ## encrypt()
 
-Encrypt a single value. Supports two calling patterns:
+Encrypts one or more values and returns a tuple of `[...handles, proof]` for easy destructuring.
 
-### Simple Pattern (Recommended)
-
-Defaults to `uint64`:
+### Signature
 
 ```tsx
-const encrypted = await encrypt(100n, contractAddress);
+encrypt<T extends EncryptInput[]>(
+  inputs: T,
+  contractAddress: `0x${string}`
+): Promise<EncryptResult<T> | undefined>
 ```
 
-### With Explicit Type
+### Single Value
 
 ```tsx
-const encrypted = await encrypt("uint128", 100n, contractAddress);
-const encrypted = await encrypt("bool", true, contractAddress);
-const encrypted = await encrypt("address", "0x...", contractAddress);
+const [amountHandle, proof] = await encrypt([
+  { type: "uint64", value: 100n },
+], contractAddress);
 ```
 
-## encryptBatch()
-
-Encrypt multiple values in a single operation:
+### Multiple Values
 
 ```tsx
-const encrypted = await encryptBatch(
-  [
-    { type: "uint64", value: 100n },
-    { type: "uint64", value: 200n },
-    { type: "address", value: recipientAddress },
-  ],
-  contractAddress
-);
-
-// Use encrypted.handles[0], encrypted.handles[1], etc.
+const [amountHandle, feeHandle, recipientHandle, proof] = await encrypt([
+  { type: "uint64", value: amount },
+  { type: "uint64", value: fee },
+  { type: "address", value: recipient },
+], contractAddress);
 ```
 
-## encryptWith()
+## EncryptInput
 
-Builder pattern for full control:
+Type-safe input with compile-time checking:
 
 ```tsx
-const encrypted = await encryptWith(contractAddress, (builder) => {
-  builder.add64(100n);
-  builder.add64(200n);
-  builder.addAddress(recipientAddress);
-});
+type EncryptInput =
+  | { type: "bool"; value: boolean }
+  | { type: "uint8"; value: number }
+  | { type: "uint16"; value: number }
+  | { type: "uint32"; value: number }
+  | { type: "uint64"; value: bigint }
+  | { type: "uint128"; value: bigint }
+  | { type: "uint256"; value: bigint }
+  | { type: "address"; value: `0x${string}` };
 ```
 
-### Builder Methods
+### Type Safety
 
-| Type      | Method         | Value Type          |
-| --------- | -------------- | ------------------- |
-| `bool`    | `addBool()`    | `boolean`           |
-| `uint8`   | `add8()`       | `number \| bigint`  |
-| `uint16`  | `add16()`      | `number \| bigint`  |
-| `uint32`  | `add32()`      | `number \| bigint`  |
-| `uint64`  | `add64()`      | `number \| bigint`  |
-| `uint128` | `add128()`     | `bigint`            |
-| `uint256` | `add256()`     | `bigint`            |
-| `address` | `addAddress()` | `` `0x${string}` `` |
-
-## mutation
-
-TanStack Query mutation for reactive state:
+TypeScript enforces correct value types at compile time:
 
 ```tsx
-function TransferForm({ contractAddress }) {
-  const { mutation, isReady } = useEncrypt();
+// Valid - bigint for uint64
+encrypt([{ type: "uint64", value: 100n }], contract);
 
-  const handleSubmit = () => {
-    mutation.mutate({
-      type: "uint64",
-      value: 100n,
-      contractAddress,
-    });
-  };
+// TypeScript Error - number not assignable to bigint
+encrypt([{ type: "uint64", value: 100 }], contract);
 
-  return (
-    <div>
-      <button onClick={handleSubmit} disabled={!isReady || mutation.isPending}>
-        {mutation.isPending ? "Encrypting..." : "Encrypt"}
-      </button>
-      {mutation.isError && <p>Error: {mutation.error?.message}</p>}
-      {mutation.isSuccess && <p>Encrypted!</p>}
-    </div>
-  );
-}
+// TypeScript Error - number not assignable to boolean
+encrypt([{ type: "bool", value: 1 }], contract);
+
+// TypeScript Error - string not assignable to `0x${string}`
+encrypt([{ type: "address", value: "notHex" }], contract);
 ```
 
-### Mutation State
+### Supported Types
 
-| Property      | Type                        | Description              |
-| ------------- | --------------------------- | ------------------------ |
-| `mutate`      | `(params) => void`          | Trigger encryption       |
-| `mutateAsync` | `(params) => Promise<...>`  | Async trigger            |
-| `isPending`   | `boolean`                   | Whether in progress      |
-| `isSuccess`   | `boolean`                   | Whether succeeded        |
-| `isError`     | `boolean`                   | Whether failed           |
-| `isIdle`      | `boolean`                   | Whether not started      |
-| `error`       | `Error \| null`             | Error if failed          |
-| `data`        | `EncryptedInput \| undefined` | Result if succeeded    |
-| `reset`       | `() => void`                | Reset state              |
+| Type      | TypeScript Value Type | Example                    |
+| --------- | --------------------- | -------------------------- |
+| `bool`    | `boolean`             | `{ type: "bool", value: true }` |
+| `uint8`   | `number`              | `{ type: "uint8", value: 255 }` |
+| `uint16`  | `number`              | `{ type: "uint16", value: 65535 }` |
+| `uint32`  | `number`              | `{ type: "uint32", value: 4294967295 }` |
+| `uint64`  | `bigint`              | `{ type: "uint64", value: 100n }` |
+| `uint128` | `bigint`              | `{ type: "uint128", value: 100n }` |
+| `uint256` | `bigint`              | `{ type: "uint256", value: 100n }` |
+| `address` | `` `0x${string}` ``   | `{ type: "address", value: "0x..." }` |
 
-## EncryptedInput
-
-The encryption result:
-
-```tsx
-type EncryptedInput = {
-  handles: Uint8Array[]; // Encrypted handles for contract
-  inputProof: Uint8Array; // Proof for the encrypted input
-};
-```
-
-## Example: Contract Call
+## Complete Example
 
 ```tsx
 import { useEncrypt } from "fhevm-sdk";
 import { useWriteContract } from "wagmi";
 
-function Transfer({ contractAddress, recipient }) {
+function ConfidentialTransfer({ contractAddress, tokenAbi }) {
   const { encrypt, isReady } = useEncrypt();
-  const { writeContract } = useWriteContract();
+  const { writeContract, isPending } = useWriteContract();
 
-  const handleTransfer = async (amount: bigint) => {
-    const encrypted = await encrypt(amount, contractAddress);
-    if (!encrypted) return;
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
 
-    await writeContract({
+  const handleTransfer = async () => {
+    if (!isReady) return;
+
+    // Encrypt amount and recipient
+    const [amountHandle, recipientHandle, proof] = await encrypt([
+      { type: "uint64", value: BigInt(amount) },
+      { type: "address", value: recipient as `0x${string}` },
+    ], contractAddress);
+
+    if (!amountHandle) {
+      console.error("Encryption failed");
+      return;
+    }
+
+    // Call contract with encrypted values
+    writeContract({
       address: contractAddress,
-      abi: erc20Abi,
-      functionName: "transfer",
-      args: [recipient, encrypted.handles[0], encrypted.inputProof],
+      abi: tokenAbi,
+      functionName: "confidentialTransfer",
+      args: [amountHandle, recipientHandle, proof],
     });
   };
+
+  return (
+    <div>
+      <input
+        type="number"
+        placeholder="Amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Recipient address"
+        value={recipient}
+        onChange={(e) => setRecipient(e.target.value)}
+      />
+      <button
+        onClick={handleTransfer}
+        disabled={!isReady || isPending}
+      >
+        {isPending ? "Transferring..." : "Transfer"}
+      </button>
+    </div>
+  );
 }
+```
+
+## Migration from Old API
+
+If you were using the previous API:
+
+```tsx
+// Old API
+const encrypted = await encrypt(100n, contractAddress);
+writeContract({ args: [encrypted.handles[0], encrypted.inputProof] });
+
+// New API
+const [handle, proof] = await encrypt([
+  { type: "uint64", value: 100n }
+], contractAddress);
+writeContract({ args: [handle, proof] });
+```
+
+Multiple values:
+
+```tsx
+// Old API
+const encrypted = await encryptBatch([
+  { type: "uint64", value: 100n },
+  { type: "address", value: "0x..." },
+], contractAddress);
+writeContract({ args: [encrypted.handles[0], encrypted.handles[1], encrypted.inputProof] });
+
+// New API
+const [amount, recipient, proof] = await encrypt([
+  { type: "uint64", value: 100n },
+  { type: "address", value: "0x..." },
+], contractAddress);
+writeContract({ args: [amount, recipient, proof] });
 ```

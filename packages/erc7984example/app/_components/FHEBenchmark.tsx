@@ -22,7 +22,7 @@ export const FHEBenchmark = () => {
   const chainId = chain?.id;
 
   // Get encryption hook and status from context
-  const { encryptWith, isReady: encryptReady } = useEncrypt();
+  const { encrypt, isReady: encryptReady } = useEncrypt();
   const { status: fhevmStatus } = useFhevmStatus();
 
   const [results, setResults] = useState<BenchmarkResult[]>([]);
@@ -93,9 +93,9 @@ export const FHEBenchmark = () => {
       setStatusMessage("Running warm-up encryption...");
       console.log("[Benchmark] Warm-up encryption...");
       const warmupStart = performance.now();
-      await encryptWith(erc7984.address as `0x${string}`, builder => {
-        builder.add64(BigInt(100));
-      });
+      await encrypt([
+        { type: "uint64", value: BigInt(100) },
+      ], erc7984.address as `0x${string}`);
       const warmupEnd = performance.now();
       addResult("Warm-up (euint64)", warmupEnd - warmupStart);
 
@@ -107,9 +107,9 @@ export const FHEBenchmark = () => {
         setStatusMessage(`Running encryption #${i + 1}...`);
         console.log(`[Benchmark] Encryption #${i + 1}...`);
         const startN = performance.now();
-        await encryptWith(erc7984.address as `0x${string}`, builder => {
-          builder.add64(BigInt(i * 1000 + 12345));
-        });
+        await encrypt([
+          { type: "uint64", value: BigInt(i * 1000 + 12345) },
+        ], erc7984.address as `0x${string}`);
         const endN = performance.now();
         addResult(`Encrypt euint64 #${i + 1}`, endN - startN);
 

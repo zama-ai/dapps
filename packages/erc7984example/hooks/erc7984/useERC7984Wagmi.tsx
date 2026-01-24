@@ -134,17 +134,20 @@ export const useERC7984Wagmi = () => {
       setIsProcessing(true);
       setMessage(`Starting transfer of ${amount} tokens to ${to}...`);
       try {
-        // Simple encryption - type defaults to uint64
+        // Encrypt amount using new tuple-return API
         setMessage("Encrypting amount...");
-        const enc = await encrypt(BigInt(amount), contractAddress);
-        if (!enc) return setMessage("Encryption failed");
+        const result = await encrypt([
+          { type: "uint64", value: BigInt(amount) },
+        ], contractAddress);
+        if (!result) return setMessage("Encryption failed");
+        const [amountHandle, proof] = result;
 
         const writeContract = getContract("write");
         if (!writeContract) return setMessage("Contract info or signer not available");
 
         // Get the specific function overload using getFunction to avoid ambiguity
         const transferFn = writeContract.getFunction("confidentialTransfer(address,bytes32,bytes)");
-        const tx = await transferFn(to, enc.handles[0], enc.inputProof);
+        const tx = await transferFn(to, amountHandle, proof);
         setMessage("Waiting for transaction...");
         await tx.wait();
         setMessage(`Transfer of ${amount} tokens completed!`);

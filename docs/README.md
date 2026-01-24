@@ -26,17 +26,20 @@ function EncryptedTransfer({ contractAddress, tokenAbi }) {
   const { encrypt } = useEncrypt();
   const { writeContract } = useWriteContract();
 
-  const handleTransfer = async (recipient: string, amount: bigint) => {
-    // Encrypt the amount client-side
-    const encrypted = await encrypt(amount, contractAddress);
-    if (!encrypted) return;
+  const handleTransfer = async (recipient: `0x${string}`, amount: bigint) => {
+    // Encrypt values - returns [...handles, proof] for easy destructuring
+    const [amountHandle, proof] = await encrypt([
+      { type: "uint64", value: amount },
+    ], contractAddress);
+
+    if (!amountHandle) return;
 
     // Send encrypted value to contract
     writeContract({
       address: contractAddress,
       abi: tokenAbi,
       functionName: "transfer",
-      args: [recipient, encrypted.handles[0], encrypted.inputProof],
+      args: [recipient, amountHandle, proof],
     });
   };
 

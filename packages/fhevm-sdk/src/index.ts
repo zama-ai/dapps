@@ -19,6 +19,14 @@ export * from "./storage/index";
 export * from "./fhevmTypes";
 export * from "./FhevmDecryptionSignature";
 
+// Encryption types
+export type {
+  FheTypeName,
+  EncryptInput,
+  EncryptResult,
+  EncryptedOutput,
+} from "./types/encryption";
+
 // React hooks and provider
 export * from "./react/index";
 

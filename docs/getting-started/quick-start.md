@@ -70,16 +70,19 @@ function TransferForm({ contractAddress }) {
   const handleTransfer = async () => {
     if (!isReady) return;
 
-    // Encrypt the amount (defaults to uint64)
-    const encrypted = await encrypt(BigInt(amount), contractAddress);
-    if (!encrypted) return;
+    // Encrypt the amount - returns [handle, proof] for easy destructuring
+    const [amountHandle, proof] = await encrypt([
+      { type: "uint64", value: BigInt(amount) },
+    ], contractAddress);
+
+    if (!amountHandle) return;
 
     // Use in contract call
     await writeContract({
       address: contractAddress,
       abi: tokenAbi,
       functionName: "transfer",
-      args: [recipient, encrypted.handles[0], encrypted.inputProof],
+      args: [recipient, amountHandle, proof],
     });
   };
 
@@ -157,11 +160,12 @@ Here's a complete component combining encryption, decryption, and status:
 
 ```tsx
 import { useEncrypt, useUserDecrypt, useFhevmStatus } from "fhevm-sdk";
-import { useReadContract } from "wagmi";
+import { useReadContract, useWriteContract } from "wagmi";
 
-function EncryptedToken({ contractAddress }) {
+function EncryptedToken({ contractAddress, userAddress }) {
   const { isReady: fhevmReady } = useFhevmStatus();
-  const { encrypt, isReady: encryptReady } = useEncrypt();
+  const { encrypt } = useEncrypt();
+  const { writeContract } = useWriteContract();
 
   // Read encrypted balance handle from contract
   const { data: balanceHandle } = useReadContract({
@@ -178,6 +182,22 @@ function EncryptedToken({ contractAddress }) {
   });
 
   const decryptedBalance = balanceHandle ? results[balanceHandle] : undefined;
+
+  // Transfer function with encryption
+  const handleTransfer = async (recipient: `0x${string}`, amount: bigint) => {
+    const [amountHandle, proof] = await encrypt([
+      { type: "uint64", value: amount },
+    ], contractAddress);
+
+    if (!amountHandle) return;
+
+    writeContract({
+      address: contractAddress,
+      abi: tokenAbi,
+      functionName: "transfer",
+      args: [recipient, amountHandle, proof],
+    });
+  };
 
   if (!fhevmReady) {
     return <p>Loading FHE...</p>;
