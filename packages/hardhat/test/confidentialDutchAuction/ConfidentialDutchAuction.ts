@@ -71,14 +71,22 @@ describe("ConfidentialDutchAuction", function () {
     this.finalizeInit = async () => {
       const handle = await this.auction.getInitHandle();
       const decryptResult = await fhevm.publicDecrypt([handle]);
-      const tx = await this.auction.finalizeInit([handle], decryptResult.abiEncodedClearValues, decryptResult.decryptionProof);
+      const tx = await this.auction.finalizeInit(
+        [handle],
+        decryptResult.abiEncodedClearValues,
+        decryptResult.decryptionProof,
+      );
       await tx.wait();
     };
 
     this.finalizeTokensLeftReveal = async () => {
       const handle = await this.auction.getTokensLeftHandle();
       const decryptResult = await fhevm.publicDecrypt([handle]);
-      const tx = await this.auction.finalizeTokensLeftReveal([handle], decryptResult.abiEncodedClearValues, decryptResult.decryptionProof);
+      const tx = await this.auction.finalizeTokensLeftReveal(
+        [handle],
+        decryptResult.abiEncodedClearValues,
+        decryptResult.decryptionProof,
+      );
       await tx.wait();
     };
 
@@ -195,7 +203,8 @@ describe("ConfidentialDutchAuction", function () {
       input.add64(bidAmount);
       const encryptedBid = await input.encrypt();
 
-      await expect(this.auction.connect(this.signers.bob).bid(encryptedBid.handles[0], encryptedBid.inputProof)).to.not.be.reverted;
+      await expect(this.auction.connect(this.signers.bob).bid(encryptedBid.handles[0], encryptedBid.inputProof)).to.not
+        .be.reverted;
     });
 
     it("Should allow multiple bids from the same user", async function () {
@@ -213,7 +222,8 @@ describe("ConfidentialDutchAuction", function () {
       input2.add64(bidAmount2);
       const encryptedBid2 = await input2.encrypt();
 
-      await expect(this.auction.connect(this.signers.bob).bid(encryptedBid2.handles[0], encryptedBid2.inputProof)).to.not.be.reverted;
+      await expect(this.auction.connect(this.signers.bob).bid(encryptedBid2.handles[0], encryptedBid2.inputProof)).to
+        .not.be.reverted;
     });
 
     it("Should not allow bids after auction ends", async function () {

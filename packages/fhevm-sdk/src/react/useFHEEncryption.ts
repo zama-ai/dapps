@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from "react";
 import { FhevmInstance } from "../fhevmTypes.js";
 import { RelayerEncryptedInput } from "@zama-fhe/relayer-sdk/web";
-import { ethers } from "ethers";
 
 export type EncryptResult = {
   handles: Uint8Array[];
@@ -69,29 +68,34 @@ export const buildParamsFromAbi = (enc: EncryptResult, abi: any[], functionName:
   });
 };
 
+/**
+ * @deprecated Use useEncrypt instead, which provides a simpler API and integrates with FhevmProvider context.
+ *
+ * Legacy hook for FHE encryption. Requires manual instance and address management.
+ */
 export const useFHEEncryption = (params: {
   instance: FhevmInstance | undefined;
-  ethersSigner: ethers.JsonRpcSigner | undefined;
+  /** User's wallet address */
+  userAddress: `0x${string}` | undefined;
   contractAddress: `0x${string}` | undefined;
 }) => {
-  const { instance, ethersSigner, contractAddress } = params;
+  const { instance, userAddress, contractAddress } = params;
 
   const canEncrypt = useMemo(
-    () => Boolean(instance && ethersSigner && contractAddress),
-    [instance, ethersSigner, contractAddress],
+    () => Boolean(instance && userAddress && contractAddress),
+    [instance, userAddress, contractAddress],
   );
 
   const encryptWith = useCallback(
     async (buildFn: (builder: RelayerEncryptedInput) => void): Promise<EncryptResult | undefined> => {
-      if (!instance || !ethersSigner || !contractAddress) return undefined;
+      if (!instance || !userAddress || !contractAddress) return undefined;
 
-      const userAddress = await ethersSigner.getAddress();
       const input = instance.createEncryptedInput(contractAddress, userAddress) as RelayerEncryptedInput;
       buildFn(input);
       const enc = await input.encrypt();
       return enc;
     },
-    [instance, ethersSigner, contractAddress],
+    [instance, userAddress, contractAddress],
   );
 
   return {

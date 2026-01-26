@@ -31,7 +31,7 @@ const ENUM_STATUSES = {
 };
 
 const DEFAULT_DURATION = 3000;
-const DEFAULT_POSITION: ToastPosition = "top-center";
+const DEFAULT_POSITION: ToastPosition = "top-right";
 
 /**
  * Custom Notification - Liquid Glass Style

@@ -1,33 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useDeployedContractInfo } from "../helper";
-import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { ethers } from "ethers";
-import { FhevmInstance } from "fhevm-sdk";
-import { getEncryptionMethod, useFHEDecrypt, useFHEEncryption, useInMemoryStorage } from "fhevm-sdk";
+import { useFhevmContext, useUserDecrypt, useEncrypt, useEthersSigner } from "fhevm-sdk";
 import { useAccount, useReadContract } from "wagmi";
 import type { Contract } from "~~/utils/helper/contract";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
+
+// Transfer status for detailed UI feedback
+export type TransferStatus =
+  | "idle"
+  | "encrypting"
+  | "signing"
+  | "confirming"
+  | "success"
+  | "error";
 
 /**
  * useERC7984Wagmi - ERC7984 Confidential Token hook for Wagmi
  *
  * What it does:
  * - Reads the current encrypted balance
- * - Decrypts the handle on-demand with useFHEDecrypt
- * - Encrypts inputs and writes transfers/mints
+ * - Decrypts the handle on-demand with useUserDecrypt (new simplified API)
+ * - Encrypts inputs and writes transfers with useEncrypt
+ *
+ * No parameters needed - everything is retrieved from FhevmProvider context.
  */
-export const useERC7984Wagmi = (parameters: {
-  instance: FhevmInstance | undefined;
-  initialMockChains?: Readonly<Record<number, string>>;
-}) => {
-  const { instance, initialMockChains } = parameters;
-  const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
-  const { address } = useAccount();
+export const useERC7984Wagmi = () => {
+  // Get everything from context
+  const { instance, chainId: fhevmChainId, isConnected: fhevmConnected } = useFhevmContext();
+  const { address, isConnected, chain } = useAccount();
+  const { signer: ethersSigner, provider: ethersProvider } = useEthersSigner();
 
-  // Wagmi + ethers interop
-  const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);
+  // Use wagmi chain ID if available, fall back to fhevm context
+  const chainId = chain?.id ?? fhevmChainId;
 
   // Resolve deployed contract info once we know the chain
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
@@ -39,22 +46,27 @@ export const useERC7984Wagmi = (parameters: {
   type ERC7984Info = Contract<"ERC7984Example"> & { chainId?: number };
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [transferStatus, setTransferStatus] = useState<TransferStatus>("idle");
+  const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
+
+  // Track previous decrypting state to detect transitions
+  const prevDecryptingRef = useRef<boolean>(false);
 
   // -------------
   // Helpers
   // -------------
   const hasContract = Boolean(erc7984?.address && erc7984?.abi);
-  const hasProvider = Boolean(ethersReadonlyProvider);
+  const hasProvider = Boolean(ethersProvider);
   const hasSigner = Boolean(ethersSigner);
 
   const getContract = useCallback(
     (mode: "read" | "write") => {
       if (!hasContract) return undefined;
-      const providerOrSigner = mode === "read" ? ethersReadonlyProvider : ethersSigner;
+      const providerOrSigner = mode === "read" ? ethersProvider : ethersSigner;
       if (!providerOrSigner) return undefined;
       return new ethers.Contract(erc7984!.address, (erc7984 as ERC7984Info).abi, providerOrSigner);
     },
-    [hasContract, ethersReadonlyProvider, ethersSigner, erc7984],
+    [hasContract, ethersProvider, ethersSigner, erc7984],
   );
 
   // Read balance handle via wagmi
@@ -78,11 +90,11 @@ export const useERC7984Wagmi = (parameters: {
     if (res.error) setMessage("ERC7984.confidentialBalanceOf() failed: " + (res.error as Error).message);
   }, [readResult]);
 
-  // Decrypt balance
-  const requests = useMemo(() => {
-    if (!hasContract || !balanceHandle || balanceHandle === ethers.ZeroHash) return undefined;
-    return [{ handle: balanceHandle, contractAddress: erc7984!.address } as const];
-  }, [hasContract, erc7984, balanceHandle]);
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Decrypt balance using new simplified useUserDecrypt hook
+  // ─────────────────────────────────────────────────────────────────────────────
+  const contractAddress = erc7984?.address as `0x${string}` | undefined;
+  const decryptHandle = balanceHandle && balanceHandle !== ethers.ZeroHash ? balanceHandle : undefined;
 
   const {
     canDecrypt,
@@ -91,12 +103,9 @@ export const useERC7984Wagmi = (parameters: {
     message: decMsg,
     results,
     error: decryptError,
-  } = useFHEDecrypt({
-    instance,
-    ethersSigner: ethersSigner as any,
-    fhevmDecryptionSignatureStorage,
-    chainId,
-    requests,
+  } = useUserDecrypt({
+    handle: decryptHandle,
+    contractAddress: hasContract ? contractAddress : undefined,
   });
 
   useEffect(() => {
@@ -122,66 +131,86 @@ export const useERC7984Wagmi = (parameters: {
   const isDecrypted = Boolean(balanceHandle && clearBalance?.handle === balanceHandle);
   const decryptBalanceHandle = decrypt;
 
-  // Mutations (transfer)
-  const { encryptWith } = useFHEEncryption({
-    instance,
-    ethersSigner: ethersSigner as any,
-    contractAddress: erc7984?.address,
-  });
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Encrypt using new simplified useEncrypt hook
+  // ─────────────────────────────────────────────────────────────────────────────
+  const { encrypt, isReady: encryptReady } = useEncrypt();
+
   const canTransfer = useMemo(
-    () => Boolean(hasContract && instance && hasSigner && !isProcessing),
-    [hasContract, instance, hasSigner, isProcessing],
+    () => Boolean(hasContract && instance && hasSigner && encryptReady && !isProcessing),
+    [hasContract, instance, hasSigner, encryptReady, isProcessing],
   );
 
-  const getEncryptionMethodForTransfer = useCallback(() => {
-    const functionAbi = erc7984?.abi.find(item => item.type === "function" && item.name === "confidentialTransfer");
-    if (!functionAbi)
-      return {
-        method: undefined as string | undefined,
-        error: "Function ABI not found for confidentialTransfer",
-      } as const;
-    if (!functionAbi.inputs)
-      return { method: undefined as string | undefined, error: "No inputs found for confidentialTransfer" } as const;
-    // Find the externalEuint64 input parameter (use the one with proof)
-    const inputs = Array.isArray(functionAbi.inputs) ? functionAbi.inputs : [];
-    const amountInput = inputs.find(input => input.internalType?.includes("externalEuint64"));
-    if (!amountInput)
-      return { method: undefined as string | undefined, error: "externalEuint64 input not found" } as const;
-    return { method: getEncryptionMethod(amountInput.internalType || ""), error: undefined } as const;
-  }, [erc7984]);
-
+  // Simplified transferTokens using new encrypt() with default uint64 type
   const transferTokens = useCallback(
-    async (to: string, amount: number) => {
-      if (isProcessing || !canTransfer || amount <= 0) return;
+    async (to: string, amount: number): Promise<{ success: boolean; error?: string; txHash?: string }> => {
+      if (isProcessing || !canTransfer || amount <= 0 || !contractAddress) {
+        return { success: false, error: "Cannot transfer at this time" };
+      }
       setIsProcessing(true);
-      setMessage(`Starting transfer of ${amount} tokens to ${to}...`);
-      try {
-        const { method, error } = getEncryptionMethodForTransfer();
-        if (!method) return setMessage(error ?? "Encryption method not found");
+      setTransferStatus("encrypting");
+      setIsEncrypting(true);
+      setMessage(`Encrypting ${amount} tokens...`);
 
-        setMessage(`Encrypting amount with ${method}...`);
-        const enc = await encryptWith(builder => {
-          (builder as any)[method](amount);
-        });
-        if (!enc) return setMessage("Encryption failed");
+      try {
+        // Encrypt amount using new tuple-return API
+        const result = await encrypt([
+          { type: "uint64", value: BigInt(amount) },
+        ], contractAddress);
+        setIsEncrypting(false);
+
+        if (!result) {
+          setTransferStatus("error");
+          setMessage("Encryption failed");
+          return { success: false, error: "Encryption failed" };
+        }
+        const [amountHandle, proof] = result;
 
         const writeContract = getContract("write");
-        if (!writeContract) return setMessage("Contract info or signer not available");
+        if (!writeContract) {
+          setTransferStatus("error");
+          setMessage("Contract info or signer not available");
+          return { success: false, error: "Contract not available" };
+        }
 
         // Get the specific function overload using getFunction to avoid ambiguity
+        setTransferStatus("signing");
+        setMessage("Please sign the transaction in your wallet...");
+
         const transferFn = writeContract.getFunction("confidentialTransfer(address,bytes32,bytes)");
-        const tx = await transferFn(to, enc.handles[0], enc.inputProof);
-        setMessage("Waiting for transaction...");
-        await tx.wait();
-        setMessage(`Transfer of ${amount} tokens completed!`);
+        const tx = await transferFn(to, amountHandle, proof);
+
+        setTransferStatus("confirming");
+        setMessage("Transaction submitted. Waiting for confirmation...");
+
+        const receipt = await tx.wait();
+        setTransferStatus("success");
+        setMessage(`Successfully transferred ${amount} tokens!`);
         refreshBalanceHandle();
+
+        return { success: true, txHash: receipt.hash };
       } catch (e) {
-        setMessage(`Transfer failed: ${e instanceof Error ? e.message : String(e)}`);
+        setTransferStatus("error");
+        setIsEncrypting(false);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+
+        // Handle user rejection
+        if (errorMsg.includes("user rejected") || errorMsg.includes("User denied")) {
+          setMessage("Transaction cancelled by user");
+          return { success: false, error: "Transaction cancelled" };
+        }
+
+        setMessage(`Transfer failed: ${errorMsg}`);
+        return { success: false, error: errorMsg };
       } finally {
         setIsProcessing(false);
+        // Reset status after a delay
+        setTimeout(() => {
+          setTransferStatus("idle");
+        }, 3000);
       }
     },
-    [isProcessing, canTransfer, encryptWith, getContract, refreshBalanceHandle, getEncryptionMethodForTransfer],
+    [isProcessing, canTransfer, contractAddress, encrypt, getContract, refreshBalanceHandle],
   );
 
   return {
@@ -199,10 +228,11 @@ export const useERC7984Wagmi = (parameters: {
     isDecrypting,
     isRefreshing,
     isProcessing,
+    isEncrypting,
+    transferStatus,
     decryptError,
     // Wagmi-specific values
     chainId,
-    accounts,
     isConnected,
     ethersSigner,
     address,

@@ -1,21 +1,21 @@
-import { FhevmType } from '@fhevm/hardhat-plugin';
-import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
-import { time } from '@nomicfoundation/hardhat-network-helpers';
-import { expect } from 'chai';
-import { ethers, fhevm } from 'hardhat';
+import { FhevmType } from "@fhevm/hardhat-plugin";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { expect } from "chai";
+import { ethers, fhevm } from "hardhat";
 
-const name = 'ConfidentialFungibleToken';
-const symbol = 'CFT';
-const uri = 'https://example.com/metadata';
+const name = "ConfidentialFungibleToken";
+const symbol = "CFT";
+const uri = "https://example.com/metadata";
 
 /* eslint-disable no-unexpected-multiline */
-describe('ERC7984Wrapper', function () {
+describe("ERC7984Wrapper", function () {
   beforeEach(async function () {
     const accounts = await ethers.getSigners();
     const [holder, recipient, operator] = accounts;
 
-    const token = await ethers.deployContract('ERC20Mock', ['Public Token', 'PT', 18]);
-    const wrapper = await ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri]);
+    const token = await ethers.deployContract("ERC20Mock", ["Public Token", "PT", 18]);
+    const wrapper = await ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri]);
 
     this.accounts = accounts.slice(3);
     this.holder = holder;
@@ -24,15 +24,15 @@ describe('ERC7984Wrapper', function () {
     this.operator = operator;
     this.wrapper = wrapper;
 
-    await this.token.mint(this.holder.address, ethers.parseUnits('1000', 18));
+    await this.token.mint(this.holder.address, ethers.parseUnits("1000", 18));
     await this.token.connect(this.holder).approve(this.wrapper, ethers.MaxUint256);
   });
 
-  describe('Wrap', async function () {
+  describe("Wrap", async function () {
     for (const viaCallback of [false, true]) {
-      describe(`via ${viaCallback ? 'callback' : 'transfer from'}`, function () {
-        it('with multiple of rate', async function () {
-          const amountToWrap = ethers.parseUnits('100', 18);
+      describe(`via ${viaCallback ? "callback" : "transfer from"}`, function () {
+        it("with multiple of rate", async function () {
+          const amountToWrap = ethers.parseUnits("100", 18);
 
           if (viaCallback) {
             await this.token.connect(this.holder).transferAndCall(this.wrapper, amountToWrap);
@@ -40,15 +40,15 @@ describe('ERC7984Wrapper', function () {
             await this.wrapper.connect(this.holder).wrap(this.holder.address, amountToWrap);
           }
 
-          await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('900', 18));
+          await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("900", 18));
           const wrappedBalanceHandle = await this.wrapper.confidentialBalanceOf(this.holder.address);
           await expect(
             fhevm.userDecryptEuint(FhevmType.euint64, wrappedBalanceHandle, this.wrapper.target, this.holder),
-          ).to.eventually.equal(ethers.parseUnits('100', 6));
+          ).to.eventually.equal(ethers.parseUnits("100", 6));
         });
 
-        it('with value less than rate', async function () {
-          const amountToWrap = ethers.parseUnits('100', 8);
+        it("with value less than rate", async function () {
+          const amountToWrap = ethers.parseUnits("100", 8);
 
           if (viaCallback) {
             await this.token.connect(this.holder).transferAndCall(this.wrapper, amountToWrap);
@@ -56,15 +56,15 @@ describe('ERC7984Wrapper', function () {
             await this.wrapper.connect(this.holder).wrap(this.holder.address, amountToWrap);
           }
 
-          await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('1000', 18));
+          await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("1000", 18));
           const wrappedBalanceHandle = await this.wrapper.confidentialBalanceOf(this.holder.address);
           await expect(
             fhevm.userDecryptEuint(FhevmType.euint64, wrappedBalanceHandle, this.wrapper.target, this.holder),
           ).to.eventually.equal(0);
         });
 
-        it('with non-multiple of rate', async function () {
-          const amountToWrap = ethers.parseUnits('101', 11);
+        it("with non-multiple of rate", async function () {
+          const amountToWrap = ethers.parseUnits("101", 11);
 
           if (viaCallback) {
             await this.token.connect(this.holder).transferAndCall(this.wrapper, amountToWrap);
@@ -73,7 +73,7 @@ describe('ERC7984Wrapper', function () {
           }
 
           await expect(this.token.balanceOf(this.holder)).to.eventually.equal(
-            ethers.parseUnits('1000', 18) - ethers.parseUnits('10', 12),
+            ethers.parseUnits("1000", 18) - ethers.parseUnits("10", 12),
           );
           const wrappedBalanceHandle = await this.wrapper.confidentialBalanceOf(this.holder.address);
           await expect(
@@ -82,27 +82,25 @@ describe('ERC7984Wrapper', function () {
         });
 
         if (viaCallback) {
-          it('to another address', async function () {
-            const amountToWrap = ethers.parseUnits('100', 18);
+          it("to another address", async function () {
+            const amountToWrap = ethers.parseUnits("100", 18);
 
             await this.token
               .connect(this.holder)
-              ['transferAndCall(address,uint256,bytes)'](
-                this.wrapper,
-                amountToWrap,
-                ethers.solidityPacked(['address'], [this.recipient.address]),
-              );
+              [
+                "transferAndCall(address,uint256,bytes)"
+              ](this.wrapper, amountToWrap, ethers.solidityPacked(["address"], [this.recipient.address]));
 
-            await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('900', 18));
+            await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("900", 18));
             const wrappedBalanceHandle = await this.wrapper.confidentialBalanceOf(this.recipient.address);
             await expect(
               fhevm.userDecryptEuint(FhevmType.euint64, wrappedBalanceHandle, this.wrapper.target, this.recipient),
-            ).to.eventually.equal(ethers.parseUnits('100', 6));
+            ).to.eventually.equal(ethers.parseUnits("100", 6));
           });
 
-          it('from unauthorized caller', async function () {
-            await expect(this.wrapper.connect(this.holder).onTransferReceived(this.holder, this.holder, 100, '0x'))
-              .to.be.revertedWithCustomError(this.wrapper, 'ERC7984UnauthorizedCaller')
+          it("from unauthorized caller", async function () {
+            await expect(this.wrapper.connect(this.holder).onTransferReceived(this.holder, this.holder, 100, "0x"))
+              .to.be.revertedWithCustomError(this.wrapper, "ERC7984UnauthorizedCaller")
               .withArgs(this.holder.address);
           });
         }
@@ -110,14 +108,14 @@ describe('ERC7984Wrapper', function () {
     }
   });
 
-  describe('Unwrap', async function () {
+  describe("Unwrap", async function () {
     beforeEach(async function () {
-      const amountToWrap = ethers.parseUnits('100', 18);
+      const amountToWrap = ethers.parseUnits("100", 18);
       await this.token.connect(this.holder).transferAndCall(this.wrapper, amountToWrap);
     });
 
-    it('less than balance', async function () {
-      const withdrawalAmount = ethers.parseUnits('10', 6);
+    it("less than balance", async function () {
+      const withdrawalAmount = ethers.parseUnits("10", 6);
       const encryptedInput = await fhevm
         .createEncryptedInput(this.wrapper.target, this.holder.address)
         .add64(withdrawalAmount)
@@ -125,50 +123,44 @@ describe('ERC7984Wrapper', function () {
 
       await this.wrapper
         .connect(this.holder)
-        ['unwrap(address,address,bytes32,bytes)'](
-          this.holder,
-          this.holder,
-          encryptedInput.handles[0],
-          encryptedInput.inputProof,
-        );
+        [
+          "unwrap(address,address,bytes32,bytes)"
+        ](this.holder, this.holder, encryptedInput.handles[0], encryptedInput.inputProof);
 
       await publicDecryptAndFinalizeUnwrap(this.wrapper, this.holder);
 
       await expect(this.token.balanceOf(this.holder)).to.eventually.equal(
-        withdrawalAmount * 10n ** 12n + ethers.parseUnits('900', 18),
+        withdrawalAmount * 10n ** 12n + ethers.parseUnits("900", 18),
       );
     });
 
-    it('unwrap full balance', async function () {
+    it("unwrap full balance", async function () {
       await this.wrapper
         .connect(this.holder)
         .unwrap(this.holder, this.holder, await this.wrapper.confidentialBalanceOf(this.holder.address));
       await publicDecryptAndFinalizeUnwrap(this.wrapper, this.holder);
 
-      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('1000', 18));
+      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("1000", 18));
     });
 
-    it('more than balance', async function () {
-      const withdrawalAmount = ethers.parseUnits('101', 9);
+    it("more than balance", async function () {
+      const withdrawalAmount = ethers.parseUnits("101", 9);
       const input = fhevm.createEncryptedInput(this.wrapper.target, this.holder.address);
       input.add64(withdrawalAmount);
       const encryptedInput = await input.encrypt();
 
       await this.wrapper
         .connect(this.holder)
-        ['unwrap(address,address,bytes32,bytes)'](
-          this.holder,
-          this.holder,
-          encryptedInput.handles[0],
-          encryptedInput.inputProof,
-        );
+        [
+          "unwrap(address,address,bytes32,bytes)"
+        ](this.holder, this.holder, encryptedInput.handles[0], encryptedInput.inputProof);
 
       await publicDecryptAndFinalizeUnwrap(this.wrapper, this.holder);
-      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('900', 18));
+      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("900", 18));
     });
 
-    it('to invalid recipient', async function () {
-      const withdrawalAmount = ethers.parseUnits('10', 9);
+    it("to invalid recipient", async function () {
+      const withdrawalAmount = ethers.parseUnits("10", 9);
       const input = fhevm.createEncryptedInput(this.wrapper.target, this.holder.address);
       input.add64(withdrawalAmount);
       const encryptedInput = await input.encrypt();
@@ -176,19 +168,16 @@ describe('ERC7984Wrapper', function () {
       await expect(
         this.wrapper
           .connect(this.holder)
-          ['unwrap(address,address,bytes32,bytes)'](
-            this.holder,
-            ethers.ZeroAddress,
-            encryptedInput.handles[0],
-            encryptedInput.inputProof,
-          ),
+          [
+            "unwrap(address,address,bytes32,bytes)"
+          ](this.holder, ethers.ZeroAddress, encryptedInput.handles[0], encryptedInput.inputProof),
       )
-        .to.be.revertedWithCustomError(this.wrapper, 'ERC7984InvalidReceiver')
+        .to.be.revertedWithCustomError(this.wrapper, "ERC7984InvalidReceiver")
         .withArgs(ethers.ZeroAddress);
     });
 
-    it('via an approved operator', async function () {
-      const withdrawalAmount = ethers.parseUnits('100', 6);
+    it("via an approved operator", async function () {
+      const withdrawalAmount = ethers.parseUnits("100", 6);
       const encryptedInput = await fhevm
         .createEncryptedInput(this.wrapper.target, this.operator.address)
         .add64(withdrawalAmount)
@@ -198,20 +187,17 @@ describe('ERC7984Wrapper', function () {
 
       await this.wrapper
         .connect(this.operator)
-        ['unwrap(address,address,bytes32,bytes)'](
-          this.holder,
-          this.holder,
-          encryptedInput.handles[0],
-          encryptedInput.inputProof,
-        );
+        [
+          "unwrap(address,address,bytes32,bytes)"
+        ](this.holder, this.holder, encryptedInput.handles[0], encryptedInput.inputProof);
 
       await publicDecryptAndFinalizeUnwrap(this.wrapper, this.operator);
 
-      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits('1000', 18));
+      await expect(this.token.balanceOf(this.holder)).to.eventually.equal(ethers.parseUnits("1000", 18));
     });
 
-    it('via an unapproved operator', async function () {
-      const withdrawalAmount = ethers.parseUnits('100', 9);
+    it("via an unapproved operator", async function () {
+      const withdrawalAmount = ethers.parseUnits("100", 9);
       const input = fhevm.createEncryptedInput(this.wrapper.target, this.operator.address);
       input.add64(withdrawalAmount);
       const encryptedInput = await input.encrypt();
@@ -219,27 +205,24 @@ describe('ERC7984Wrapper', function () {
       await expect(
         this.wrapper
           .connect(this.operator)
-          ['unwrap(address,address,bytes32,bytes)'](
-            this.holder,
-            this.holder,
-            encryptedInput.handles[0],
-            encryptedInput.inputProof,
-          ),
+          [
+            "unwrap(address,address,bytes32,bytes)"
+          ](this.holder, this.holder, encryptedInput.handles[0], encryptedInput.inputProof),
       )
-        .to.be.revertedWithCustomError(this.wrapper, 'ERC7984UnauthorizedSpender')
+        .to.be.revertedWithCustomError(this.wrapper, "ERC7984UnauthorizedSpender")
         .withArgs(this.holder, this.operator);
     });
 
-    it('with a value not allowed to sender', async function () {
+    it("with a value not allowed to sender", async function () {
       const totalSupplyHandle = await this.wrapper.confidentialTotalSupply();
 
       await expect(this.wrapper.connect(this.holder).unwrap(this.holder, this.holder, totalSupplyHandle))
-        .to.be.revertedWithCustomError(this.wrapper, 'ERC7984UnauthorizedUseOfEncryptedAmount')
+        .to.be.revertedWithCustomError(this.wrapper, "ERC7984UnauthorizedUseOfEncryptedAmount")
         .withArgs(totalSupplyHandle, this.holder);
     });
 
-    it('finalized with invalid signature', async function () {
-      const withdrawalAmount = ethers.parseUnits('10', 6);
+    it("finalized with invalid signature", async function () {
+      const withdrawalAmount = ethers.parseUnits("10", 6);
       const encryptedInput = await fhevm
         .createEncryptedInput(this.wrapper.target, this.holder.address)
         .add64(withdrawalAmount)
@@ -247,12 +230,9 @@ describe('ERC7984Wrapper', function () {
 
       await this.wrapper
         .connect(this.holder)
-        ['unwrap(address,address,bytes32,bytes)'](
-          this.holder,
-          this.holder,
-          encryptedInput.handles[0],
-          encryptedInput.inputProof,
-        );
+        [
+          "unwrap(address,address,bytes32,bytes)"
+        ](this.holder, this.holder, encryptedInput.handles[0], encryptedInput.inputProof);
 
       const event = (await this.wrapper.queryFilter(this.wrapper.filters.UnwrapRequested()))[0];
       const unwrapAmount = event.args[1];
@@ -269,50 +249,50 @@ describe('ERC7984Wrapper', function () {
       ).to.be.reverted;
     });
 
-    it('finalize invalid unwrap request', async function () {
+    it("finalize invalid unwrap request", async function () {
       await expect(
-        this.wrapper.connect(this.holder).finalizeUnwrap(ethers.ZeroHash, 0, '0x'),
-      ).to.be.revertedWithCustomError(this.wrapper, 'InvalidUnwrapRequest');
+        this.wrapper.connect(this.holder).finalizeUnwrap(ethers.ZeroHash, 0, "0x"),
+      ).to.be.revertedWithCustomError(this.wrapper, "InvalidUnwrapRequest");
     });
   });
 
-  describe('Initialization', function () {
-    describe('decimals', function () {
-      it('when underlying has 6 decimals', async function () {
-        const token = await ethers.deployContract('ERC20Mock', ['Public Token', 'PT', 6]);
-        const wrapper = await ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri]);
+  describe("Initialization", function () {
+    describe("decimals", function () {
+      it("when underlying has 6 decimals", async function () {
+        const token = await ethers.deployContract("ERC20Mock", ["Public Token", "PT", 6]);
+        const wrapper = await ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri]);
 
         await expect(wrapper.decimals()).to.eventually.equal(6);
         await expect(wrapper.rate()).to.eventually.equal(1);
       });
 
-      it('when underlying has more than 9 decimals', async function () {
-        const token = await ethers.deployContract('ERC20Mock', ['Public Token', 'PT', 18]);
-        const wrapper = await ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri]);
+      it("when underlying has more than 9 decimals", async function () {
+        const token = await ethers.deployContract("ERC20Mock", ["Public Token", "PT", 18]);
+        const wrapper = await ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri]);
 
         await expect(wrapper.decimals()).to.eventually.equal(6);
         await expect(wrapper.rate()).to.eventually.equal(10n ** 12n);
       });
 
-      it('when underlying has less than 6 decimals', async function () {
-        const token = await ethers.deployContract('ERC20Mock', ['Public Token', 'PT', 4]);
-        const wrapper = await ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri]);
+      it("when underlying has less than 6 decimals", async function () {
+        const token = await ethers.deployContract("ERC20Mock", ["Public Token", "PT", 4]);
+        const wrapper = await ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri]);
 
         await expect(wrapper.decimals()).to.eventually.equal(4);
         await expect(wrapper.rate()).to.eventually.equal(1);
       });
 
-      it('when underlying decimals are not available', async function () {
-        const token = await ethers.deployContract('ERC20RevertDecimalsMock');
-        const wrapper = await ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri]);
+      it("when underlying decimals are not available", async function () {
+        const token = await ethers.deployContract("ERC20RevertDecimalsMock");
+        const wrapper = await ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri]);
 
         await expect(wrapper.decimals()).to.eventually.equal(6);
         await expect(wrapper.rate()).to.eventually.equal(10n ** 12n);
       });
 
-      it('when decimals are over `type(uint8).max`', async function () {
-        const token = await ethers.deployContract('ERC20ExcessDecimalsMock');
-        await expect(ethers.deployContract('ERC7984ERC20WrapperMock', [token, name, symbol, uri])).to.be.reverted;
+      it("when decimals are over `type(uint8).max`", async function () {
+        const token = await ethers.deployContract("ERC20ExcessDecimalsMock");
+        await expect(ethers.deployContract("ERC7984ERC20WrapperMock", [token, name, symbol, uri])).to.be.reverted;
       });
     });
   });
@@ -324,6 +304,6 @@ async function publicDecryptAndFinalizeUnwrap(wrapper: any, caller: HardhatEther
   const [to, amount] = (await wrapper.queryFilter(wrapper.filters.UnwrapRequested()))[0].args;
   const { abiEncodedClearValues, decryptionProof } = await fhevm.publicDecrypt([amount]);
   await expect(wrapper.connect(caller).finalizeUnwrap(amount, abiEncodedClearValues, decryptionProof))
-    .to.emit(wrapper, 'UnwrapFinalized')
+    .to.emit(wrapper, "UnwrapFinalized")
     .withArgs(to, amount, abiEncodedClearValues);
 }

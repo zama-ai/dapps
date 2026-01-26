@@ -1,4 +1,3 @@
-import { isAddress, Eip1193Provider, JsonRpcProvider } from "ethers";
 import type {
   FhevmInitSDKOptions,
   FhevmInitSDKType,
@@ -8,6 +7,17 @@ import type {
 import { isFhevmWindowType, RelayerSDKLoader } from "./RelayerSDKLoader";
 import { publicKeyStorageGet, publicKeyStorageSet } from "./PublicKeyStorage";
 import { FhevmInstance, FhevmInstanceConfig } from "../fhevmTypes";
+import {
+  isAddress,
+  getChainId as getChainIdFromProvider,
+  type Eip1193Provider,
+} from "./eip1193";
+import {
+  getChainIdFromUrl,
+  getWeb3ClientVersion,
+  tryGetFhevmHardhatMetadata,
+  rpcCall,
+} from "./rpc";
 
 export class FhevmReactError extends Error {
   code: string;
@@ -56,10 +66,7 @@ function checkIsAddress(a: unknown): a is `0x${string}` {
   if (typeof a !== "string") {
     return false;
   }
-  if (!isAddress(a)) {
-    return false;
-  }
-  return true;
+  return isAddress(a);
 }
 
 export class FhevmAbortError extends Error {
@@ -80,17 +87,14 @@ async function getChainId(
   providerOrUrl: Eip1193Provider | string
 ): Promise<number> {
   if (typeof providerOrUrl === "string") {
-    const provider = new JsonRpcProvider(providerOrUrl);
-    return Number((await provider.getNetwork()).chainId);
+    return getChainIdFromUrl(providerOrUrl);
   }
-  const chainId = await providerOrUrl.request({ method: "eth_chainId" });
-  return Number.parseInt(chainId as string, 16);
+  return getChainIdFromProvider(providerOrUrl);
 }
 
 async function getWeb3Client(rpcUrl: string) {
-  const rpc = new JsonRpcProvider(rpcUrl);
   try {
-    const version = await rpc.send("web3_clientVersion", []);
+    const version = await getWeb3ClientVersion(rpcUrl);
     return version;
   } catch (e) {
     throwFhevmError(
@@ -98,8 +102,6 @@ async function getWeb3Client(rpcUrl: string) {
       `The URL ${rpcUrl} is not a Web3 node or is not reachable. Please check the endpoint.`,
       e
     );
-  } finally {
-    rpc.destroy();
   }
 }
 
@@ -120,57 +122,10 @@ async function tryFetchFHEVMHardhatNodeRelayerMetadata(rpcUrl: string): Promise<
     return undefined;
   }
   try {
-    const metadata = await getFHEVMRelayerMetadata(rpcUrl);
-    if (!metadata || typeof metadata !== "object") {
-      return undefined;
-    }
-    if (
-      !(
-        "ACLAddress" in metadata &&
-        typeof metadata.ACLAddress === "string" &&
-        metadata.ACLAddress.startsWith("0x")
-      )
-    ) {
-      return undefined;
-    }
-    if (
-      !(
-        "InputVerifierAddress" in metadata &&
-        typeof metadata.InputVerifierAddress === "string" &&
-        metadata.InputVerifierAddress.startsWith("0x")
-      )
-    ) {
-      return undefined;
-    }
-    if (
-      !(
-        "KMSVerifierAddress" in metadata &&
-        typeof metadata.KMSVerifierAddress === "string" &&
-        metadata.KMSVerifierAddress.startsWith("0x")
-      )
-    ) {
-      return undefined;
-    }
-    return metadata;
+    return await tryGetFhevmHardhatMetadata(rpcUrl);
   } catch {
     // Not a FHEVM Hardhat Node
     return undefined;
-  }
-}
-
-async function getFHEVMRelayerMetadata(rpcUrl: string) {
-  const rpc = new JsonRpcProvider(rpcUrl);
-  try {
-    const version = await rpc.send("fhevm_relayer_metadata", []);
-    return version;
-  } catch (e) {
-    throwFhevmError(
-      "FHEVM_RELAYER_METADATA_ERROR",
-      `The URL ${rpcUrl} is not a FHEVM Hardhat node or is not reachable. Please check the endpoint.`,
-      e
-    );
-  } finally {
-    rpc.destroy();
   }
 }
 
@@ -239,11 +194,11 @@ export const createFhevmInstance = async (parameters: {
       notify("creating");
 
       //////////////////////////////////////////////////////////////////////////
-      // 
+      //
       // WARNING!!
-      // ALWAY USE DYNAMIC IMPORT TO AVOID INCLUDING THE ENTIRE FHEVM MOCK LIB 
+      // ALWAY USE DYNAMIC IMPORT TO AVOID INCLUDING THE ENTIRE FHEVM MOCK LIB
       // IN THE FINAL PRODUCTION BUNDLE!!
-      // 
+      //
       //////////////////////////////////////////////////////////////////////////
       const fhevmMock = await import("./mock/fhevmMock");
       const mockInstance = await fhevmMock.fhevmMockCreateInstance({
