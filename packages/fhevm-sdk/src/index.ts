@@ -35,6 +35,26 @@ export type {
   EncryptedOutput,
 } from "./types/encryption";
 
+// Transfer types
+export type {
+  TransferStatus,
+  UseConfidentialTransferOptions,
+  UseConfidentialTransferReturn,
+} from "./types/transfer";
+
+// Balance types
+export type {
+  BalanceStatus,
+  ConfidentialBalanceConfig,
+  ConfidentialBalanceResult,
+  DecryptedValue,
+  UseConfidentialBalancesOptions,
+  UseConfidentialBalancesReturn,
+} from "./types/balance";
+
+// ABIs
+export { ERC7984_ABI } from "./abi/index";
+
 // React hooks and provider
 export * from "./react/index";
 

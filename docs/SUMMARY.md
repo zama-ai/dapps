@@ -21,6 +21,8 @@
 ## Hooks
 
 * [useEncrypt](hooks/use-encrypt.md)
+* [useConfidentialTransfer](hooks/use-confidential-transfer.md)
+* [useConfidentialBalances](hooks/use-confidential-balances.md)
 * [useUserDecrypt](hooks/use-user-decrypt.md)
 * [usePublicDecrypt](hooks/use-public-decrypt.md)
 * [useFhevmStatus](hooks/use-fhevm-status.md)

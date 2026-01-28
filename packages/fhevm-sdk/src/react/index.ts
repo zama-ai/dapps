@@ -9,6 +9,8 @@ export { usePublicDecrypt, type UsePublicDecryptReturn, type PublicDecryptResult
 export { useFhevmStatus, type UseFhevmStatusReturn } from "./useFhevmStatus";
 export { useFhevmClient, type UseFhevmClientReturn } from "./useFhevmClient";
 export { useEthersSigner, type UseEthersSignerReturn } from "./useEthersSigner";
+export { useConfidentialTransfer, type UseConfidentialTransferOptions, type UseConfidentialTransferReturn, type TransferStatus } from "./useConfidentialTransfer";
+export { useConfidentialBalances, type ConfidentialBalanceConfig, type ConfidentialBalanceResult, type DecryptedValue, type UseConfidentialBalancesOptions, type UseConfidentialBalancesReturn, type BalanceStatus } from "./useConfidentialBalances";
 
 // Cache lookup hooks (TanStack Query powered)
 export { useUserDecryptedValue, useUserDecryptedValues, type UseDecryptedValueReturn } from "./useUserDecryptedValue";

@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/helper/contract";
 const deployedContracts = {
   31337: {
     Airdrop: {
-      address: "0xE261f99A2EF5b089e9C042B3C8eEEdedaD84962f",
+      address: "0x380ee13b0039852314fFF513821729B052D06a71",
       abi: [
         {
           inputs: [],
@@ -201,10 +201,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 11,
+      deployedOnBlock: 4,
     },
     ERC7984Example: {
-      address: "0x31983BFF9c6B628400D978EdB159670109FCA5F9",
+      address: "0xc1b7223f08F52fbfA263c27674AE577911c3b20e",
       abi: [
         {
           inputs: [
@@ -1066,10 +1066,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable2Step.sol",
       },
-      deployedOnBlock: 10,
+      deployedOnBlock: 3,
     },
     PublicDecryptSingleValue: {
-      address: "0xb133B58DB46Df08cfe4e7ba9d42B4f90c77772e6",
+      address: "0x7EC38842d95D5000eae72751B9C64C9e6FFbcdFe",
       abi: [
         {
           inputs: [],
@@ -1202,7 +1202,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 12,
+      deployedOnBlock: 5,
     },
   },
   11155111: {
