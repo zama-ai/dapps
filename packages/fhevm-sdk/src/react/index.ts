@@ -11,6 +11,8 @@ export { useFhevmClient, type UseFhevmClientReturn } from "./useFhevmClient";
 export { useEthersSigner, type UseEthersSignerReturn } from "./useEthersSigner";
 export { useConfidentialTransfer, type UseConfidentialTransferOptions, type UseConfidentialTransferReturn, type TransferStatus } from "./useConfidentialTransfer";
 export { useConfidentialBalances, type ConfidentialBalanceConfig, type ConfidentialBalanceResult, type DecryptedValue, type UseConfidentialBalancesOptions, type UseConfidentialBalancesReturn, type BalanceStatus } from "./useConfidentialBalances";
+export { useShield, type ShieldStatus, type UseShieldOptions, type UseShieldReturn } from "./useShield";
+export { useUnshield, type UnshieldStatus, type UseUnshieldOptions, type UseUnshieldReturn } from "./useUnshield";
 
 // Cache lookup hooks (TanStack Query powered)
 export { useUserDecryptedValue, useUserDecryptedValues, type UseDecryptedValueReturn } from "./useUserDecryptedValue";

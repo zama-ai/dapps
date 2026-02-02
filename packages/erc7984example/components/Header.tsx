@@ -17,6 +17,7 @@ export const Header = () => {
 
   const navLinks = [
     { href: "/", label: "ERC7984" },
+    { href: "/shield", label: "Shield" },
     { href: "/public-decrypt", label: "Public Decrypt" },
     { href: "/benchmark", label: "Benchmark" },
   ];

@@ -32,7 +32,7 @@ function BalanceDisplay({ handle, contractAddress }) {
 
 ## Parameters
 
-### Single Handle (Recommended)
+### Single Handle
 
 ```tsx
 useUserDecrypt({

@@ -1,4 +1,4 @@
-# fhevm-sdk
+# sdk
 
 A React SDK for building applications with Fully Homomorphic Encryption (FHE) on EVM chains.
 

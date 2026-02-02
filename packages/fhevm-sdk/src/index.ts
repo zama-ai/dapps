@@ -52,8 +52,18 @@ export type {
   UseConfidentialBalancesReturn,
 } from "./types/balance";
 
+// Shield/Unshield types
+export type {
+  ShieldStatus,
+  UnshieldStatus,
+  UseShieldOptions,
+  UseShieldReturn,
+  UseUnshieldOptions,
+  UseUnshieldReturn,
+} from "./types/shield";
+
 // ABIs
-export { ERC7984_ABI } from "./abi/index";
+export { ERC7984_ABI, ERC20TOERC7984_ABI, ERC20_ABI } from "./abi/index";
 
 // React hooks and provider
 export * from "./react/index";

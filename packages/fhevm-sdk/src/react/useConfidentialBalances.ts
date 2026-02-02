@@ -126,6 +126,12 @@ export function useConfidentialBalances(
             const abi = config.abi ?? ERC7984_ABI;
             const contract = new ethers.Contract(config.contractAddress, abi, provider);
             const result: string = await contract.confidentialBalanceOf(account);
+            console.log("[useConfidentialBalances] confidentialBalanceOf result:", {
+              contractAddress: config.contractAddress,
+              account,
+              result,
+              isZeroHash: result === ethers.ZeroHash,
+            });
             return result === ethers.ZeroHash ? undefined : (result as `0x${string}`);
           }),
         );
