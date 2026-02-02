@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "latest",
-    "fhevm-sdk": "workspace:*",
+    "@zama-fhe/sdk": "file:../../../react-sdk",
     "react": "latest",
     "react-dom": "latest",
     "viem": "latest",

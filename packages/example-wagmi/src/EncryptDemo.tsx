@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFhevmContext, useEncrypt, type EncryptInput } from "fhevm-sdk";
+import { useFhevmContext, useEncrypt, type EncryptInput } from "@zama-fhe/sdk";
 
 // Example contract address (you would replace this with your actual contract)
 const DEMO_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000001" as const;

@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { useConnection, useConnectorClient } from "wagmi";
-import { FhevmProvider, memoryStorage, type Eip1193Provider } from "fhevm-sdk";
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "@zama-fhe/sdk";
 import { fhevmConfig } from "./fhevmConfig";
 
 export function FhevmWrapper({ children }: PropsWithChildren) {
