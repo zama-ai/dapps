@@ -7,7 +7,7 @@ import {
   useFhevmContext,
   useEthersSigner,
   ERC20TOERC7984_ABI,
-} from "fhevm-sdk";
+} from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { notification } from "~~/utils/helper/notification";
 

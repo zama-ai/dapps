@@ -9,7 +9,7 @@ import {
   useConfidentialBalances,
   useEthersSigner,
   ERC20_ABI,
-} from "fhevm-sdk";
+} from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { notification } from "~~/utils/helper/notification";

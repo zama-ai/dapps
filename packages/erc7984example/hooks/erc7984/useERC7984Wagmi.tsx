@@ -9,7 +9,7 @@ import {
   useConfidentialTransfer,
   useConfidentialBalances,
   type TransferStatus,
-} from "fhevm-sdk";
+} from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 

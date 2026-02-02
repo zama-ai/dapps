@@ -14,7 +14,7 @@
     "vercel:yolo": "vercel --build-env YARN_ENABLE_IMMUTABLE_INSTALLS=false --build-env ENABLE_EXPERIMENTAL_COREPACK=1 --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true --build-env VERCEL_TELEMETRY_DISABLED=1"
   },
   "dependencies": {
-    "fhevm-sdk": "workspace:*",
+    "@zama-fhe/sdk": "workspace:*",
     "@heroicons/react": "~2.1.5",
     "@privy-io/react-auth": "^3.8.1",
     "@privy-io/wagmi": "^2.1.0",

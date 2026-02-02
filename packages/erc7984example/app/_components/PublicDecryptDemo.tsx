@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { usePublicDecrypt, useFhevmStatus, useEthersSigner } from "fhevm-sdk";
+import { usePublicDecrypt, useFhevmStatus, useEthersSigner } from "@zama-fhe/sdk";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { notification } from "~~/utils/helper/notification";
 import deployedContracts from "~~/contracts/deployedContracts";

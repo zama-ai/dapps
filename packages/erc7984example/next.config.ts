@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["fhevm-sdk"],
+  transpilePackages: ["@zama-fhe/sdk"],
   // Exclude Node.js packages that are incompatible with Turbopack bundling
   serverExternalPackages: ["pino", "thread-stream", "pino-pretty"],
   // Empty turbopack config - Turbopack handles Node.js fallbacks automatically

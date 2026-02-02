@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFhevmStatus, useEncrypt } from "fhevm-sdk";
+import { useFhevmStatus, useEncrypt } from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
 import type { AllowedChainIds } from "~~/utils/helper/networks";

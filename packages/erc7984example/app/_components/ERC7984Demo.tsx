@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ethers } from "ethers";
-import { useFhevmStatus } from "fhevm-sdk";
+import { useFhevmStatus } from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { useERC7984Wagmi, type TransferStatus } from "~~/hooks/erc7984/useERC7984Wagmi";
