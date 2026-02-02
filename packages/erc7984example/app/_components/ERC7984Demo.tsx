@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { FHEBenchmark } from "./FHEBenchmark";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ethers } from "ethers";
-import { useFhevm } from "fhevm-sdk";
+import { useFhevmStatus } from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
-import { useERC7984Wagmi } from "~~/hooks/erc7984/useERC7984Wagmi";
+import { useERC7984Wagmi, type TransferStatus } from "~~/hooks/erc7984/useERC7984Wagmi";
 import { useDeployedContractInfo, useIsSmartWallet } from "~~/hooks/helper";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 import { notification } from "~~/utils/helper/notification";
@@ -15,6 +14,8 @@ import { notification } from "~~/utils/helper/notification";
  * Main ERC7984 React component for interacting with confidential tokens
  *  - "Decrypt" button: allows you to decrypt the current balance handle
  *  - "Transfer" button: allows you to transfer tokens using FHE operations
+ *
+ * FHEVM instance is now provided via FhevmProvider context (no setup needed here)
  */
 export const ERC7984Demo = () => {
   const { isConnected, chain, address } = useAccount();
@@ -23,68 +24,105 @@ export const ERC7984Demo = () => {
   const chainId = chain?.id;
 
   //////////////////////////////////////////////////////////////////////////////
-  // FHEVM instance
+  // FHEVM status from context (no boilerplate needed!)
   //////////////////////////////////////////////////////////////////////////////
 
-  // Create EIP-1193 provider from wagmi for FHEVM
-  const provider = useMemo(() => {
-    if (typeof window === "undefined") return undefined;
-
-    // Get the wallet provider from window.ethereum
-    return (window as any).ethereum;
-  }, []);
-
-  const initialMockChains = { 31337: "http://localhost:8545" };
-
-  // State to control fhevm initialization - wait for mount and provider
-  const [isMounted, setIsMounted] = useState(false);
-  const [fhevmEnabled, setFhevmEnabled] = useState(false);
-
-  // Set mounted on client side only
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Enable FHE ONLY after mounted and when provider and chainId are available
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const shouldEnable = Boolean(provider && chainId);
-
-    if (shouldEnable && !fhevmEnabled) {
-      // Small delay to ensure everything is stable
-      const timeoutId = setTimeout(() => {
-        setFhevmEnabled(true);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    } else if (!shouldEnable && fhevmEnabled) {
-      setFhevmEnabled(false);
-    }
-  }, [isMounted, provider, chainId, fhevmEnabled]);
-
-  const {
-    instance: fhevmInstance,
-    status: fhevmStatus,
-    error: fhevmError,
-  } = useFhevm({
-    provider,
-    chainId,
-    initialMockChains,
-    enabled: fhevmEnabled,
-  });
+  const { isReady: fhevmIsReady } = useFhevmStatus();
 
   //////////////////////////////////////////////////////////////////////////////
   // useERC7984 is a custom hook containing all the ERC7984 logic, including
   // - calling the ERC7984 contract
   // - encrypting FHE inputs
   // - decrypting FHE handles
+  // Instance is retrieved from FhevmProvider context automatically
   //////////////////////////////////////////////////////////////////////////////
 
-  const erc7984 = useERC7984Wagmi({
-    instance: fhevmInstance,
-    initialMockChains,
-  });
+  const erc7984 = useERC7984Wagmi();
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Toast notifications for status changes
+  //////////////////////////////////////////////////////////////////////////////
+
+  // Track previous states to detect transitions
+  const prevDecryptingRef = useRef<boolean>(false);
+  const prevTransferStatusRef = useRef<TransferStatus>("idle");
+  const prevFhevmReadyRef = useRef<boolean>(false);
+  const decryptToastRef = useRef<string | null>(null);
+  const transferToastRef = useRef<string | null>(null);
+  const fhevmToastShownRef = useRef<boolean>(false);
+
+  // FHEVM ready notification (show once per session)
+  useEffect(() => {
+    const wasReady = prevFhevmReadyRef.current;
+    const isReady = fhevmIsReady;
+
+    if (!wasReady && isReady && !fhevmToastShownRef.current) {
+      notification.success("FHE encryption ready! Your keys are cached for this session.");
+      fhevmToastShownRef.current = true;
+    }
+
+    prevFhevmReadyRef.current = isReady;
+  }, [fhevmIsReady]);
+
+  // Decryption toast notifications
+  useEffect(() => {
+    const wasDecrypting = prevDecryptingRef.current;
+    const isDecrypting = erc7984.isDecrypting;
+
+    // Started decrypting
+    if (!wasDecrypting && isDecrypting) {
+      decryptToastRef.current = notification.loading("Decrypting your balance...");
+    }
+
+    // Finished decrypting successfully
+    if (wasDecrypting && !isDecrypting && decryptToastRef.current) {
+      notification.remove(decryptToastRef.current);
+      if (erc7984.isDecrypted && erc7984.clear !== undefined) {
+        notification.success(`Balance decrypted: ${erc7984.clear.toString()} tokens`);
+      } else if (erc7984.decryptError) {
+        notification.error(`Decryption failed: ${erc7984.decryptError}`);
+      }
+      decryptToastRef.current = null;
+    }
+
+    prevDecryptingRef.current = isDecrypting;
+  }, [erc7984.isDecrypting, erc7984.isDecrypted, erc7984.clear, erc7984.decryptError]);
+
+  // Transfer toast notifications
+  useEffect(() => {
+    const prevStatus = prevTransferStatusRef.current;
+    const currentStatus = erc7984.transferStatus;
+
+    if (prevStatus === currentStatus) return;
+
+    // Remove previous loading toast if exists
+    if (transferToastRef.current && currentStatus !== "encrypting" && currentStatus !== "signing" && currentStatus !== "confirming") {
+      notification.remove(transferToastRef.current);
+      transferToastRef.current = null;
+    }
+
+    switch (currentStatus) {
+      case "encrypting":
+        transferToastRef.current = notification.loading("Encrypting transfer amount with FHE...");
+        break;
+      case "signing":
+        if (transferToastRef.current) notification.remove(transferToastRef.current);
+        transferToastRef.current = notification.loading("Please sign the transaction in your wallet...");
+        break;
+      case "confirming":
+        if (transferToastRef.current) notification.remove(transferToastRef.current);
+        transferToastRef.current = notification.loading("Transaction submitted. Waiting for confirmation...");
+        break;
+      case "success":
+        notification.success("Transfer completed successfully!");
+        break;
+      case "error":
+        // Error notification is handled in the transfer function
+        break;
+    }
+
+    prevTransferStatusRef.current = currentStatus;
+  }, [erc7984.transferStatus]);
 
   //////////////////////////////////////////////////////////////////////////////
   // Airdrop/Faucet state and logic
@@ -175,6 +213,41 @@ export const ERC7984Demo = () => {
 
   const [transferTo, setTransferTo] = useState<string>("");
   const [transferAmount, setTransferAmount] = useState<string>("1");
+
+  // Handle transfer with toast feedback
+  const handleTransfer = useCallback(async () => {
+    if (!transferTo || !transferAmount) {
+      notification.warning("Please enter recipient address and amount");
+      return;
+    }
+
+    // Validate address
+    if (!ethers.isAddress(transferTo)) {
+      notification.error("Invalid recipient address");
+      return;
+    }
+
+    const amount = Number(transferAmount);
+    if (isNaN(amount) || amount <= 0) {
+      notification.error("Please enter a valid amount greater than 0");
+      return;
+    }
+
+    const result = await erc7984.transferTokens(transferTo, amount);
+
+    if (!result.success && result.error) {
+      notification.error(result.error);
+    }
+  }, [transferTo, transferAmount, erc7984]);
+
+  // Handle decrypt with toast feedback
+  const handleDecrypt = useCallback(async () => {
+    if (!erc7984.canDecrypt) {
+      notification.warning("Cannot decrypt at this time");
+      return;
+    }
+    erc7984.decryptBalanceHandle();
+  }, [erc7984]);
 
   //////////////////////////////////////////////////////////////////////////////
   // UI Stuff:
@@ -301,17 +374,17 @@ export const ERC7984Demo = () => {
       <div className="grid grid-cols-1 gap-4 text-black">
         <button
           className={erc7984.isDecrypted ? successButtonClass : primaryButtonClass}
-          disabled={!erc7984.canDecrypt || isSmartWallet}
-          onClick={erc7984.decryptBalanceHandle}
+          disabled={!erc7984.canDecrypt || isSmartWallet || erc7984.isDecrypting}
+          onClick={handleDecrypt}
         >
           {isSmartWallet
             ? "🚫 Decrypt unavailable (Smart Wallet)"
-            : erc7984.canDecrypt
-              ? "🔓 Decrypt Balance"
+            : erc7984.isDecrypting
+              ? "⏳ Decrypting..."
               : erc7984.isDecrypted
                 ? `✅ Decrypted: ${erc7984.clear}`
-                : erc7984.isDecrypting
-                  ? "⏳ Decrypting..."
+                : erc7984.canDecrypt
+                  ? "🔓 Decrypt Balance"
                   : "❌ Nothing to decrypt"}
         </button>
       </div>
@@ -330,7 +403,8 @@ export const ERC7984Demo = () => {
               placeholder="0x..."
               value={transferTo}
               onChange={e => setTransferTo(e.target.value)}
-              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40"
+              disabled={erc7984.isProcessing}
+              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40 disabled:opacity-50"
             />
           </div>
           <div>
@@ -343,59 +417,30 @@ export const ERC7984Demo = () => {
               placeholder="1"
               value={transferAmount}
               onChange={e => setTransferAmount(e.target.value)}
-              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40"
+              disabled={erc7984.isProcessing}
+              className="glass-input w-full px-4 py-3 text-[#2D2D2D] placeholder:text-[#2D2D2D]/40 disabled:opacity-50"
             />
           </div>
           <button
             className={secondaryButtonClass + " w-full"}
-            disabled={!erc7984.canTransfer || !transferTo || !transferAmount}
-            onClick={() => erc7984.transferTokens(transferTo, Number(transferAmount))}
+            disabled={!erc7984.canTransfer || !transferTo || !transferAmount || erc7984.isProcessing}
+            onClick={handleTransfer}
           >
-            {erc7984.canTransfer && transferTo && transferAmount
-              ? `🔄 Transfer ${transferAmount} tokens`
-              : erc7984.isProcessing
-                ? "⏳ Processing transfer..."
+            {erc7984.isProcessing
+              ? erc7984.isEncrypting
+                ? "🔐 Encrypting..."
+                : erc7984.transferStatus === "signing"
+                  ? "✍️ Sign in wallet..."
+                  : erc7984.transferStatus === "confirming"
+                    ? "⏳ Confirming..."
+                    : "⏳ Processing..."
+              : erc7984.canTransfer && transferTo && transferAmount
+                ? `🔐 Encrypt & Transfer ${transferAmount} tokens`
                 : "❌ Cannot transfer"}
           </button>
         </div>
       </div>
 
-      {/* Messages */}
-      {erc7984.message && (
-        <div className={sectionClass}>
-          <h3 className={titleClass}>💬 Messages</h3>
-          <div className="glass-card p-5">
-            <p className="text-[#2D2D2D] font-medium">{erc7984.message}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className={sectionClass}>
-          <h3 className={titleClass}>🔧 FHEVM Instance</h3>
-          <div className="space-y-3">
-            {printProperty("Instance Status", fhevmInstance ? "✅ Connected" : "❌ Disconnected")}
-            {printProperty("Status", fhevmStatus)}
-            {printProperty("Error", fhevmError ?? "No errors")}
-          </div>
-        </div>
-
-        <div className={sectionClass}>
-          <h3 className={titleClass}>📊 Token Status</h3>
-          <div className="space-y-3">
-            {printProperty("Refreshing", erc7984.isRefreshing)}
-            {printProperty("Decrypting", erc7984.isDecrypting)}
-            {printProperty("Processing", erc7984.isProcessing)}
-            {printProperty("Can Get Balance", erc7984.canGetBalance)}
-            {printProperty("Can Decrypt", erc7984.canDecrypt)}
-            {printProperty("Can Transfer", erc7984.canTransfer)}
-          </div>
-        </div>
-      </div>
-
-      {/* FHE Performance Benchmark */}
-      <FHEBenchmark instance={fhevmInstance} fhevmStatus={fhevmStatus} />
     </div>
   );
 };
@@ -404,7 +449,7 @@ function printProperty(name: string, value: unknown) {
   let displayValue: string;
 
   if (typeof value === "boolean") {
-    return printBooleanProperty(name, value);
+    displayValue = value ? "✓ true" : "✗ false";
   } else if (typeof value === "string" || typeof value === "number") {
     displayValue = String(value);
   } else if (typeof value === "bigint") {
@@ -467,17 +512,3 @@ function printPropertyTruncated(name: string, value: unknown) {
   );
 }
 
-function printBooleanProperty(name: string, value: boolean) {
-  return (
-    <div className="flex flex-col gap-2 py-3 px-4 glass-card w-full">
-      <span className="text-[#2D2D2D]/70 font-medium text-xs">{name}</span>
-      <span
-        className={`font-mono text-sm font-bold px-3 py-1.5 text-center ${
-          value ? "text-[#F4F4F4] bg-[#A38025]" : "text-[#F4F4F4] bg-[#2D2D2D]"
-        }`}
-      >
-        {value ? "✓ true" : "✗ false"}
-      </span>
-    </div>
-  );
-}

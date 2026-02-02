@@ -1,6 +1,7 @@
 # Confidential Dutch Auction Contracts
 
-Privacy-preserving Dutch auction implementations for selling confidential tokens, built using fhEVM (Fully Homomorphic Encryption Virtual Machine).
+Privacy-preserving Dutch auction implementations for selling confidential tokens, built using fhEVM (Fully Homomorphic
+Encryption Virtual Machine).
 
 ## Overview
 
@@ -42,6 +43,7 @@ This folder contains the following implementation of the Dutch auction mechanism
 ## Design Choices
 
 #### Without Intermediate Refunds
+
 - Simpler implementation
 - All refunds processed at auction end
 - Lower gas costs during bidding
@@ -56,18 +58,21 @@ This folder contains the following implementation of the Dutch auction mechanism
 - Owner controls
 
 ### Dutch Auction Mechanism
+
 1. Users can place bids at any time during the auction period
 2. Price decreases linearly over time until reaching reserve price
 3. Users can bid multiple times at different price points
 4. Tokens are transferred immediately upon successful bid
 
-
 ### Immediate Token Transfer on Bid
-Tokens are transferred to buyers immediately upon successfully bidding rather than requiring a separate claim step. This design choice:
+
+Tokens are transferred to buyers immediately upon successfully bidding rather than requiring a separate claim step. This
+design choice:
 
 - Provides instant gratification to buyers
 - Reduces the risk of users forgetting to claim tokens
 - Eliminates the need for additional contract interactions
 - Improves overall user experience
 
-The tradeoff is higher FHE gas costs during bidding, but this is outweighed by the UX benefits and reduced support overhead.
+The tradeoff is higher FHE gas costs during bidding, but this is outweighed by the UX benefits and reduced support
+overhead.

@@ -2,32 +2,38 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDeployedContractInfo } from "../helper";
-import { useWagmiEthers } from "../wagmi/useWagmiEthers";
 import { ethers } from "ethers";
-import { FhevmInstance } from "fhevm-sdk";
-import { getEncryptionMethod, useFHEDecrypt, useFHEEncryption, useInMemoryStorage } from "fhevm-sdk";
-import { useAccount, useReadContract } from "wagmi";
-import type { Contract } from "~~/utils/helper/contract";
+import {
+  useFhevmContext,
+  useEthersSigner,
+  useConfidentialTransfer,
+  useConfidentialBalances,
+  type TransferStatus,
+} from "@zama-fhe/sdk";
+import { useAccount } from "wagmi";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
+
+// Re-export TransferStatus for convenience
+export type { TransferStatus };
 
 /**
  * useERC7984Wagmi - ERC7984 Confidential Token hook for Wagmi
  *
  * What it does:
  * - Reads the current encrypted balance
- * - Decrypts the handle on-demand with useFHEDecrypt
- * - Encrypts inputs and writes transfers/mints
+ * - Decrypts the handle on-demand via useConfidentialBalances({ decrypt: true })
+ * - Uses useConfidentialTransfer hook from SDK for transfers
+ *
+ * No parameters needed - everything is retrieved from FhevmProvider context.
  */
-export const useERC7984Wagmi = (parameters: {
-  instance: FhevmInstance | undefined;
-  initialMockChains?: Readonly<Record<number, string>>;
-}) => {
-  const { instance, initialMockChains } = parameters;
-  const { storage: fhevmDecryptionSignatureStorage } = useInMemoryStorage();
-  const { address } = useAccount();
+export const useERC7984Wagmi = () => {
+  // Get everything from context
+  const { instance, chainId: fhevmChainId } = useFhevmContext();
+  const { address, isConnected, chain } = useAccount();
+  const { signer: ethersSigner, provider: ethersProvider } = useEthersSigner();
 
-  // Wagmi + ethers interop
-  const { chainId, accounts, isConnected, ethersReadonlyProvider, ethersSigner } = useWagmiEthers(initialMockChains);
+  // Use wagmi chain ID if available, fall back to fhevm context
+  const chainId = chain?.id ?? fhevmChainId;
 
   // Resolve deployed contract info once we know the chain
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
@@ -36,74 +42,33 @@ export const useERC7984Wagmi = (parameters: {
   // Simple status string for UX messages
   const [message, setMessage] = useState<string>("");
 
-  type ERC7984Info = Contract<"ERC7984Example"> & { chainId?: number };
-
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
   // -------------
   // Helpers
   // -------------
   const hasContract = Boolean(erc7984?.address && erc7984?.abi);
-  const hasProvider = Boolean(ethersReadonlyProvider);
-  const hasSigner = Boolean(ethersSigner);
+  const hasProvider = Boolean(ethersProvider);
 
-  const getContract = useCallback(
-    (mode: "read" | "write") => {
-      if (!hasContract) return undefined;
-      const providerOrSigner = mode === "read" ? ethersReadonlyProvider : ethersSigner;
-      if (!providerOrSigner) return undefined;
-      return new ethers.Contract(erc7984!.address, (erc7984 as ERC7984Info).abi, providerOrSigner);
-    },
-    [hasContract, ethersReadonlyProvider, ethersSigner, erc7984],
-  );
-
-  // Read balance handle via wagmi
-  const readResult = useReadContract({
-    address: (hasContract ? (erc7984!.address as unknown as `0x${string}`) : undefined) as `0x${string}` | undefined,
-    abi: (hasContract ? ((erc7984 as ERC7984Info).abi as any) : undefined) as any,
-    functionName: "confidentialBalanceOf" as const,
-    args: [address as `0x${string}`],
-    chainId: chainId,
-    query: {
-      enabled: Boolean(hasContract && hasProvider && address && chainId),
-      refetchOnWindowFocus: false,
-    },
-  });
-
-  const balanceHandle = useMemo(() => (readResult.data as string | undefined) ?? undefined, [readResult.data]);
-  const canGetBalance = Boolean(hasContract && hasProvider && address && !readResult.isFetching);
-  const isRefreshing = readResult.isFetching;
-  const refreshBalanceHandle = useCallback(async () => {
-    const res = await readResult.refetch();
-    if (res.error) setMessage("ERC7984.confidentialBalanceOf() failed: " + (res.error as Error).message);
-  }, [readResult]);
-
-  // Decrypt balance
-  const requests = useMemo(() => {
-    if (!hasContract || !balanceHandle || balanceHandle === ethers.ZeroHash) return undefined;
-    return [{ handle: balanceHandle, contractAddress: erc7984!.address } as const];
-  }, [hasContract, erc7984, balanceHandle]);
-
+  // Read balance handle + auto-decrypt via SDK hook (single contract)
+  const contractAddr = hasContract ? (erc7984!.address as `0x${string}`) : ("0x0000000000000000000000000000000000000000" as `0x${string}`);
   const {
+    data: balanceData,
+    isFetching: balanceFetching,
+    error: balanceFetchError,
+    refetch: refetchBalance,
+    decryptAll,
     canDecrypt,
-    decrypt,
     isDecrypting,
-    message: decMsg,
-    results,
-    error: decryptError,
-  } = useFHEDecrypt({
-    instance,
-    ethersSigner: ethersSigner as any,
-    fhevmDecryptionSignatureStorage,
-    chainId,
-    requests,
+    decryptError,
+  } = useConfidentialBalances({
+    contracts: [{ contractAddress: contractAddr }],
+    account: address,
+    enabled: Boolean(hasContract && hasProvider && address),
+    decrypt: true,
   });
+  const balanceHandle = balanceData[0]?.result;
+  const clearValue = balanceData[0]?.decryptedValue;
 
-  useEffect(() => {
-    if (decMsg) setMessage(decMsg);
-  }, [decMsg]);
-
-  // Log decryption errors for debugging
+  // Surface decrypt errors as messages
   useEffect(() => {
     if (decryptError) {
       console.error("[useERC7984Wagmi] Decryption error:", decryptError);
@@ -111,77 +76,80 @@ export const useERC7984Wagmi = (parameters: {
     }
   }, [decryptError]);
 
+  const canGetBalance = Boolean(hasContract && hasProvider && address && !balanceFetching);
+  const isRefreshing = balanceFetching;
+  const refreshBalanceHandle = useCallback(async () => {
+    try {
+      await refetchBalance();
+    } catch {
+      if (balanceFetchError) setMessage("ERC7984.confidentialBalanceOf() failed: " + balanceFetchError.message);
+    }
+  }, [refetchBalance, balanceFetchError]);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Derive clearBalance from auto-decrypted data
+  // ─────────────────────────────────────────────────────────────────────────────
+  const contractAddress = erc7984?.address as `0x${string}` | undefined;
+
   const clearBalance = useMemo(() => {
     if (!balanceHandle) return undefined;
     if (balanceHandle === ethers.ZeroHash) return { handle: balanceHandle, clear: BigInt(0) } as const;
-    const clear = results[balanceHandle];
-    if (typeof clear === "undefined") return undefined;
-    return { handle: balanceHandle, clear } as const;
-  }, [balanceHandle, results]);
+    if (clearValue === undefined) return undefined;
+    return { handle: balanceHandle, clear: clearValue } as const;
+  }, [balanceHandle, clearValue]);
 
   const isDecrypted = Boolean(balanceHandle && clearBalance?.handle === balanceHandle);
-  const decryptBalanceHandle = decrypt;
+  const decryptBalanceHandle = decryptAll;
 
-  // Mutations (transfer)
-  const { encryptWith } = useFHEEncryption({
-    instance,
-    ethersSigner: ethersSigner as any,
-    contractAddress: erc7984?.address,
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Transfer using useConfidentialTransfer hook from SDK
+  // ─────────────────────────────────────────────────────────────────────────────
+  const {
+    transfer: sdkTransfer,
+    status: transferStatus,
+    isEncrypting,
+    isPending: isProcessing,
+    error: transferError,
+    reset: resetTransfer,
+  } = useConfidentialTransfer({
+    contractAddress: contractAddress || ("0x0000000000000000000000000000000000000000" as `0x${string}`),
+    functionName: "confidentialTransfer(address,bytes32,bytes)",
+    onSuccess: () => {
+      setMessage("Transfer completed successfully!");
+      refreshBalanceHandle();
+    },
+    onError: (error) => {
+      setMessage(`Transfer failed: ${error.message}`);
+    },
   });
+
   const canTransfer = useMemo(
-    () => Boolean(hasContract && instance && hasSigner && !isProcessing),
-    [hasContract, instance, hasSigner, isProcessing],
+    () => Boolean(hasContract && instance && ethersSigner && !isProcessing && contractAddress),
+    [hasContract, instance, ethersSigner, isProcessing, contractAddress],
   );
 
-  const getEncryptionMethodForTransfer = useCallback(() => {
-    const functionAbi = erc7984?.abi.find(item => item.type === "function" && item.name === "confidentialTransfer");
-    if (!functionAbi)
-      return {
-        method: undefined as string | undefined,
-        error: "Function ABI not found for confidentialTransfer",
-      } as const;
-    if (!functionAbi.inputs)
-      return { method: undefined as string | undefined, error: "No inputs found for confidentialTransfer" } as const;
-    // Find the externalEuint64 input parameter (use the one with proof)
-    const inputs = Array.isArray(functionAbi.inputs) ? functionAbi.inputs : [];
-    const amountInput = inputs.find(input => input.internalType?.includes("externalEuint64"));
-    if (!amountInput)
-      return { method: undefined as string | undefined, error: "externalEuint64 input not found" } as const;
-    return { method: getEncryptionMethod(amountInput.internalType || ""), error: undefined } as const;
-  }, [erc7984]);
-
+  // Wrapper function to match existing API
   const transferTokens = useCallback(
-    async (to: string, amount: number) => {
-      if (isProcessing || !canTransfer || amount <= 0) return;
-      setIsProcessing(true);
-      setMessage(`Starting transfer of ${amount} tokens to ${to}...`);
+    async (to: string, amount: number): Promise<{ success: boolean; error?: string; txHash?: string }> => {
+      if (!canTransfer || amount <= 0) {
+        return { success: false, error: "Cannot transfer at this time" };
+      }
+
+      setMessage(`Transferring ${amount} tokens...`);
+
       try {
-        const { method, error } = getEncryptionMethodForTransfer();
-        if (!method) return setMessage(error ?? "Encryption method not found");
+        await sdkTransfer(to as `0x${string}`, BigInt(amount));
 
-        setMessage(`Encrypting amount with ${method}...`);
-        const enc = await encryptWith(builder => {
-          (builder as any)[method](amount);
-        });
-        if (!enc) return setMessage("Encryption failed");
-
-        const writeContract = getContract("write");
-        if (!writeContract) return setMessage("Contract info or signer not available");
-
-        // Get the specific function overload using getFunction to avoid ambiguity
-        const transferFn = writeContract.getFunction("confidentialTransfer(address,bytes32,bytes)");
-        const tx = await transferFn(to, enc.handles[0], enc.inputProof);
-        setMessage("Waiting for transaction...");
-        await tx.wait();
-        setMessage(`Transfer of ${amount} tokens completed!`);
-        refreshBalanceHandle();
+        // Check if transfer was successful (status will be 'success' if it worked)
+        // Since the hook handles the flow, we return success here
+        // The actual result is managed via status state
+        return { success: true };
       } catch (e) {
-        setMessage(`Transfer failed: ${e instanceof Error ? e.message : String(e)}`);
-      } finally {
-        setIsProcessing(false);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        return { success: false, error: errorMsg };
       }
     },
-    [isProcessing, canTransfer, encryptWith, getContract, refreshBalanceHandle, getEncryptionMethodForTransfer],
+    [canTransfer, sdkTransfer],
   );
 
   return {
@@ -199,10 +167,13 @@ export const useERC7984Wagmi = (parameters: {
     isDecrypting,
     isRefreshing,
     isProcessing,
+    isEncrypting,
+    transferStatus,
     decryptError,
+    transferError,
+    resetTransfer,
     // Wagmi-specific values
     chainId,
-    accounts,
     isConnected,
     ethersSigner,
     address,

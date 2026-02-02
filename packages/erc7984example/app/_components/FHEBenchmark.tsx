@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FhevmInstance } from "fhevm-sdk";
+import { useFhevmStatus, useEncrypt } from "@zama-fhe/sdk";
 import { useAccount } from "wagmi";
 import { useDeployedContractInfo } from "~~/hooks/helper";
-import { useWagmiEthers } from "~~/hooks/wagmi/useWagmiEthers";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 
 type BenchmarkResult = {
@@ -13,16 +12,18 @@ type BenchmarkResult = {
   timestamp: string;
 };
 
-type FHEBenchmarkProps = {
-  instance: FhevmInstance | undefined;
-  fhevmStatus: string;
-};
-
-export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
+/**
+ * FHE Performance Benchmark Component
+ *
+ * No props needed - everything is retrieved from FhevmProvider context.
+ */
+export const FHEBenchmark = () => {
   const { chain } = useAccount();
   const chainId = chain?.id;
 
-  const initialMockChains = { 31337: "http://localhost:8545" };
+  // Get encryption hook and status from context
+  const { encrypt, isReady: encryptReady } = useEncrypt();
+  const { status: fhevmStatus } = useFhevmStatus();
 
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -31,8 +32,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Get ethers signer and contract info
-  const { ethersSigner } = useWagmiEthers(initialMockChains);
+  // Get contract info
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
   const { data: erc7984 } = useDeployedContractInfo({ contractName: "ERC7984Example", chainId: allowedChainId });
 
@@ -79,14 +79,13 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
   };
 
   const runEncryptionBenchmark = async () => {
-    if (!instance || !ethersSigner || !erc7984?.address) {
-      alert("Instance, signer, or contract not ready");
+    if (!encryptReady || !erc7984?.address) {
+      alert("Encryption not ready or contract not found");
       return;
     }
 
     setIsRunning(true);
     setResults([]); // Clear previous results
-    const userAddress = await ethersSigner.getAddress();
     const totalRuns = 3; // Reduced to 3 runs to minimize rate limit risk
 
     try {
@@ -94,9 +93,9 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
       setStatusMessage("Running warm-up encryption...");
       console.log("[Benchmark] Warm-up encryption...");
       const warmupStart = performance.now();
-      const warmupInput = instance.createEncryptedInput(erc7984.address, userAddress);
-      (warmupInput as any).add64(BigInt(100));
-      await (warmupInput as any).encrypt();
+      await encrypt([
+        { type: "uint64", value: BigInt(100) },
+      ], erc7984.address as `0x${string}`);
       const warmupEnd = performance.now();
       addResult("Warm-up (euint64)", warmupEnd - warmupStart);
 
@@ -108,9 +107,9 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
         setStatusMessage(`Running encryption #${i + 1}...`);
         console.log(`[Benchmark] Encryption #${i + 1}...`);
         const startN = performance.now();
-        const inputN = instance.createEncryptedInput(erc7984.address, userAddress);
-        (inputN as any).add64(BigInt(i * 1000 + 12345));
-        await (inputN as any).encrypt();
+        await encrypt([
+          { type: "uint64", value: BigInt(i * 1000 + 12345) },
+        ], erc7984.address as `0x${string}`);
         const endN = performance.now();
         addResult(`Encrypt euint64 #${i + 1}`, endN - startN);
 
@@ -137,7 +136,7 @@ export const FHEBenchmark = ({ instance, fhevmStatus }: FHEBenchmarkProps) => {
     setResults([]);
   };
 
-  const isReady = instance && ethersSigner && erc7984?.address;
+  const isReady = encryptReady && erc7984?.address;
   const validResults = results.filter(r => r.duration > 0 && !r.operation.includes("Warm-up"));
   const avgDuration =
     validResults.length > 0 ? validResults.reduce((a, b) => a + b.duration, 0) / validResults.length : 0;

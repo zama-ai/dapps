@@ -78,7 +78,7 @@ abstract contract ERC7984ETHWrapper is ERC7984 {
         require(request.receiver != address(0), ERC7984InvalidGatewayRequest(0));
         delete _pendingUnwraps[receiver];
 
-        (bool success,) = receiver.call{value: amount * rate()}("");
+        (bool success, ) = receiver.call{value: amount * rate()}("");
         require(success, "Transfer failed");
     }
 

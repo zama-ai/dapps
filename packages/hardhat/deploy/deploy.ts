@@ -24,7 +24,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   console.log(`Airdrop contract: `, deployedAirdrop.address);
+
+  const deployedPublicDecrypt = await deploy("PublicDecryptSingleValue", {
+    from: deployer,
+    log: true,
+  });
+
+  console.log(`PublicDecryptSingleValue contract: `, deployedPublicDecrypt.address);
 };
 export default func;
-func.id = "deploy_erc7984_v2"; // id required to prevent reexecution
-func.tags = ["ERC7984Example", "Airdrop"];
+func.id = "deploy_erc7984_v3"; // id required to prevent reexecution
+func.tags = ["ERC7984Example", "Airdrop", "PublicDecryptSingleValue"];
