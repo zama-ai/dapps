@@ -58,6 +58,10 @@
     "typescript": "^5.9.2"
   },
   "pnpm": {
+    "overrides": {
+      "@zama-fhe/shared": "file:zama-fhe-shared-0.1.0.tgz",
+      "@zama-fhe/core-sdk": "file:zama-fhe-core-sdk-0.1.0.tgz"
+    },
     "onlyBuiltDependencies": [
       "bufferutil",
       "esbuild",

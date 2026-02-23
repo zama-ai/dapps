@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
-    "@zama-fhe/sdk": "file:../../../react-sdk",
+    "@zama-fhe/react-sdk": "file:../../zama-fhe-react-sdk-0.1.0.tgz",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "viem": "^2.0.0"

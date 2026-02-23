@@ -9,7 +9,7 @@ import {
   useConfidentialTransfer,
   useConfidentialBalances,
   type TransferStatus,
-} from "@zama-fhe/sdk";
+} from "@zama-fhe/react-sdk";
 import { useAccount } from "wagmi";
 import type { AllowedChainIds } from "~~/utils/helper/networks";
 

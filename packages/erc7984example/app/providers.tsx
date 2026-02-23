@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { sepolia, hardhat } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
 import { WagmiProvider as StandardWagmiProvider, useAccount, useConnectorClient } from "wagmi";
-import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal, localStorageAdapter, type Eip1193Provider } from "@zama-fhe/sdk";
+import { FhevmProvider, createFhevmConfig, sepolia as fhevmSepolia, hardhatLocal, localStorageAdapter, type Eip1193Provider } from "@zama-fhe/react-sdk";
 import { Header } from "~~/components/Header";
 import scaffoldConfig from "~~/scaffold.config";
 
@@ -18,6 +18,7 @@ import scaffoldConfig from "~~/scaffold.config";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
+const ZAMA_API_KEY = process.env.NEXT_PUBLIC_ZAMA_API_KEY;
 const isProduction = process.env.NODE_ENV === "production";
 const { alchemyApiKey } = scaffoldConfig;
 
@@ -99,6 +100,7 @@ function FhevmWrapper({ children }: { children: ReactNode }) {
       chainId={chainId}
       isConnected={isConnected}
       storage={localStorageAdapter}
+      apiKey={ZAMA_API_KEY}
     >
       {children}
     </FhevmProvider>

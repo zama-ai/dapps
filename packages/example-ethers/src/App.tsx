@@ -1,5 +1,5 @@
 import { useWallet } from "./useWallet";
-import { FhevmProvider, memoryStorage, type Eip1193Provider } from "@zama-fhe/sdk";
+import { FhevmProvider, memoryStorage, type Eip1193Provider } from "@zama-fhe/react-sdk";
 import { fhevmConfig } from "./fhevmConfig";
 import { EncryptDemo } from "./EncryptDemo";
 import "./App.css";

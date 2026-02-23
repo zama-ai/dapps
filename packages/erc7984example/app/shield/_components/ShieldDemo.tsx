@@ -7,9 +7,10 @@ import {
   useShield,
   useUnshield,
   useConfidentialBalances,
+  useConfidentialTransfer,
   useEthersSigner,
   ERC20_ABI,
-} from "@zama-fhe/sdk";
+} from "@zama-fhe/react-sdk";
 import { useAccount } from "wagmi";
 import { PrivyConnectButton } from "~~/components/helper/PrivyConnectButton";
 import { notification } from "~~/utils/helper/notification";
@@ -19,7 +20,6 @@ import {
   parseTokenAmount,
   type WrapperToken,
 } from "~~/utils/tokens";
-import { RecoverUnwrap } from "./RecoverUnwrap";
 
 /**
  * Token pair data for display
@@ -31,11 +31,11 @@ interface TokenPairData {
 }
 
 /**
- * Shield/Unshield Modal
+ * Shield/Unshield/Transfer Modal
  */
 interface ModalState {
   isOpen: boolean;
-  mode: "shield" | "unshield";
+  mode: "shield" | "unshield" | "transfer";
   token: WrapperToken | null;
 }
 
@@ -62,6 +62,9 @@ export const ShieldDemo = () => {
 
   // Amount input
   const [amount, setAmount] = useState("");
+
+  // Recipient address for transfers
+  const [recipient, setRecipient] = useState("");
 
   // Toast refs
   const fhevmToastShownRef = useRef(false);
@@ -113,6 +116,27 @@ export const ShieldDemo = () => {
     },
     onError: (err) => {
       notification.error(`Unshield failed: ${err.message}`);
+    },
+  });
+
+  // Transfer hook
+  const {
+    transfer,
+    status: transferStatus,
+    isPending: isTransferPending,
+    isEncrypting: isTransferEncrypting,
+    error: transferError,
+    reset: resetTransfer,
+  } = useConfidentialTransfer({
+    contractAddress: activeToken?.wrapper ?? "0x0000000000000000000000000000000000000000",
+    onSuccess: () => {
+      notification.success("Transfer successful!");
+      setAmount("");
+      setRecipient("");
+      setModal({ isOpen: false, mode: "shield", token: null });
+    },
+    onError: (err) => {
+      notification.error(`Transfer failed: ${err.message}`);
     },
   });
 
@@ -217,18 +241,47 @@ export const ShieldDemo = () => {
     }
   }, [amount, activeToken, unshield]);
 
+  // Handle transfer
+  const handleTransfer = useCallback(async () => {
+    if (!amount || !activeToken) {
+      notification.warning("Please enter an amount");
+      return;
+    }
+
+    if (!recipient || !ethers.isAddress(recipient)) {
+      notification.warning("Please enter a valid recipient address");
+      return;
+    }
+
+    try {
+      // Confidential token uses 6 decimals
+      const parsedAmount = parseTokenAmount(amount, 6);
+      if (parsedAmount <= BigInt(0)) {
+        notification.error("Amount must be greater than 0");
+        return;
+      }
+
+      await transfer(recipient as `0x${string}`, parsedAmount);
+    } catch (err) {
+      notification.error("Invalid amount format");
+    }
+  }, [amount, activeToken, recipient, transfer]);
+
   // Open modal
-  const openModal = (token: WrapperToken, mode: "shield" | "unshield") => {
+  const openModal = (token: WrapperToken, mode: "shield" | "unshield" | "transfer") => {
     setModal({ isOpen: true, mode, token });
     setAmount("");
+    setRecipient("");
     resetShield();
     resetUnshield();
+    resetTransfer();
   };
 
   // Close modal
   const closeModal = () => {
     setModal({ isOpen: false, mode: "shield", token: null });
     setAmount("");
+    setRecipient("");
   };
 
   // Get decrypted balance for modal token
@@ -305,8 +358,6 @@ export const ShieldDemo = () => {
         )}
       </div>
 
-      {/* Recovery for pending unwraps */}
-      <RecoverUnwrap />
 
       {/* Token List */}
       <div className="bg-white border border-gray-200 overflow-hidden">
@@ -425,10 +476,21 @@ export const ShieldDemo = () => {
                   <span className="text-gray-400">$ 0</span>
                 </div>
 
+                {/* Transfer Button */}
+                <button
+                  onClick={() => openModal(token, "transfer")}
+                  className="flex items-center justify-center gap-2 w-28 py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors mr-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send
+                </button>
+
                 {/* Unshield Button */}
                 <button
                   onClick={() => openModal(token, "unshield")}
-                  className="flex items-center justify-center gap-2 w-32 py-2 bg-white hover:bg-gray-100 text-gray-700 font-medium border border-gray-300 transition-colors"
+                  className="flex items-center justify-center gap-2 w-28 py-2 bg-white hover:bg-gray-100 text-gray-700 font-medium border border-gray-300 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
@@ -448,7 +510,7 @@ export const ShieldDemo = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                {modal.mode === "shield" ? "Shield" : "Unshield"}{" "}
+                {modal.mode === "shield" ? "Shield" : modal.mode === "unshield" ? "Unshield" : "Send"}{" "}
                 {modal.mode === "shield"
                   ? modal.token.underlyingSymbol
                   : modal.token.symbol}
@@ -463,6 +525,22 @@ export const ShieldDemo = () => {
               </button>
             </div>
 
+            {/* Recipient Input (for transfer only) */}
+            {modal.mode === "transfer" && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Recipient Address
+                </label>
+                <input
+                  type="text"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  placeholder="0x..."
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:outline-none focus:border-purple-400 font-mono text-sm"
+                />
+              </div>
+            )}
+
             {/* Amount Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -476,7 +554,7 @@ export const ShieldDemo = () => {
                   placeholder="0.0"
                   className="w-full px-4 py-3 pr-20 bg-gray-50 border border-gray-200 focus:outline-none focus:border-yellow-400 font-mono text-lg"
                 />
-                {(modal.mode === "shield" || (modal.mode === "unshield" && getModalDecryptedBalance() !== undefined)) && (
+                {(modal.mode === "shield" || ((modal.mode === "unshield" || modal.mode === "transfer") && getModalDecryptedBalance() !== undefined)) && (
                   <button
                     onClick={() => {
                       if (modal.mode === "shield") {
@@ -539,36 +617,51 @@ export const ShieldDemo = () => {
                     Convert your {modal.token.underlyingSymbol} to confidential{" "}
                     {modal.token.symbol}. Your balance will be encrypted on-chain.
                   </>
-                ) : (
+                ) : modal.mode === "unshield" ? (
                   <>
                     Convert your {modal.token.symbol} back to{" "}
                     {modal.token.underlyingSymbol}. Tokens will arrive after
                     finalization.
+                  </>
+                ) : (
+                  <>
+                    Send {modal.token.symbol} to another address. The transfer
+                    amount stays encrypted on-chain.
                   </>
                 )}
               </p>
             </div>
 
             {/* Error */}
-            {(shieldError || unshieldError) && (
+            {(shieldError || unshieldError || transferError) && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200">
                 <p className="text-sm text-red-600">
-                  {shieldError?.message || unshieldError?.message}
+                  {shieldError?.message || unshieldError?.message || transferError?.message}
                 </p>
               </div>
             )}
 
             {/* Action Button */}
             <button
-              onClick={modal.mode === "shield" ? handleShield : handleUnshield}
+              onClick={
+                modal.mode === "shield"
+                  ? handleShield
+                  : modal.mode === "unshield"
+                  ? handleUnshield
+                  : handleTransfer
+              }
               disabled={
                 modal.mode === "shield"
                   ? isShieldPending || !amount
-                  : isUnshieldPending || !amount || !fhevmIsReady
+                  : modal.mode === "unshield"
+                  ? isUnshieldPending || !amount || !fhevmIsReady
+                  : isTransferPending || !amount || !recipient || !fhevmIsReady
               }
               className={`w-full py-3 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 modal.mode === "shield"
                   ? "bg-[#FFD208] hover:bg-[#E5BC00] text-gray-900"
+                  : modal.mode === "transfer"
+                  ? "bg-purple-500 hover:bg-purple-600 text-white"
                   : "bg-gray-900 hover:bg-gray-800 text-white"
               }`}
             >
@@ -582,22 +675,32 @@ export const ShieldDemo = () => {
                 ) : (
                   `Shield ${modal.token.underlyingSymbol}`
                 )
-              ) : isEncrypting ? (
+              ) : modal.mode === "unshield" ? (
+                isEncrypting ? (
+                  "Encrypting..."
+                ) : isSigning ? (
+                  "Sign in wallet..."
+                ) : unshieldStatus === "confirming" ? (
+                  "Confirming..."
+                ) : isUnshieldDecrypting ? (
+                  "Getting proof..."
+                ) : isFinalizing ? (
+                  "Finalizing..."
+                ) : (
+                  `Unshield ${modal.token.symbol}`
+                )
+              ) : isTransferEncrypting ? (
                 "Encrypting..."
-              ) : isSigning ? (
+              ) : transferStatus === "signing" ? (
                 "Sign in wallet..."
-              ) : unshieldStatus === "confirming" ? (
+              ) : transferStatus === "confirming" ? (
                 "Confirming..."
-              ) : isUnshieldDecrypting ? (
-                "Getting proof..."
-              ) : isFinalizing ? (
-                "Finalizing..."
               ) : (
-                `Unshield ${modal.token.symbol}`
+                `Send ${modal.token.symbol}`
               )}
             </button>
 
-            {!fhevmIsReady && modal.mode === "unshield" && (
+            {!fhevmIsReady && (modal.mode === "unshield" || modal.mode === "transfer") && (
               <p className="mt-3 text-sm text-amber-600 text-center">
                 Waiting for FHE encryption to initialize...
               </p>

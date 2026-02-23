@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+  '@zama-fhe/core-sdk': file:zama-fhe-core-sdk-0.1.0.tgz
+
 importers:
 
   .:
@@ -35,10 +39,10 @@ importers:
         version: 2.1.5(react@19.0.3)
       '@privy-io/react-auth':
         specifier: ^3.8.1
-        version: 3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.2.1(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)
+        version: 3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.0.3(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)
       '@privy-io/wagmi':
         specifier: ^2.1.0
-        version: 2.1.3(33b5bd87014f85126de9d51bf49f89ed)
+        version: 2.1.3(7521466444e9b7416bbc941750a3b40d)
       '@tanstack/react-query':
         specifier: ~5.59.20
         version: 5.59.20(react@19.0.3)
@@ -48,12 +52,9 @@ importers:
       '@uniswap/v2-sdk':
         specifier: ~4.6.2
         version: 4.6.2
-      '@zama-fhe/relayer-sdk':
-        specifier: 0.4.0-4
-        version: 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@zama-fhe/sdk':
-        specifier: file:../../../react-sdk
-        version: file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3))(@tanstack/react-query@5.59.20(react@19.0.3))(bufferutil@4.0.9)(react@19.0.3)(utf-8-validate@5.0.10)
+      '@zama-fhe/react-sdk':
+        specifier: file:../../zama-fhe-react-sdk-0.1.0.tgz
+        version: file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.59.20(react@19.0.3))(bufferutil@4.0.9)(react@19.0.3)(utf-8-validate@5.0.10)(viem@2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       blo:
         specifier: ~1.2.0
         version: 1.2.0
@@ -71,25 +72,25 @@ importers:
         version: 5.0.2(undici@5.29.0)
       next:
         specifier: 16.0.7
-        version: 16.0.7(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+        version: 16.0.7(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       next-nprogress-bar:
         specifier: ~2.3.16
         version: 2.3.16
       next-themes:
         specifier: ~0.3.0
-        version: 0.3.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+        version: 0.3.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       qrcode.react:
         specifier: ~4.0.1
         version: 4.0.1(react@19.0.3)
       react:
-        specifier: ^19.0.3
+        specifier: 19.0.3
         version: 19.0.3
       react-dom:
-        specifier: ^19.0.3
-        version: 19.2.1(react@19.0.3)
+        specifier: 19.0.3
+        version: 19.0.3(react@19.0.3)
       react-hot-toast:
         specifier: ~2.4.1
-        version: 2.4.1(csstype@3.2.3)(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+        version: 2.4.1(csstype@3.2.3)(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       usehooks-ts:
         specifier: ~3.1.1
         version: 3.1.1(react@19.0.3)
@@ -166,9 +167,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.59.20(react@19.2.3)
-      '@zama-fhe/sdk':
-        specifier: file:../../../react-sdk
-        version: file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3))(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)
+      '@zama-fhe/react-sdk':
+        specifier: file:../../zama-fhe-react-sdk-0.1.0.tgz
+        version: file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       ethers:
         specifier: ^6.13.4
         version: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -221,9 +222,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.59.20(react@19.2.3)
-      '@zama-fhe/sdk':
-        specifier: file:../../../react-sdk
-        version: file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3))(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)
+      '@zama-fhe/react-sdk':
+        specifier: file:../../zama-fhe-react-sdk-0.1.0.tgz
+        version: file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       react:
         specifier: ^19.2.0
         version: 19.2.3
@@ -276,9 +277,9 @@ importers:
       '@tanstack/react-query':
         specifier: latest
         version: 5.90.20(react@19.2.3)
-      '@zama-fhe/sdk':
-        specifier: file:../../../react-sdk
-        version: file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3))(@tanstack/react-query@5.90.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)
+      '@zama-fhe/react-sdk':
+        specifier: file:../../zama-fhe-react-sdk-0.1.0.tgz
+        version: file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.90.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       react:
         specifier: latest
         version: 19.2.3
@@ -3573,30 +3574,51 @@ packages:
   '@web3-storage/car-block-validator@1.2.2':
     resolution: {integrity: sha512-lR9l+ZszhTid5HfZE8ohnGf2RJp2kaBOnoejmsACs3iTNiy+3K09dnPm8MhgBE9RCIgPBKM0CCWXO9l+I6jrKA==}
 
+  '@zama-fhe/core-sdk@file:zama-fhe-core-sdk-0.1.0.tgz':
+    resolution: {integrity: sha512-MvofejvblMNUzzna8E1HMFJAQYsHOR/392rNUdJjdsfnEl3lpMlg2ksSEUDYkn52aumWpvsigNgc9DFK1b0Xrw==, tarball: file:zama-fhe-core-sdk-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      ethers: ^6.0.0
+      viem: ^2.0.0
+    peerDependenciesMeta:
+      ethers:
+        optional: true
+      viem:
+        optional: true
+
   '@zama-fhe/oracle-solidity@0.1.0':
     resolution: {integrity: sha512-phRego2FW7SWgneQOES/iQ99c97ZCb+KZk5m+lT474dSNrsgEDh96W9T1+Owhc9C6VKtCpMLM43dHXwKHDIw6g==}
+
+  '@zama-fhe/react-sdk@file:zama-fhe-react-sdk-0.1.0.tgz':
+    resolution: {integrity: sha512-bIaxXNBlunSI+w1sRmQnG+j96z/5+BMVYDdkVMiqFmrTX0t2jswAwbVSqlNBnMQXnJAjNxx+lg1MJpGXBUyGUg==, tarball: file:zama-fhe-react-sdk-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@fhevm/mock-utils': ^0.4.0
+      '@tanstack/react-query': '>=5.0.0'
+      react: '>=16.8.0'
+    peerDependenciesMeta:
+      '@fhevm/mock-utils':
+        optional: true
+      '@tanstack/react-query':
+        optional: true
+      react:
+        optional: true
 
   '@zama-fhe/relayer-sdk@0.3.0-8':
     resolution: {integrity: sha512-Y0NJcijV/3YJc0KulEHF1oPIWPuaOanWRyr+pNVthnRaaRrrH9HKUdaPPB9uw3vb2CEihAeysLKtmqEtcArPXQ==}
     engines: {node: '>=22'}
     hasBin: true
 
-  '@zama-fhe/relayer-sdk@0.4.0-4':
-    resolution: {integrity: sha512-F4B4QQesRcYeUzpLSyZ+P5x9y2ALwkVL/xTSt3nsFknp33YpyDkV9BhGNz4qt8C5XQh15OvwbYyVPXuv7cggDA==}
+  '@zama-fhe/relayer-sdk@0.4.0':
+    resolution: {integrity: sha512-gWk9lubkL1UFVuaZcjtKmGUzed9ki+s/lfUpp4MoHDjhmRnpos04fk1xjpEfCTJo9fu4/FpkQ8dw/RqySzotkg==}
     engines: {node: '>=22'}
     hasBin: true
 
-  '@zama-fhe/sdk@file:../react-sdk':
-    resolution: {directory: ../react-sdk, type: directory}
-    peerDependencies:
-      '@fhevm/mock-utils': ^0.3.0-4
-      '@tanstack/react-query': '>=5.0.0'
-      react: '>=16.8.0'
-    peerDependenciesMeta:
-      '@tanstack/react-query':
-        optional: true
-      react:
-        optional: true
+  '@zama-fhe/shared@file:zama-fhe-shared-0.1.0.tgz':
+    resolution: {integrity: sha512-5LvEmJrE7JCJ/UVrhT3dRyKOnY1Eci9d2kEMAOl0YEU4y8S/LMX5eUXdZLV4JA5EbnqQOTTSqqfriYiLYlQj7A==, tarball: file:zama-fhe-shared-0.1.0.tgz}
+    version: 0.1.0
 
   abbrev@1.0.9:
     resolution: {integrity: sha512-LEyx4aLEC3x6T0UguF6YILf+ntvmOaWsVfENmIW0E9H09vKlLDGelMjjSm0jkDHALj8A8quZ/HapKNigzwge+Q==}
@@ -5110,6 +5132,10 @@ packages:
 
   ethers@6.15.0:
     resolution: {integrity: sha512-Kf/3ZW54L4UT0pZtsY/rf+EkBU7Qi5nnhonjUb8yTXcxH3cdcWrV2cRyk0Xk/4jK6OoHhxxZHriyhje20If2hQ==}
+    engines: {node: '>=14.0.0'}
+
+  ethers@6.16.0:
+    resolution: {integrity: sha512-U1wulmetNymijEhpSEQ7Ct/P/Jw9/e7R1j5XIbPRydgV2DjLVMsULDlNksq3RQnFgKoLlZf88ijYtWEXcPa07A==}
     engines: {node: '>=14.0.0'}
 
   ethjs-unit@0.1.6:
@@ -7339,10 +7365,10 @@ packages:
       react: '>= 0.14.0'
       react-dom: '>= 0.14.0'
 
-  react-dom@19.2.1:
-    resolution: {integrity: sha512-ibrK8llX2a4eOskq1mXKu/TGZj9qzomO+sNfO98M6d9zIPOEhlBkMkBUBLd1vgS0gQsLDBzA+8jJBVXDnfHmJg==}
+  react-dom@19.0.3:
+    resolution: {integrity: sha512-a7ezLfxibhu6fZBVLwy6WEd3Jn/4H8JYVO8K8GtBfRf1Pl+ox7KFoMCzAGlxLZUXo0t44YZShzhhoDH3yMVdxQ==}
     peerDependencies:
-      react: ^19.2.1
+      react: ^19.0.3
 
   react-dom@19.2.3:
     resolution: {integrity: sha512-yELu4WmLPw5Mr/lmeEpox5rw3RETacE++JgHqQzd2dg+YbJuat3jH4ingc+WPZhxaoFzdv9y33G+F7Nl5O0GBg==}
@@ -7550,6 +7576,9 @@ packages:
   sc-istanbul@0.4.6:
     resolution: {integrity: sha512-qJFF/8tW/zJsbyfh/iT/ZM5QNHE3CXxtLJbZsL+CzdJLBsPD7SedJZoUA4d8iAcN2IoMp/Dx80shOOd2x96X/g==}
     hasBin: true
+
+  scheduler@0.25.0:
+    resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
 
   scheduler@0.27.0:
     resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
@@ -9858,20 +9887,6 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.3
 
-  '@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)':
-    dependencies:
-      '@zama-fhe/relayer-sdk': 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.8.3
-
-  '@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3)':
-    dependencies:
-      '@zama-fhe/relayer-sdk': 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.9.3
-
   '@fhevm/solidity@0.10.0':
     dependencies:
       encrypted-types: 0.0.4
@@ -9888,18 +9903,18 @@ snapshots:
       '@floating-ui/core': 1.7.3
       '@floating-ui/utils': 0.2.10
 
-  '@floating-ui/react-dom@2.1.6(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@floating-ui/react-dom@2.1.6(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       '@floating-ui/dom': 1.7.4
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
-  '@floating-ui/react@0.26.28(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@floating-ui/react@0.26.28(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
-      '@floating-ui/react-dom': 2.1.6(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@floating-ui/react-dom': 2.1.6(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@floating-ui/utils': 0.2.10
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
       tabbable: 6.4.0
 
   '@floating-ui/utils@0.2.10': {}
@@ -9931,21 +9946,21 @@ snapshots:
 
   '@hcaptcha/loader@2.3.0': {}
 
-  '@hcaptcha/react-hcaptcha@1.17.4(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@hcaptcha/react-hcaptcha@1.17.4(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       '@babel/runtime': 7.28.4
       '@hcaptcha/loader': 2.3.0
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
-  '@headlessui/react@2.2.9(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@headlessui/react@2.2.9(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
-      '@floating-ui/react': 0.26.28(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@react-aria/focus': 3.21.3(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@react-aria/interactions': 3.26.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@tanstack/react-virtual': 3.13.18(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@floating-ui/react': 0.26.28(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@react-aria/focus': 3.21.3(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@react-aria/interactions': 3.26.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@tanstack/react-virtual': 3.13.18(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
       use-sync-external-store: 1.6.0(react@19.0.3)
 
   '@heroicons/react@2.1.5(react@19.0.3)':
@@ -10310,10 +10325,10 @@ snapshots:
       - encoding
       - supports-color
 
-  '@marsidev/react-turnstile@1.4.1(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@marsidev/react-turnstile@1.4.1(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
   '@metamask/abi-utils@2.0.4':
     dependencies:
@@ -10880,15 +10895,15 @@ snapshots:
 
   '@privy-io/popup@0.0.2': {}
 
-  '@privy-io/react-auth@3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.2.1(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)':
+  '@privy-io/react-auth@3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.0.3(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)':
     dependencies:
       '@base-org/account': 1.1.1(@types/react@19.0.14)(bufferutil@4.0.9)(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)
       '@coinbase/wallet-sdk': 4.3.2
-      '@floating-ui/react': 0.26.28(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@hcaptcha/react-hcaptcha': 1.17.4(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@headlessui/react': 2.2.9(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@floating-ui/react': 0.26.28(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@hcaptcha/react-hcaptcha': 1.17.4(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@headlessui/react': 2.2.9(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@heroicons/react': 2.1.5(react@19.0.3)
-      '@marsidev/react-turnstile': 1.4.1(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@marsidev/react-turnstile': 1.4.1(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@privy-io/api-base': 1.8.1
       '@privy-io/api-types': 0.3.4
       '@privy-io/chains': 0.0.6
@@ -10899,7 +10914,7 @@ snapshots:
       '@privy-io/urls': 0.0.3
       '@scure/base': 1.2.6
       '@simplewebauthn/browser': 13.2.2
-      '@tanstack/react-virtual': 3.13.18(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@tanstack/react-virtual': 3.13.18(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@wallet-standard/app': 1.1.0
       '@walletconnect/ethereum-provider': 2.22.4(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react@19.0.3)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       '@walletconnect/universal-provider': 2.22.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5)
@@ -10913,10 +10928,10 @@ snapshots:
       pino-pretty: 10.3.1
       qrcode: 1.5.3
       react: 19.0.3
-      react-device-detect: 2.2.3(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      react-dom: 19.2.1(react@19.0.3)
+      react-device-detect: 2.2.3(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
       secure-password-utilities: 0.2.1
-      styled-components: 6.3.8(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      styled-components: 6.3.8(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       stylis: 4.3.6
       tinycolor2: 1.6.0
       uuid: 9.0.1
@@ -10972,9 +10987,9 @@ snapshots:
 
   '@privy-io/urls@0.0.3': {}
 
-  '@privy-io/wagmi@2.1.3(33b5bd87014f85126de9d51bf49f89ed)':
+  '@privy-io/wagmi@2.1.3(7521466444e9b7416bbc941750a3b40d)':
     dependencies:
-      '@privy-io/react-auth': 3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.2.1(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)
+      '@privy-io/react-auth': 3.11.0(@solana-program/system@0.10.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana-program/token@0.9.0(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)))(@solana/kit@5.4.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10))(@solana/sysvars@5.4.0(typescript@5.8.3))(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react-dom@19.0.3(react@19.0.3))(react@19.0.3)(typescript@5.8.3)(use-sync-external-store@1.4.0(react@19.0.3))(utf-8-validate@5.0.10)(zod@4.3.5)
       react: 19.0.3
       viem: 2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       wagmi: 2.19.5(@tanstack/query-core@5.90.20)(@tanstack/react-query@5.59.20(react@19.0.3))(@types/react@19.0.14)(bufferutil@4.0.9)(encoding@0.1.13)(react@19.0.3)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5)
@@ -11002,32 +11017,32 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@react-aria/focus@3.21.3(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@react-aria/focus@3.21.3(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
-      '@react-aria/interactions': 3.26.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
-      '@react-aria/utils': 3.32.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@react-aria/interactions': 3.26.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
+      '@react-aria/utils': 3.32.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@react-types/shared': 3.32.1(react@19.0.3)
       '@swc/helpers': 0.5.15
       clsx: 2.1.1
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
-  '@react-aria/interactions@3.26.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@react-aria/interactions@3.26.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       '@react-aria/ssr': 3.9.10(react@19.0.3)
-      '@react-aria/utils': 3.32.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)
+      '@react-aria/utils': 3.32.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)
       '@react-stately/flags': 3.1.2
       '@react-types/shared': 3.32.1(react@19.0.3)
       '@swc/helpers': 0.5.15
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
   '@react-aria/ssr@3.9.10(react@19.0.3)':
     dependencies:
       '@swc/helpers': 0.5.15
       react: 19.0.3
 
-  '@react-aria/utils@3.32.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@react-aria/utils@3.32.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       '@react-aria/ssr': 3.9.10(react@19.0.3)
       '@react-stately/flags': 3.1.2
@@ -11036,7 +11051,7 @@ snapshots:
       '@swc/helpers': 0.5.15
       clsx: 2.1.1
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
   '@react-stately/flags@3.1.2':
     dependencies:
@@ -12922,11 +12937,11 @@ snapshots:
       '@tanstack/query-core': 5.90.20
       react: 19.2.3
 
-  '@tanstack/react-virtual@3.13.18(react-dom@19.2.1(react@19.0.3))(react@19.0.3)':
+  '@tanstack/react-virtual@3.13.18(react-dom@19.0.3(react@19.0.3))(react@19.0.3)':
     dependencies:
       '@tanstack/virtual-core': 3.13.18
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
   '@tanstack/virtual-core@3.13.18': {}
 
@@ -15543,11 +15558,78 @@ snapshots:
       multiformats: 13.4.1
       uint8arrays: 5.1.0
 
+  '@zama-fhe/core-sdk@file:zama-fhe-core-sdk-0.1.0.tgz(bufferutil@4.0.9)(ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)(viem@2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+    dependencies:
+      '@zama-fhe/relayer-sdk': 0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+    optionalDependencies:
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      viem: 2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@zama-fhe/core-sdk@file:zama-fhe-core-sdk-0.1.0.tgz(bufferutil@4.0.9)(ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+    dependencies:
+      '@zama-fhe/relayer-sdk': 0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+    optionalDependencies:
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      viem: 2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@zama-fhe/oracle-solidity@0.1.0(@openzeppelin/contracts@5.4.0)':
     dependencies:
       '@openzeppelin/contracts-upgradeable': 5.4.0(@openzeppelin/contracts@5.4.0)
     transitivePeerDependencies:
       - '@openzeppelin/contracts'
+
+  '@zama-fhe/react-sdk@file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.59.20(react@19.0.3))(bufferutil@4.0.9)(react@19.0.3)(utf-8-validate@5.0.10)(viem@2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+    dependencies:
+      '@zama-fhe/core-sdk': file:zama-fhe-core-sdk-0.1.0.tgz(bufferutil@4.0.9)(ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)(viem@2.41.2(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      '@zama-fhe/relayer-sdk': 0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      idb: 8.0.3
+    optionalDependencies:
+      '@tanstack/react-query': 5.59.20(react@19.0.3)
+      react: 19.0.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - viem
+
+  '@zama-fhe/react-sdk@file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+    dependencies:
+      '@zama-fhe/core-sdk': file:zama-fhe-core-sdk-0.1.0.tgz(bufferutil@4.0.9)(ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      '@zama-fhe/relayer-sdk': 0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      idb: 8.0.3
+    optionalDependencies:
+      '@tanstack/react-query': 5.59.20(react@19.2.3)
+      react: 19.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - viem
+
+  '@zama-fhe/react-sdk@file:zama-fhe-react-sdk-0.1.0.tgz(@tanstack/react-query@5.90.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+    dependencies:
+      '@zama-fhe/core-sdk': file:zama-fhe-core-sdk-0.1.0.tgz(bufferutil@4.0.9)(ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      '@zama-fhe/relayer-sdk': 0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@zama-fhe/shared': file:zama-fhe-shared-0.1.0.tgz
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      idb: 8.0.3
+    optionalDependencies:
+      '@tanstack/react-query': 5.90.20(react@19.2.3)
+      react: 19.2.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - viem
 
   '@zama-fhe/relayer-sdk@0.3.0-8(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -15564,10 +15646,10 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@zama-fhe/relayer-sdk@0.4.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       commander: 14.0.2
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers: 6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       fetch-retry: 6.0.0
       keccak: 3.0.4
       node-tfhe: 1.4.0-alpha.3
@@ -15579,44 +15661,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@zama-fhe/sdk@file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3))(@tanstack/react-query@5.59.20(react@19.0.3))(bufferutil@4.0.9)(react@19.0.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@fhevm/mock-utils': 0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.8.3)
-      '@zama-fhe/relayer-sdk': 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      idb: 8.0.3
-    optionalDependencies:
-      '@tanstack/react-query': 5.59.20(react@19.0.3)
-      react: 19.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  '@zama-fhe/sdk@file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3))(@tanstack/react-query@5.59.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@fhevm/mock-utils': 0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3)
-      '@zama-fhe/relayer-sdk': 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      idb: 8.0.3
-    optionalDependencies:
-      '@tanstack/react-query': 5.59.20(react@19.2.3)
-      react: 19.2.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  '@zama-fhe/sdk@file:../react-sdk(@fhevm/mock-utils@0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3))(@tanstack/react-query@5.90.20(react@19.2.3))(bufferutil@4.0.9)(react@19.2.3)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@fhevm/mock-utils': 0.3.0-4(@zama-fhe/relayer-sdk@0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10))(ethers@6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.9.3)
-      '@zama-fhe/relayer-sdk': 0.4.0-4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      ethers: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      idb: 8.0.3
-    optionalDependencies:
-      '@tanstack/react-query': 5.90.20(react@19.2.3)
-      react: 19.2.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
+  '@zama-fhe/shared@file:zama-fhe-shared-0.1.0.tgz': {}
 
   abbrev@1.0.9: {}
 
@@ -17435,6 +17480,19 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  ethers@6.16.0(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.1
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@types/node': 22.7.5
+      aes-js: 4.0.0-beta.5
+      tslib: 2.7.0
+      ws: 8.17.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   ethjs-unit@0.1.6:
     dependencies:
       bn.js: 4.11.6
@@ -19054,19 +19112,19 @@ snapshots:
     dependencies:
       nprogress: 0.2.0
 
-  next-themes@0.3.0(react-dom@19.2.1(react@19.0.3))(react@19.0.3):
+  next-themes@0.3.0(react-dom@19.0.3(react@19.0.3))(react@19.0.3):
     dependencies:
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
-  next@16.0.7(react-dom@19.2.1(react@19.0.3))(react@19.0.3):
+  next@16.0.7(react-dom@19.0.3(react@19.0.3))(react@19.0.3):
     dependencies:
       '@next/env': 16.0.7
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001757
       postcss: 8.4.31
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
       styled-jsx: 5.1.6(react@19.0.3)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.0.7
@@ -20001,27 +20059,27 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-device-detect@2.2.3(react-dom@19.2.1(react@19.0.3))(react@19.0.3):
+  react-device-detect@2.2.3(react-dom@19.0.3(react@19.0.3))(react@19.0.3):
     dependencies:
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
       ua-parser-js: 1.0.41
 
-  react-dom@19.2.1(react@19.0.3):
+  react-dom@19.0.3(react@19.0.3):
     dependencies:
       react: 19.0.3
-      scheduler: 0.27.0
+      scheduler: 0.25.0
 
   react-dom@19.2.3(react@19.2.3):
     dependencies:
       react: 19.2.3
       scheduler: 0.27.0
 
-  react-hot-toast@2.4.1(csstype@3.2.3)(react-dom@19.2.1(react@19.0.3))(react@19.0.3):
+  react-hot-toast@2.4.1(csstype@3.2.3)(react-dom@19.0.3(react@19.0.3))(react@19.0.3):
     dependencies:
       goober: 2.1.18(csstype@3.2.3)
       react: 19.0.3
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
     transitivePeerDependencies:
       - csstype
 
@@ -20265,6 +20323,8 @@ snapshots:
       supports-color: 3.2.3
       which: 1.3.1
       wordwrap: 1.0.0
+
+  scheduler@0.25.0: {}
 
   scheduler@0.27.0: {}
 
@@ -20685,7 +20745,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  styled-components@6.3.8(react-dom@19.2.1(react@19.0.3))(react@19.0.3):
+  styled-components@6.3.8(react-dom@19.0.3(react@19.0.3))(react@19.0.3):
     dependencies:
       '@emotion/is-prop-valid': 1.4.0
       '@emotion/unitless': 0.10.0
@@ -20698,7 +20758,7 @@ snapshots:
       stylis: 4.3.6
       tslib: 2.8.1
     optionalDependencies:
-      react-dom: 19.2.1(react@19.0.3)
+      react-dom: 19.0.3(react@19.0.3)
 
   styled-jsx@5.1.6(react@19.0.3):
     dependencies:
