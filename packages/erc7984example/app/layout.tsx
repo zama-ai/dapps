@@ -1,5 +1,4 @@
-import Script from "next/script";
-import { DappWrapperWithProviders } from "~~/components/DappWrapperWithProviders";
+import { AppProviders } from "~~/app/providers";
 import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/helper/getMetadata";
@@ -9,18 +8,24 @@ export const metadata = getMetadata({
   description: "Built with FHEVM",
 });
 
-const DappWrapper = ({ children }: { children: React.ReactNode }) => {
+/**
+ * Root Layout
+ *
+ * Sets up the HTML shell with:
+ * - ThemeProvider (dark/light mode)
+ * - AppProviders (Privy, Wagmi, FHEVM, React Query)
+ *
+ * Note: Relayer SDK script is automatically loaded by FhevmProvider
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning className={``}>
-      <head></head>
+    <html suppressHydrationWarning>
+      <head />
       <body suppressHydrationWarning>
-        <Script src="https://cdn.zama.org/relayer-sdk-js/0.4.0-4/relayer-sdk-js.umd.cjs" strategy="beforeInteractive" />
         <ThemeProvider enableSystem>
-          <DappWrapperWithProviders>{children}</DappWrapperWithProviders>
+          <AppProviders>{children}</AppProviders>
         </ThemeProvider>
       </body>
     </html>
   );
-};
-
-export default DappWrapper;
+}

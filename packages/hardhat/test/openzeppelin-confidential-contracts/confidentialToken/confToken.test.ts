@@ -185,9 +185,7 @@ describe("ConfidentialToken", function () {
   describe("Constructor Parameters", function () {
     it("should handle different initial amounts", async function () {
       // Deploy a new contract with different initial amount
-      const ConfidentialTokenFactory = (await ethers.getContractFactory(
-        "ERC7984Example",
-      )) as ERC7984Example__factory;
+      const ConfidentialTokenFactory = (await ethers.getContractFactory("ERC7984Example")) as ERC7984Example__factory;
       const newToken = (await ConfidentialTokenFactory.deploy(
         500, // Different initial amount
         "Test Token",
@@ -204,9 +202,7 @@ describe("ConfidentialToken", function () {
     });
 
     it("should handle empty token URI", async function () {
-      const ConfidentialTokenFactory = (await ethers.getContractFactory(
-        "ERC7984Example",
-      )) as ERC7984Example__factory;
+      const ConfidentialTokenFactory = (await ethers.getContractFactory("ERC7984Example")) as ERC7984Example__factory;
       const newToken = (await ConfidentialTokenFactory.deploy(
         100,
         "Empty URI Token",

@@ -8,9 +8,7 @@ export async function deployBlindAuctionFixture(owner: HardhatEthersSigner) {
   const [deployer] = await ethers.getSigners();
 
   // Create Confidential ERC20
-  const USDCcFactory = (await ethers.getContractFactory(
-    "ERC7984Example",
-  )) as ERC7984Example__factory;
+  const USDCcFactory = (await ethers.getContractFactory("ERC7984Example")) as ERC7984Example__factory;
   const USDCc = (await USDCcFactory.deploy(0, "USDCc", "USDCc", "")) as ERC7984Example;
   const USDCc_address = await USDCc.getAddress();
 

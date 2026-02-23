@@ -104,7 +104,10 @@ describe("ConfidentialETHWrapper", function () {
     const amount = amountToWrap6Decimals - amountToUnwrap6Decimals;
     const encryptedAmount = await this.encryptUnwrapParam(this.signers.alice, amount);
 
-    tx = await this.confidentialETHWrapper["unwrap(bytes32,bytes)"](encryptedAmount.handles[0], encryptedAmount.inputProof);
+    tx = await this.confidentialETHWrapper["unwrap(bytes32,bytes)"](
+      encryptedAmount.handles[0],
+      encryptedAmount.inputProof,
+    );
     await tx.wait();
 
     // Finalize second unwrap
