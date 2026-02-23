@@ -14,7 +14,7 @@ const DappWrapper = ({ children }: { children: React.ReactNode }) => {
     <html suppressHydrationWarning className={``}>
       <head></head>
       <body suppressHydrationWarning>
-        <Script src="https://cdn.zama.org/relayer-sdk-js/0.4.0-4/relayer-sdk-js.umd.cjs" strategy="beforeInteractive" />
+        <Script src="https://cdn.zama.org/relayer-sdk-js/0.4.1/relayer-sdk-js.umd.cjs" strategy="beforeInteractive" />
         <ThemeProvider enableSystem>
           <DappWrapperWithProviders>{children}</DappWrapperWithProviders>
         </ThemeProvider>
