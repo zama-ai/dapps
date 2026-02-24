@@ -6,10 +6,16 @@ module.exports = {
     var filename = filePath.split("/").pop();
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/" + filename, false); // synchronous
-    xhr.responseType = "arraybuffer";
+    // Use binary string override since synchronous XHR doesn't support responseType
+    xhr.overrideMimeType("text/plain; charset=x-user-defined");
     xhr.send();
     if (xhr.status >= 200 && xhr.status < 300) {
-      return new Uint8Array(xhr.response);
+      var text = xhr.responseText;
+      var bytes = new Uint8Array(text.length);
+      for (var i = 0; i < text.length; i++) {
+        bytes[i] = text.charCodeAt(i) & 0xff;
+      }
+      return bytes;
     }
     throw new Error("fs shim: failed to load /" + filename + " (status: " + xhr.status + ")");
   },

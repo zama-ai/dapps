@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        fs: false,
+        fs: require.resolve("./empty-module.js"),
         net: false,
         tls: false,
         child_process: false,
