@@ -45,6 +45,7 @@
     "next:lint": "pnpm --filter ./packages/erc7984example lint",
     "next:serve": "pnpm --filter ./packages/erc7984example serve",
     "precommit": "lint-staged",
+    "postinstall": "sh scripts/patch-node-tkms.sh",
     "preinstall": "pnpm sdk:build",
     "start": "pnpm --filter ./packages/erc7984example dev",
     "test": "pnpm hardhat:test",

@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider as PrivyWagmiProvider, createConfig } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { sepolia } from "viem/chains";
+import { sepolia, hardhat } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
 import { WagmiProvider as StandardWagmiProvider } from "wagmi";
 import scaffoldConfig from "~~/scaffold.config";
@@ -30,28 +30,28 @@ if (!PRIVY_APP_ID && typeof window !== "undefined") {
 
 const { alchemyApiKey } = scaffoldConfig;
 
-// Use Sepolia as the primary chain (Privy doesn't work well with local hardhat)
-const activeChain = sepolia;
-
-// Build RPC URL
-const rpcUrl = alchemyApiKey
+// Build RPC URLs
+const sepoliaRpcUrl = alchemyApiKey
   ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`
   : "https://ethereum-sepolia-rpc.publicnode.com";
 
+// Include both chains — hardhat transport is harmless in production
+const chains = [sepolia, hardhat] as const;
+const transports = {
+  [sepolia.id]: http(sepoliaRpcUrl),
+  [hardhat.id]: http("http://127.0.0.1:8545"),
+};
+
 // Create Wagmi config using Privy's createConfig (for when Privy is configured)
 export const wagmiConfig = createConfig({
-  chains: [activeChain] as const,
-  transports: {
-    [activeChain.id]: http(rpcUrl),
-  } as Record<typeof activeChain.id, ReturnType<typeof http>>,
+  chains,
+  transports,
 });
 
 // Create standard Wagmi config (for fallback when Privy is not configured)
 const standardWagmiConfig = createWagmiConfig({
-  chains: [activeChain],
-  transports: {
-    [activeChain.id]: http(rpcUrl),
-  },
+  chains,
+  transports,
 });
 
 export function Providers({ children }: Props) {
@@ -74,8 +74,8 @@ export function Providers({ children }: Props) {
           },
         },
         loginMethods: ["wallet", "email"],
-        supportedChains: [activeChain],
-        defaultChain: activeChain,
+        supportedChains: [...chains],
+        defaultChain: sepolia,
         appearance: {
           showWalletLoginFirst: true,
           walletChainType: "ethereum-only",
