@@ -1,4 +1,8 @@
-import { ERC7984Demo } from "./_components/ERC7984Demo";
+"use client";
+
+import dynamic from "next/dynamic";
+
+const ERC7984Demo = dynamic(() => import("./_components/ERC7984Demo").then(m => m.ERC7984Demo), { ssr: false });
 
 export default function Home() {
   return (

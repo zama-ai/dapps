@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["fhevm-sdk"],
   // Exclude Node.js packages that are incompatible with Turbopack bundling
   serverExternalPackages: ["pino", "thread-stream", "pino-pretty"],
   // Turbopack: resolve Node.js built-ins to empty modules for client bundle

@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider as PrivyWagmiProvider, createConfig } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { sepolia, hardhat } from "viem/chains";
+import { hardhat, sepolia } from "viem/chains";
 import { createConfig as createWagmiConfig, http } from "wagmi";
 import { WagmiProvider as StandardWagmiProvider } from "wagmi";
 import scaffoldConfig from "~~/scaffold.config";
